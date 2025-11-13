@@ -1,0 +1,88 @@
+/**
+ * Admin styles for DHR Hotel Management
+ */
+
+.dhr-hotel-admin {
+    margin: 20px 0;
+}
+
+.dhr-hotel-admin .page-title-action {
+    margin-left: 10px;
+}
+
+.dhr-hotel-form {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    margin-top: 20px;
+}
+
+.dhr-hotel-form .form-table th {
+    width: 200px;
+    padding: 20px 10px 20px 0;
+}
+
+.dhr-hotel-form .form-table td {
+    padding: 15px 10px;
+}
+
+.dhr-hotel-form .required {
+    color: #dc3232;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.button-link-delete {
+    color: #a00;
+}
+
+.button-link-delete:hover {
+    color: #dc3232;
+}
+
+#upload-image-btn {
+    margin-left: 10px;
+}
+
+.dhr-shortcode-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dhr-shortcode-input {
+    font-family: monospace;
+    background-color: #f5f5f5;
+    cursor: text;
+}
+
+.dhr-copy-btn {
+    white-space: nowrap;
+    min-width: 80px;
+}
+
+.dhr-copy-btn.copied {
+    background-color: #46b450;
+    border-color: #46b450;
+    color: #fff;
+}
+
+
