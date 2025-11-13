@@ -67,7 +67,7 @@ class DHR_Hotel_Frontend {
         $atts = shortcode_atts(array(
             'province' => '',
             'city' => '',
-            'height' => '600px'
+            'height' => '531px'
         ), $atts);
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
