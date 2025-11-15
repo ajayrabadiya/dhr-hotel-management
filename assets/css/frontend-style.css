@@ -104,6 +104,7 @@ body {
     color: #FAFAFA;
     line-height: 140%;
     margin: 0 0 40px 0;
+    max-width: 414px;
 }
 
 .dhr-hotels-list {
