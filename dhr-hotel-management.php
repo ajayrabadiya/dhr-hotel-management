@@ -9,6 +9,7 @@
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: dhr-hotel-management
+ * Network: true
  */
 
 // Exit if accessed directly
@@ -46,8 +47,11 @@ class DHR_Hotel_Management {
     
     private function init_hooks() {
         // Activation and deactivation hooks
-        register_activation_hook(__FILE__, array('DHR_Hotel_Database', 'create_tables'));
+        register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
+        
+        // Hook for new site creation in multisite
+        add_action('wpmu_new_blog', array($this, 'new_site_activation'), 10, 6);
         
         // Initialize admin
         if (is_admin()) {
@@ -58,8 +62,56 @@ class DHR_Hotel_Management {
         new DHR_Hotel_Frontend();
     }
     
-    public function deactivate() {
+    /**
+     * Activate plugin for single site or network
+     */
+    public function activate($network_wide = false) {
+        if (is_multisite() && $network_wide) {
+            // Network activation - create tables for all sites
+            $this->network_activate();
+        } else {
+            // Single site activation
+            DHR_Hotel_Database::create_tables();
+        }
+    }
+    
+    /**
+     * Network activation - create tables for all existing sites
+     */
+    public function network_activate() {
+        if (!is_multisite()) {
+            return;
+        }
+        
+        global $wpdb;
+        
+        // Get all site IDs
+        $site_ids = $wpdb->get_col("SELECT blog_id FROM {$wpdb->blogs}");
+        
+        foreach ($site_ids as $site_id) {
+            switch_to_blog($site_id);
+            DHR_Hotel_Database::create_tables();
+            restore_current_blog();
+        }
+    }
+    
+    /**
+     * Handle new site creation in multisite
+     */
+    public function new_site_activation($blog_id, $user_id, $domain, $path, $site_id, $meta) {
+        if (is_plugin_active_for_network(plugin_basename(__FILE__))) {
+            switch_to_blog($blog_id);
+            DHR_Hotel_Database::create_tables();
+            restore_current_blog();
+        }
+    }
+    
+    /**
+     * Deactivate plugin
+     */
+    public function deactivate($network_wide) {
         // Cleanup if needed
+        // Note: Tables are not dropped on deactivation, only on uninstall
     }
 }
 
