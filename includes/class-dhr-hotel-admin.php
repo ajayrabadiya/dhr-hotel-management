@@ -16,6 +16,8 @@ class DHR_Hotel_Admin {
         add_action('admin_post_dhr_delete_hotel', array($this, 'delete_hotel'));
         add_action('admin_post_dhr_save_settings', array($this, 'save_settings'));
         add_action('admin_post_dhr_insert_sample_data', array($this, 'insert_sample_data'));
+        add_action('admin_post_dhr_save_map_config', array($this, 'save_map_config'));
+        add_action('admin_post_dhr_create_default_maps', array($this, 'create_default_maps'));
     }
     
     /**
@@ -66,6 +68,15 @@ class DHR_Hotel_Admin {
             'manage_options',
             'dhr-hotel-sample-data',
             array($this, 'display_sample_data_page')
+        );
+        
+        add_submenu_page(
+            'dhr-hotel-management',
+            __('Map Management', 'dhr-hotel-management'),
+            __('Map Management', 'dhr-hotel-management'),
+            'manage_options',
+            'dhr-hotel-map-management',
+            array($this, 'display_map_management')
         );
     }
     
@@ -465,6 +476,106 @@ class DHR_Hotel_Admin {
             'skipped' => $skipped,
             'total' => count($hotels)
         ), 30);
+    }
+    
+    /**
+     * Display map management page
+     */
+    public function display_map_management() {
+        // Ensure tables exist
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'dhr_map_configs';
+        
+        // Check if table exists, if not create it
+        $table_exists = $wpdb->get_var($wpdb->prepare(
+            "SHOW TABLES LIKE %s",
+            $table_name
+        ));
+        
+        if (!$table_exists) {
+            DHR_Hotel_Database::create_tables();
+        }
+        
+        // Get map configs
+        $map_configs = DHR_Hotel_Database::get_all_map_configs();
+        
+        // If no maps exist, try to create them
+        if (empty($map_configs)) {
+            DHR_Hotel_Database::create_default_map_configs();
+            $map_configs = DHR_Hotel_Database::get_all_map_configs();
+        }
+        
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/map-management.php';
+    }
+    
+    /**
+     * Save map configuration
+     */
+    public function save_map_config() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        
+        check_admin_referer('dhr_map_config_nonce');
+        
+        $map_id = isset($_POST['map_id']) ? intval($_POST['map_id']) : 0;
+        $settings = array();
+        
+        // Get all POST data and build settings array
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, 'setting_') === 0) {
+                $setting_key = str_replace('setting_', '', $key);
+                $settings[$setting_key] = sanitize_text_field($value);
+            }
+        }
+        
+        // Handle textarea fields
+        if (isset($_POST['setting_description'])) {
+            $settings['description'] = sanitize_textarea_field($_POST['setting_description']);
+        }
+        if (isset($_POST['setting_description_text'])) {
+            $settings['description_text'] = sanitize_textarea_field($_POST['setting_description_text']);
+        }
+        
+        // Handle URL fields
+        if (isset($_POST['setting_google_maps_url'])) {
+            $settings['google_maps_url'] = esc_url_raw($_POST['setting_google_maps_url']);
+        }
+        if (isset($_POST['setting_view_on_google_maps_link'])) {
+            $settings['view_on_google_maps_link'] = esc_url_raw($_POST['setting_view_on_google_maps_link']);
+        }
+        
+        $data = array(
+            'map_name' => isset($_POST['map_name']) ? sanitize_text_field($_POST['map_name']) : '',
+            'settings' => $settings,
+            'status' => isset($_POST['status']) ? sanitize_text_field($_POST['status']) : 'active'
+        );
+        
+        $result = DHR_Hotel_Database::update_map_config($map_id, $data);
+        $message = $result ? 'updated' : 'error';
+        
+        wp_redirect(admin_url('admin.php?page=dhr-hotel-map-management&message=' . $message));
+        exit;
+    }
+    
+    /**
+     * Create default maps
+     */
+    public function create_default_maps() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        
+        check_admin_referer('dhr_create_default_maps_nonce');
+        
+        // Ensure table exists
+        DHR_Hotel_Database::create_tables();
+        
+        // Create default maps
+        DHR_Hotel_Database::create_default_map_configs();
+        
+        wp_redirect(admin_url('admin.php?page=dhr-hotel-map-management&message=maps_created'));
+        exit;
     }
 }
 

@@ -145,6 +145,13 @@
             return;
         }
 
+        // Check if the map element exists
+        var mapElement = document.getElementById('dhr-hotel-map');
+        if (!mapElement) {
+            // Map element doesn't exist, this script is not needed
+            return;
+        }
+
         if (!dhrHotelsData || !dhrHotelsData.hotels || dhrHotelsData.hotels.length === 0) {
             console.warn('No hotels data available');
             return;

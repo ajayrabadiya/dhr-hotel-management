@@ -39,54 +39,52 @@
             }
         });
         
-        // Copy shortcode to clipboard
-        $('#dhr-copy-shortcode-btn').on('click', function(e) {
+        // Copy shortcode to clipboard (for all copy buttons)
+        $(document).on('click', '.dhr-copy-btn', function(e) {
             e.preventDefault();
             
             var button = $(this);
-            var shortcodeInput = $('#dhr-shortcode-input');
-            var shortcode = shortcodeInput.val();
+            var shortcode = button.data('shortcode') || button.siblings('.dhr-shortcode-input').val();
+            var shortcodeInput = button.siblings('.dhr-shortcode-input');
             
-            // Select the text
-            shortcodeInput.select();
-            shortcodeInput[0].setSelectionRange(0, 99999); // For mobile devices
+            if (shortcodeInput.length > 0) {
+                shortcodeInput.select();
+                shortcodeInput[0].setSelectionRange(0, 99999); // For mobile devices
+            }
             
             try {
                 // Copy to clipboard
-                document.execCommand('copy');
-                
-                // Update button state
-                button.addClass('copied');
-                button.find('.dhr-copy-text').hide();
-                button.find('.dhr-copied-text').show();
-                
-                // Reset button after 2 seconds
-                setTimeout(function() {
-                    button.removeClass('copied');
-                    button.find('.dhr-copy-text').show();
-                    button.find('.dhr-copied-text').hide();
-                }, 2000);
-                
-            } catch (err) {
-                // Fallback for browsers that don't support execCommand
-                // Try modern clipboard API
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(shortcode).then(function() {
-                        button.addClass('copied');
-                        button.find('.dhr-copy-text').hide();
-                        button.find('.dhr-copied-text').show();
-                        
-                        setTimeout(function() {
-                            button.removeClass('copied');
-                            button.find('.dhr-copy-text').show();
-                            button.find('.dhr-copied-text').hide();
-                        }, 2000);
+                        updateCopyButton(button);
                     });
+                } else {
+                    document.execCommand('copy');
+                    updateCopyButton(button);
+                }
+            } catch (err) {
+                // Fallback
+                if (shortcodeInput.length > 0) {
+                    shortcodeInput.select();
+                    document.execCommand('copy');
+                    updateCopyButton(button);
                 } else {
                     alert('Unable to copy. Please select and copy manually.');
                 }
             }
         });
+        
+        function updateCopyButton(button) {
+            button.addClass('copied');
+            button.find('.dhr-copy-text').hide();
+            button.find('.dhr-copied-text').show();
+            
+            setTimeout(function() {
+                button.removeClass('copied');
+                button.find('.dhr-copy-text').show();
+                button.find('.dhr-copied-text').hide();
+            }, 2000);
+        }
         
     });
     

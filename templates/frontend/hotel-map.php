@@ -12,10 +12,10 @@ if (!defined('ABSPATH')) {
     <div class="dhr-hotel-info-panel">
         <div class="dhr-hotel-info-content">
             <?php
-            // Get dynamic settings with defaults
-            $location_heading = get_option('dhr_hotel_location_heading', 'LOCATED IN THE WESTERN CAPE');
-            $main_heading = get_option('dhr_hotel_main_heading', 'Find Us');
-            $description_text = get_option('dhr_hotel_description_text', 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.');
+            // Get dynamic settings from map config or fallback to options
+            $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : get_option('dhr_hotel_location_heading', 'LOCATED IN THE WESTERN CAPE');
+            $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : get_option('dhr_hotel_main_heading', 'Find Us');
+            $description_text = isset($settings['description_text']) ? $settings['description_text'] : get_option('dhr_hotel_description_text', 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.');
             ?>
             <?php if (!empty($location_heading)): ?>
                 <h2 class="dhr-location-heading"><?php echo esc_html($location_heading); ?></h2>
@@ -30,8 +30,8 @@ if (!defined('ABSPATH')) {
             <?php endif; ?>
 
             <?php
-            // Get View On Google Maps link
-            $view_on_google_maps_link = get_option('dhr_hotel_view_on_google_maps_link', '');
+            // Get View On Google Maps link from settings or options
+            $view_on_google_maps_link = isset($settings['view_on_google_maps_link']) ? $settings['view_on_google_maps_link'] : get_option('dhr_hotel_view_on_google_maps_link', '');
             
             // If no link is set, use first hotel's Google Maps URL as fallback
             if (empty($view_on_google_maps_link) && !empty($hotels) && isset($hotels[0]) && !empty($hotels[0]->google_maps_url)) {
@@ -72,9 +72,9 @@ if (!defined('ABSPATH')) {
             <?php //endif; ?>
 
             <?php
-            // Get reservation settings
-            $reservation_label = get_option('dhr_hotel_reservation_label', 'RESERVATION BY PHONE');
-            $reservation_phone = get_option('dhr_hotel_reservation_phone', '');
+            // Get reservation settings from map config or options
+            $reservation_label = isset($settings['reservation_label']) ? $settings['reservation_label'] : get_option('dhr_hotel_reservation_label', 'RESERVATION BY PHONE');
+            $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservation_phone'] : get_option('dhr_hotel_reservation_phone', '');
 
             // Use setting phone if available, otherwise fall back to first hotel's phone
             $display_phone = !empty($reservation_phone) ? $reservation_phone : '';

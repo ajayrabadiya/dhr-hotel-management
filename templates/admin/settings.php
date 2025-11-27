@@ -114,26 +114,41 @@ $view_on_google_maps_link = get_option('dhr_hotel_view_on_google_maps_link', '')
                 </td>
             </tr>
             <tr>
-                <th><label><?php _e('Shortcode', 'dhr-hotel-management'); ?></label></th>
+                <th><label><?php _e('All Map Shortcodes', 'dhr-hotel-management'); ?></label></th>
                 <td>
-                    <div class="dhr-shortcode-wrapper">
-                        <input type="text" id="dhr-shortcode-input" 
-                               class="regular-text dhr-shortcode-input" 
-                               value="[dhr_hotel_map]" 
-                               readonly>
-                        <button type="button" id="dhr-copy-shortcode-btn" 
-                                class="button dhr-copy-btn" 
-                                data-shortcode="[dhr_hotel_map]">
-                            <span class="dhr-copy-text"><?php _e('Copy', 'dhr-hotel-management'); ?></span>
-                            <span class="dhr-copied-text" style="display: none;"><?php _e('Copied!', 'dhr-hotel-management'); ?></span>
-                        </button>
-                    </div>
-                    <p class="description">
-                        <?php _e('Use this shortcode to display the hotel map on any page or post. You can also use attributes:', 'dhr-hotel-management'); ?>
-                        <code>[dhr_hotel_map province="Western Cape"]</code>, 
-                        <code>[dhr_hotel_map city="Cape Town"]</code>, 
-                        <code>[dhr_hotel_map height="800px"]</code>
-                    </p>
+                    <?php 
+                    $all_maps = DHR_Hotel_Database::get_all_map_configs();
+                    if (!empty($all_maps)): 
+                    ?>
+                        <div class="dhr-all-shortcodes">
+                            <?php foreach ($all_maps as $map): ?>
+                                <div class="dhr-shortcode-item" style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                        <?php echo esc_html($map->map_name); ?>:
+                                    </label>
+                                    <div class="dhr-shortcode-wrapper">
+                                        <input type="text" 
+                                               class="regular-text dhr-shortcode-input" 
+                                               value="[<?php echo esc_attr($map->shortcode); ?>]" 
+                                               readonly>
+                                        <button type="button" 
+                                                class="button dhr-copy-btn" 
+                                                data-shortcode="[<?php echo esc_attr($map->shortcode); ?>]">
+                                            <span class="dhr-copy-text"><?php _e('Copy', 'dhr-hotel-management'); ?></span>
+                                            <span class="dhr-copied-text" style="display: none;"><?php _e('Copied!', 'dhr-hotel-management'); ?></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="description">
+                            <?php _e('Use these shortcodes to display different map types on any page or post. Visit', 'dhr-hotel-management'); ?>
+                            <a href="<?php echo admin_url('admin.php?page=dhr-hotel-map-management'); ?>"><?php _e('Map Management', 'dhr-hotel-management'); ?></a>
+                            <?php _e('to configure each map\'s settings.', 'dhr-hotel-management'); ?>
+                        </p>
+                    <?php else: ?>
+                        <p><?php _e('No maps configured yet.', 'dhr-hotel-management'); ?></p>
+                    <?php endif; ?>
                 </td>
             </tr>
         </table>

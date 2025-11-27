@@ -540,3 +540,494 @@ body {
         opacity: 0.3;
     }
 }
+
+/* ============================================
+   Map 2: Head Office Map Styles
+   ============================================ */
+.dhr-head-office-map-container {
+    display: flex;
+    width: 100%;
+    min-height: 400px;
+    font-family: "Open Sans", sans-serif !important;
+}
+
+.dhr-head-office-info {
+    flex: 0 0 40%;
+    background: #fff;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dhr-head-office-title {
+    font-size: 32px;
+    font-weight: 400;
+    color: #333;
+    margin: 0 0 20px 0;
+}
+
+.dhr-head-office-address {
+    font-size: 16px;
+    color: #666;
+    margin: 0 0 30px 0;
+}
+
+.dhr-google-maps-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: #0066CC;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.dhr-google-maps-btn:hover {
+    background: #0052A3;
+}
+
+.dhr-head-office-map-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.dhr-head-office-map {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+}
+
+@media (max-width: 768px) {
+    .dhr-head-office-map-container {
+        flex-direction: column;
+    }
+    .dhr-head-office-info {
+        flex: 0 0 auto;
+    }
+}
+
+/* ============================================
+   Map 3: Partner Portfolio Map Styles
+   ============================================ */
+.dhr-partner-portfolio-map-container {
+    display: flex;
+    width: 100%;
+    min-height: 600px;
+    background: #B8D4E8;
+    font-family: "Open Sans", sans-serif !important;
+}
+
+.dhr-partner-portfolio-content {
+    flex: 0 0 40%;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dhr-overview-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #666;
+    margin: 0 0 15px 0;
+}
+
+.dhr-partner-main-heading {
+    font-size: 36px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 20px 0;
+}
+
+.dhr-partner-description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #555;
+    margin: 0 0 30px 0;
+}
+
+.dhr-partner-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dhr-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dhr-legend-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dhr-legend-cityblue {
+    background: #0066CC;
+}
+
+.dhr-legend-dream {
+    background: #66B3FF;
+}
+
+.dhr-legend-lodges {
+    background: #0066CC;
+}
+
+.dhr-legend-weddings {
+    background: #FF6B35;
+}
+
+.dhr-legend-text {
+    font-size: 14px;
+    color: #333;
+}
+
+.dhr-partner-portfolio-map-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.dhr-partner-portfolio-map {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+}
+
+@media (max-width: 768px) {
+    .dhr-partner-portfolio-map-container {
+        flex-direction: column;
+    }
+    .dhr-partner-portfolio-content {
+        flex: 0 0 auto;
+        padding: 40px 20px;
+    }
+}
+
+/* ============================================
+   Map 4: Dining Venue Map Styles
+   ============================================ */
+.dhr-dining-venue-map-container {
+    display: flex;
+    width: 100%;
+    min-height: 600px;
+    background: #B8E6B8;
+    font-family: "Open Sans", sans-serif !important;
+}
+
+.dhr-dining-venue-content {
+    flex: 0 0 40%;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dhr-dining-overview-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(0, 0, 0, 0.3);
+    margin: 0 0 15px 0;
+}
+
+.dhr-dining-main-heading {
+    font-size: 36px;
+    font-weight: 300;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0 0 20px 0;
+}
+
+.dhr-dining-description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0 0 30px 0;
+}
+
+.dhr-dining-reservation {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.dhr-dining-phone-icon {
+    color: #462801;
+    display: inline-flex;
+}
+
+.dhr-dining-reservation-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0 0 5px 0;
+}
+
+.dhr-dining-phone-number {
+    font-size: 18px;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0;
+}
+
+.dhr-dining-venue-map-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.dhr-dining-venue-map {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+}
+
+@media (max-width: 768px) {
+    .dhr-dining-venue-map-container {
+        flex-direction: column;
+    }
+    .dhr-dining-venue-content {
+        flex: 0 0 auto;
+        padding: 40px 20px;
+    }
+}
+
+/* ============================================
+   Map 5: Wedding Venue Map Styles
+   ============================================ */
+.dhr-wedding-venue-map-container {
+    display: flex;
+    width: 100%;
+    min-height: 600px;
+    background: #B8D4E8;
+    font-family: "Open Sans", sans-serif !important;
+}
+
+.dhr-wedding-venue-content {
+    flex: 0 0 40%;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dhr-wedding-header-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(0, 0, 0, 0.5);
+    margin: 0 0 15px 0;
+}
+
+.dhr-wedding-main-heading {
+    font-size: 32px;
+    font-weight: 300;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0 0 20px 0;
+    line-height: 1.3;
+}
+
+.dhr-wedding-description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0 0 30px 0;
+}
+
+.dhr-wedding-reservation {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.dhr-wedding-phone-icon {
+    color: rgba(0, 0, 0, 0.5);
+    display: inline-flex;
+}
+
+.dhr-wedding-reservation-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0 0 5px 0;
+}
+
+.dhr-wedding-phone-number {
+    font-size: 18px;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0;
+}
+
+.dhr-wedding-venue-map-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.dhr-wedding-venue-map {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+}
+
+@media (max-width: 768px) {
+    .dhr-wedding-venue-map-container {
+        flex-direction: column;
+    }
+    .dhr-wedding-venue-content {
+        flex: 0 0 auto;
+        padding: 40px 20px;
+    }
+}
+
+/* ============================================
+   Map 6: Property Portfolio Map Styles
+   ============================================ */
+.dhr-property-portfolio-map-container {
+    display: flex;
+    width: 100%;
+    min-height: 700px;
+    font-family: "Open Sans", sans-serif !important;
+}
+
+.dhr-property-portfolio-map-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.dhr-property-portfolio-map {
+    width: 100%;
+    height: 100%;
+    min-height: 700px;
+}
+
+.dhr-property-portfolio-panel {
+    flex: 0 0 350px;
+    background: #062943;
+    padding: 40px 30px;
+    overflow-y: auto;
+    max-height: 700px;
+}
+
+.dhr-property-panel-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 30px 0;
+}
+
+.dhr-property-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dhr-property-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.3s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dhr-property-item:hover {
+    color: #66B3FF;
+}
+
+.dhr-property-bullet {
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .dhr-property-portfolio-map-container {
+        flex-direction: column;
+    }
+    .dhr-property-portfolio-panel {
+        flex: 0 0 auto;
+        max-height: 300px;
+    }
+}
+
+/* ============================================
+   Map 7: Lodges & Camps Map Styles
+   ============================================ */
+.dhr-lodges-camps-map-container {
+    display: flex;
+    width: 100%;
+    min-height: 600px;
+    font-family: "Open Sans", sans-serif !important;
+}
+
+.dhr-lodges-camps-panel {
+    flex: 0 0 350px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 40px 30px;
+    overflow-y: auto;
+    max-height: 600px;
+}
+
+.dhr-lodges-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 30px 0;
+}
+
+.dhr-lodge-item {
+    padding: 12px 0;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.3s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dhr-lodge-item:hover {
+    color: #66B3FF;
+}
+
+.dhr-lodges-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dhr-lodges-camps-map-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.dhr-lodges-camps-map {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+}
+
+@media (max-width: 768px) {
+    .dhr-lodges-camps-map-container {
+        flex-direction: column;
+    }
+    .dhr-lodges-camps-panel {
+        flex: 0 0 auto;
+        max-height: 300px;
+    }
+}

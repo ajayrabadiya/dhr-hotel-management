@@ -10,7 +10,14 @@ if (!defined('ABSPATH')) {
 class DHR_Hotel_Frontend {
     
     public function __construct() {
+        // Register all map shortcodes
         add_shortcode('dhr_hotel_map', array($this, 'display_hotel_map'));
+        add_shortcode('dhr_head_office_map', array($this, 'display_head_office_map'));
+        add_shortcode('dhr_partner_portfolio_map', array($this, 'display_partner_portfolio_map'));
+        add_shortcode('dhr_dining_venue_map', array($this, 'display_dining_venue_map'));
+        add_shortcode('dhr_wedding_venue_map', array($this, 'display_wedding_venue_map'));
+        add_shortcode('dhr_property_portfolio_map', array($this, 'display_property_portfolio_map'));
+        add_shortcode('dhr_lodges_camps_map', array($this, 'display_lodges_camps_map'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
     }
     
@@ -18,6 +25,7 @@ class DHR_Hotel_Frontend {
      * Enqueue frontend scripts and styles
      */
     public function enqueue_frontend_scripts() {
+        // Always enqueue styles (lightweight)
         wp_enqueue_style(
             'dhr-hotel-frontend-style',
             DHR_HOTEL_PLUGIN_URL . 'assets/css/frontend-style.css',
@@ -25,6 +33,8 @@ class DHR_Hotel_Frontend {
             DHR_HOTEL_PLUGIN_VERSION
         );
         
+        // Always enqueue scripts - they will only initialize if map elements exist
+        // This ensures maps work even when shortcodes are used in templates
         // Google Maps API - Get API key from settings
         $api_key = get_option('dhr_hotel_google_maps_api_key', '');
         if (!empty($api_key)) {
@@ -39,7 +49,7 @@ class DHR_Hotel_Frontend {
             // Show admin notice if API key is not set
             if (current_user_can('manage_options')) {
                 add_action('wp_footer', function() {
-                    echo '<div class="notice notice-error"><p>Google Maps API key is not configured. Please set it in <a href="' . admin_url('admin.php?page=dhr-hotel-settings') . '">DHR Hotel Management Settings</a>.</p></div>';
+                    echo '<div class="notice notice-error" style="position: fixed; top: 32px; left: 160px; right: 20px; z-index: 9999; padding: 10px;"><p><strong>DHR Hotel Management:</strong> Google Maps API key is not configured. Please set it in <a href="' . admin_url('admin.php?page=dhr-hotel-settings') . '">Settings</a>.</p></div>';
                 });
             }
         }
@@ -47,7 +57,7 @@ class DHR_Hotel_Frontend {
         wp_enqueue_script(
             'dhr-hotel-frontend-script',
             DHR_HOTEL_PLUGIN_URL . 'assets/js/frontend-script.js',
-            array('jquery', 'google-maps-api'),
+            array('jquery'),
             DHR_HOTEL_PLUGIN_VERSION,
             true
         );
@@ -120,7 +130,7 @@ class DHR_Hotel_Frontend {
     }
     
     /**
-     * Display hotel map shortcode
+     * Display hotel map shortcode (Map 1 - Standard)
      */
     public function display_hotel_map($atts) {
         $atts = shortcode_atts(array(
@@ -144,8 +154,113 @@ class DHR_Hotel_Frontend {
             });
         }
         
+        // Get map config
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_hotel_map');
+        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/hotel-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display head office map shortcode (Map 2)
+     */
+    public function display_head_office_map($atts) {
+        $atts = shortcode_atts(array(
+            'height' => '400px'
+        ), $atts);
+        
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_head_office_map');
+        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/head-office-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display partner portfolio map shortcode (Map 3)
+     */
+    public function display_partner_portfolio_map($atts) {
+        $atts = shortcode_atts(array(
+            'height' => '600px'
+        ), $atts);
+        
+        $hotels = DHR_Hotel_Database::get_all_hotels('active');
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_partner_portfolio_map');
+        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/partner-portfolio-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display dining venue map shortcode (Map 4)
+     */
+    public function display_dining_venue_map($atts) {
+        $atts = shortcode_atts(array(
+            'height' => '600px'
+        ), $atts);
+        
+        $hotels = DHR_Hotel_Database::get_all_hotels('active');
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_dining_venue_map');
+        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/dining-venue-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display wedding venue map shortcode (Map 5)
+     */
+    public function display_wedding_venue_map($atts) {
+        $atts = shortcode_atts(array(
+            'height' => '600px'
+        ), $atts);
+        
+        $hotels = DHR_Hotel_Database::get_all_hotels('active');
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_wedding_venue_map');
+        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/wedding-venue-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display property portfolio map shortcode (Map 6)
+     */
+    public function display_property_portfolio_map($atts) {
+        $atts = shortcode_atts(array(
+            'height' => '700px'
+        ), $atts);
+        
+        $hotels = DHR_Hotel_Database::get_all_hotels('active');
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_property_portfolio_map');
+        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/property-portfolio-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display lodges & camps map shortcode (Map 7)
+     */
+    public function display_lodges_camps_map($atts) {
+        $atts = shortcode_atts(array(
+            'height' => '600px'
+        ), $atts);
+        
+        $hotels = DHR_Hotel_Database::get_all_hotels('active');
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_lodges_camps_map');
+        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/lodges-camps-map.php';
         return ob_get_clean();
     }
 }

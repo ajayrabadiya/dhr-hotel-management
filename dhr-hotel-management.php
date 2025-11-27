@@ -26,6 +26,7 @@ define('DHR_HOTEL_PLUGIN_VERSION', '1.0.0');
 require_once DHR_HOTEL_PLUGIN_PATH . 'includes/class-dhr-hotel-database.php';
 require_once DHR_HOTEL_PLUGIN_PATH . 'includes/class-dhr-hotel-admin.php';
 require_once DHR_HOTEL_PLUGIN_PATH . 'includes/class-dhr-hotel-frontend.php';
+require_once DHR_HOTEL_PLUGIN_PATH . 'includes/display-all-shortcodes.php';
 
 /**
  * Main plugin class
