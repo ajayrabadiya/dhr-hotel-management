@@ -8,6 +8,72 @@ if (!defined('ABSPATH')) {
 }
 ?>
 
+<style>
+.dhr-marker-pulse {
+    position: absolute;
+    pointer-events: none;
+    transform-origin: center center;
+    z-index: 0;
+    overflow: visible;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+.dhr-marker-pulse svg {
+    display: block;
+    overflow: visible;
+    border: none !important;
+    outline: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.dhr-marker-pulse .pulse-outer-circle {
+    transform-origin: center;
+    animation: pulse-outer 2s ease-in-out infinite;
+}
+
+.dhr-marker-pulse .pulse-middle-circle {
+    transform-origin: center;
+    animation: pulse-middle 2s ease-in-out infinite;
+}
+
+.dhr-marker-pulse.dhr-marker-pulse-active .pulse-outer-circle {
+    animation: pulse-outer-active 2s ease-in-out infinite;
+}
+
+.dhr-marker-pulse.dhr-marker-pulse-active .pulse-middle-circle {
+    animation: pulse-middle-active 2s ease-in-out infinite;
+}
+
+@keyframes pulse-outer {
+    0%   { transform: scale(1);   opacity: 0.15; }
+    50%  { transform: scale(1.7); opacity: 0.35; }
+    100% { transform: scale(1);   opacity: 0.15; }
+}
+
+@keyframes pulse-middle {
+    0%   { transform: scale(1);    opacity: 0.35; }
+    50%  { transform: scale(1.45); opacity: 0.55; }
+    100% { transform: scale(1);    opacity: 0.35; }
+}
+
+@keyframes pulse-outer-active {
+    0%   { transform: scale(1);   opacity: 0.20; }
+    50%  { transform: scale(1.55); opacity: 0.40; }
+    100% { transform: scale(1);   opacity: 0.20; }
+}
+
+@keyframes pulse-middle-active {
+    0%   { transform: scale(1);    opacity: 0.45; }
+    50%  { transform: scale(1.35); opacity: 0.75; }
+    100% { transform: scale(1);    opacity: 0.45; }
+}
+</style>
 <div class="dhr-hotel-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
     <div class="dhr-hotel-info-panel">
         <div class="dhr-hotel-info-content">

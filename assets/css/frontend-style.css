@@ -64,7 +64,6 @@ body {
     /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; */
 }
 
-
 @media (max-width:991px) {
     .dhr-hotel-map-container {
         flex-direction: column-reverse;
@@ -489,7 +488,6 @@ body {
     background-color: #e1cfbc;
 }
 
-
 /* ============================================
    Map 2: Head Office Map Styles
    ============================================ */
@@ -603,42 +601,6 @@ body {
     color: #676B6D;
 }
 
-.dhr-head-office-marker {
-    width: 14px;
-    height: 14px;
-    background-color: #062943;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 1px solid #fff;
-    position: relative;
-}
-
-.dhr-head-office-marker::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 14px;
-    height: 14px;
-    transform: translate(-50%, -50%);
-    border: 7px solid rgba(68, 185, 248, 0.30);
-    border-radius: 50%;
-    opacity: 0;
-    animation: dhr-head-office-marker-animation 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes dhr-head-office-marker-animation {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-
-    100% {
-        transform: translate(-50%, -50%) scale(2.3);
-        opacity: 0;
-    }
-}
-
 /* ============================================
    Map 3: Partner Portfolio Map Styles
    ============================================ */
@@ -736,67 +698,6 @@ body {
     background-color: #86CEFF;
 }
 
-/* Partner Portfolio Map Markers */
-.dhr-cityblue-marker {
-    width: 14px;
-    height: 14px;
-    background-color: #0066CC;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 1px solid #fff;
-    position: relative;
-}
-
-.dhr-cityblue-marker::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 14px;
-    height: 14px;
-    transform: translate(-50%, -50%);
-    border: 7px solid rgba(0, 102, 204, 0.30);
-    border-radius: 50%;
-    opacity: 0;
-    animation: dhr-partner-marker-animation 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.dhr-dream-marker {
-    width: 14px;
-    height: 14px;
-    background-color: #66B3FF;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 1px solid #fff;
-    position: relative;
-}
-
-.dhr-dream-marker::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 14px;
-    height: 14px;
-    transform: translate(-50%, -50%);
-    border: 7px solid rgba(102, 179, 255, 0.30);
-    border-radius: 50%;
-    opacity: 0;
-    animation: dhr-partner-marker-animation 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes dhr-partner-marker-animation {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-
-    100% {
-        transform: translate(-50%, -50%) scale(2.3);
-        opacity: 0;
-    }
-}
-
 /* ============================================
    Map 4: Dining Venue Map Styles
    ============================================ */
@@ -840,43 +741,6 @@ body {
 .dhr-map-reservation .dhr-map-description {
     font-size: 20px !important;
     margin: 0px !important;
-}
-
-/* Wedding Venue Map Marker */
-.dhr-wedding-venue-marker {
-    width: 14px;
-    height: 14px;
-    background-color: #FE4B67;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 1px solid #fff;
-    position: relative;
-}
-
-.dhr-wedding-venue-marker::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 14px;
-    height: 14px;
-    transform: translate(-50%, -50%);
-    border: 7px solid rgba(254, 75, 103, 0.30);
-    border-radius: 50%;
-    opacity: 0;
-    animation: dhr-wedding-marker-animation 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes dhr-wedding-marker-animation {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-
-    100% {
-        transform: translate(-50%, -50%) scale(2.3);
-        opacity: 0;
-    }
 }
 
 /* ============================================
@@ -986,42 +850,6 @@ body {
     margin-bottom: 0px;
 }
 
-/* Property Portfolio Map Marker with Number */
-.dhr-property-portfolio-marker {
-    width: 32px;
-    height: 32px;
-    background-color: #062943;
-    border-radius: 50%;
-    border: 1px solid #fff;
-    transform: translate(-50%, -50%);
-    position: relative;
-}
-
-.dhr-property-portfolio-marker::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 32px;
-    height: 32px;
-    transform: translate(-50%, -50%);
-    border: 7px solid rgba(68, 185, 248, 0.10);
-    border-radius: 50%;
-    opacity: 0;
-    animation: dhr-property-marker-animation 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes dhr-property-marker-animation {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-
-    100% {
-        transform: translate(-50%, -50%) scale(2.3);
-        opacity: 0;
-    }
-}
 
 /* ============================================
    Map 7: Lodges & Camps Map Styles
@@ -1108,77 +936,4 @@ body {
 
 .dhr-lodges-legend ul li:last-child {
     margin-bottom: 0px;
-}
-
-/* Lodges & Camps Map Markers */
-.dhr-lodge-marker {
-    width: 14px;
-    height: 14px;
-    background-color: #062943;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 1px solid #fff;
-    position: relative;
-}
-
-.dhr-lodge-marker::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 14px;
-    height: 14px;
-    transform: translate(-50%, -50%);
-    border: 7px solid rgba(68, 185, 248, 0.10);
-    border-radius: 50%;
-    opacity: 0;
-    animation: dhr-lodge-marker-animation 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.dhr-wedding-marker {
-    width: 14px;
-    height: 14px;
-    background-color: #062943;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 1px solid #fff;
-    position: relative;
-}
-
-.dhr-wedding-marker::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 14px;
-    height: 14px;
-    transform: translate(-50%, -50%);
-    border: 7px solid rgba(211, 170, 116, 0.30);
-    border-radius: 50%;
-    opacity: 0;
-    animation: dhr-wedding-marker-animation 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes dhr-lodge-marker-animation {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-
-    100% {
-        transform: translate(-50%, -50%) scale(2.3);
-        opacity: 0;
-    }
-}
-
-@keyframes dhr-wedding-marker-animation {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-
-    100% {
-        transform: translate(-50%, -50%) scale(2.3);
-        opacity: 0;
-    }
 }
