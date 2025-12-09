@@ -502,7 +502,7 @@ $legend_dream = isset($settings['legend_dream']) ? $settings['legend_dream'] : '
         if (isMobileDevice()) {
             // On mobile, center the map with an offset to account for info window
             // Set zoom first
-            map.setZoom(10);
+            map.setZoom(15);
             
             setTimeout(function() {
                 var mapDiv = document.getElementById('dhr-partner-portfolio-map');

@@ -99,7 +99,7 @@ $youtube_url = isset($settings['youtube_url']) ? $settings['youtube_url'] : '#';
     <div class="dhr-head-office-map-area">
         <div id="dhr-head-office-map" class="dhr-head-office-map"></div>
     </div>
-    <div class="dhr-map-container">
+    <!-- <div class="dhr-map-container">
         <div class="dhr-head-office-area">
             <div class="dhr-map-row justify-content-between">
                 <div class="dhr-head-office-left">
@@ -216,7 +216,7 @@ $youtube_url = isset($settings['youtube_url']) ? $settings['youtube_url'] : '#';
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
 
 <script>
@@ -374,7 +374,7 @@ $youtube_url = isset($settings['youtube_url']) ? $settings['youtube_url'] : '#';
 
         // Initialize map
         map = new google.maps.Map(document.getElementById('dhr-head-office-map'), {
-            zoom: 15,
+            zoom: 10,
             center: { lat: centerLat, lng: centerLng },
             styles: [
                 {
@@ -488,7 +488,7 @@ $youtube_url = isset($settings['youtube_url']) ? $settings['youtube_url'] : '#';
 
         return content;
     }
-
+    
     function createNormalMarkerIcon() {
         // Create SVG for normal map marker - outer 2 circles with lighter shades
         var svg = '<svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.6" cx="13.068" cy="13.068" r="13.068" fill="#B8E3FF"/><circle opacity="0.3" cx="13.068" cy="13.0681" r="6.0984" fill="#7BC9FF"/><circle cx="13.068" cy="13.0681" r="6.0984" fill="#062943"/></svg>';
@@ -624,7 +624,7 @@ $youtube_url = isset($settings['youtube_url']) ? $settings['youtube_url'] : '#';
         } else {
             // On desktop, just center normally
             map.setCenter(position);
-            map.setZoom(15);
+            map.setZoom(10);
         }
     }
 

@@ -83,6 +83,11 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
         <div id="dhr-property-map" class="dhr-property-map"></div>
     </div>
     <div class="dhr-property-panel">
+        <div class="dhr-property-panel__icon">
+            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4.95703 5.48437L5.22656 5.22656L9.91406 0.539062L9.375 -2.35632e-08L4.95703 4.41797L0.539063 -4.09794e-07L2.16166e-07 0.539062L4.6875 5.22656L4.95703 5.48437Z" fill="#FAFAFA"/>
+            </svg>
+        </div>
         <h4><?php echo esc_html($panel_title); ?></h4>
         <ul>
             <?php if (!empty($hotels)): ?>
@@ -258,17 +263,17 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
                 {
                     featureType: 'all',
                     elementType: 'geometry',
-                    stylers: [{ color: '#f5f5f5' }]
+                    stylers: [{ color: '#f2f2f2' }]
                 },
                 {
                     featureType: 'water',
                     elementType: 'geometry',
-                    stylers: [{ color: '#C1C0BB' }]
+                    stylers: [{ color: '#A0B6CB' }]
                 },
                 {
                     featureType: 'road',
                     elementType: 'labels.text.fill',
-                    stylers: [{ color: '#c9c9c9' }]
+                    stylers: [{ color: '#A0B6CB' }]
                 },
             ]
         });
@@ -418,15 +423,27 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
     }
 
     function getInfoWindowContent(hotel) {
-        var content = '<div class="dhr-property-info-window">' +
-            '<img src="' + (hotel.image_url || (dhrHotelsData.pluginUrl + 'assets/images/default-hotel.jpg')) + '" alt="' + escapeHtml(hotel.name) + '" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">' +
-            '<h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: bold;">' + escapeHtml(hotel.name) + '</h4>' +
-            '<p style="margin: 0 0 10px 0; font-size: 12px; color: #666;">' + escapeHtml(hotel.city) + ', ' + escapeHtml(hotel.province) + '</p>' +
-            '<a href="' + (hotel.google_maps_url || '#') + '" target="_blank" style="display: inline-block; padding: 8px 16px; background: #0066CC; color: #fff; text-decoration: none; border-radius: 4px; font-size: 12px;">View Packages</a>' +
-            '</div>';
+    var content =
+        '<div class="dhr-info-window">' +
+            '<img src="' + (hotel.image_url || (dhrHotelsData.pluginUrl + "assets/images/default-hotel.jpg")) + '" alt="' + escapeHtml(hotel.name) + '" style="width:100%;height:150px;object-fit:cover;border-radius:4px;margin-bottom:10px;">' +
+            '<h4 class="dhr-info-window-title">' + escapeHtml(hotel.name) + '</h4>' +
+            '<p class="dhr-info-window-content mb-0">' + escapeHtml(hotel.city) + ", " + escapeHtml(hotel.province) + '</p>' +
 
-        return content;
-    }
+            '<div class="dhr-info-window-action">' +
+                '<a href="' + (hotel.google_maps_url || "#") + '" class="dhr-btn-info" target="_blank">' +
+                    '<svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+                        '<path d="M10.4544 1.95996C5.77085 1.95996 1.96021 5.77061 1.96021 10.4542C1.96021 15.1377 5.77085 18.9484 10.4544 18.9484C15.138 18.9484 18.9486 15.1377 18.9486 10.4542C18.9486 5.77061 15.138 1.95996 10.4544 1.95996ZM10.4544 3.26676C14.431 3.26676 17.6418 6.47761 17.6418 10.4542C17.6418 14.4307 14.431 17.6416 10.4544 17.6416C6.47785 17.6416 3.26701 14.4307 3.26701 10.4542C3.26701 6.47761 6.47785 3.26676 10.4544 3.26676ZM9.80101 6.53376V7.84056H11.1078V6.53376H9.80101ZM9.80101 9.14736V14.3746H11.1078V9.14736H9.80101Z" fill="#0B5991"/>' +
+                    '</svg>' +
+                '</a>' +
+
+                '<a href="' + (hotel.website_url || "#") + '" class="dhr-btn-book"  target="_blank">View Packages</a>' +
+
+            '</div>' +
+        '</div>';
+
+    return content;
+}
+
 
     function createNormalMarkerIcon(number) {
         // Create SVG for normal map marker with number - outer 2 circles with lighter shades
@@ -575,7 +592,7 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
         } else {
             // On desktop, just center normally
             map.setCenter(position);
-            map.setZoom(15);
+            map.setZoom(10);
         }
     }
 

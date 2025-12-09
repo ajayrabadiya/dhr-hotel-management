@@ -168,7 +168,7 @@ class DHR_Hotel_Frontend {
      */
     public function display_head_office_map($atts) {
         $atts = shortcode_atts(array(
-            'height' => '400px'
+            'height' => '596px'
         ), $atts);
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
@@ -185,7 +185,7 @@ class DHR_Hotel_Frontend {
      */
     public function display_partner_portfolio_map($atts) {
         $atts = shortcode_atts(array(
-            'height' => '600px'
+            'height' => '1002px'
         ), $atts);
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
@@ -236,7 +236,7 @@ class DHR_Hotel_Frontend {
      */
     public function display_property_portfolio_map($atts) {
         $atts = shortcode_atts(array(
-            'height' => '700px'
+            'height' => '600px'
         ), $atts);
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');

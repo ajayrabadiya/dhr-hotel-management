@@ -274,12 +274,12 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
                 {
                     featureType: 'all',
                     elementType: 'geometry',
-                    stylers: [{ color: '#f5f5f5' }]
+                    stylers: [{ color: '#f2f2f2' }]
                 },
                 {
                     featureType: 'water',
                     elementType: 'geometry',
-                    stylers: [{ color: '#e0e0e0' }]
+                    stylers: [{ color: '#a0b6cb' }]
                 }
             ]
         });
@@ -364,7 +364,7 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
                     
                     // Center map
                     centerMapOnMarker(firstMarker.marker, firstMarker.infoWindow);
-                    map.setZoom(12);
+                    map.setZoom(10);
                 }
             });
         });
@@ -609,7 +609,7 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
         } else {
             // On desktop, just center normally
             map.setCenter(position);
-            map.setZoom(15);
+            map.setZoom(10);
         }
     }
 

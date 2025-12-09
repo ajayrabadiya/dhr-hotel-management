@@ -86,6 +86,12 @@ $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservat
         <div class="dhr-map-row align-items-end">
             <div class="dhr-map-left">
                 <div class="dhr-dining-venue-block">
+                    <!-- Mobile Hotel Selection Dropdown -->
+                    <div class="dhr-mobile-hotel-select" id="dhr-dining-mobile-hotel-select">
+                        <select id="dhr-dining-hotel-dropdown" class="dhr-hotel-dropdown">
+                            <option value="">Select a Hotel</option>
+                        </select>
+                    </div>
                     <p class="dhr-map-label"><?php echo esc_html($overview_label); ?></p>
                     <h2 class="dhr-map-title"><?php echo esc_html($main_heading); ?></h2>
                     <p class="dhr-map-description"><?php echo esc_html($description); ?></p>
@@ -292,6 +298,9 @@ $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservat
         hotels.forEach(function (hotel, index) {
             createMarker(hotel, index);
         });
+
+        // Populate mobile hotel dropdown
+        populateMobileHotelDropdown(hotels);
     }
 
     function createMarker(hotel, index) {
@@ -339,6 +348,12 @@ $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservat
 
             // Center map with mobile offset if needed
             centerMapOnMarker(marker, infoWindow);
+
+            // Update dropdown selection
+            var dropdown = document.getElementById('dhr-dining-hotel-dropdown');
+            if (dropdown) {
+                dropdown.value = hotel.id;
+            }
         });
 
 
@@ -363,6 +378,12 @@ $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservat
                 
                 // Center map with mobile offset if needed
                 centerMapOnMarker(marker, infoWindow);
+
+                // Update dropdown selection
+                var dropdown = document.getElementById('dhr-dining-hotel-dropdown');
+                if (dropdown) {
+                    dropdown.value = hotel.id;
+                }
             }, 500);
         }
     }
@@ -459,6 +480,44 @@ $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservat
         return (text || '').replace(/[&<>"']/g, function (m) { return map[m]; });
     }
 
+    // Populate mobile hotel dropdown
+    function populateMobileHotelDropdown(hotels) {
+        var dropdown = document.getElementById('dhr-dining-hotel-dropdown');
+        if (!dropdown) {
+            return;
+        }
+
+        // Clear existing options except the first one
+        dropdown.innerHTML = '<option value="">Select a Hotel</option>';
+
+        // Add hotels to dropdown
+        hotels.forEach(function (hotel, index) {
+            var option = document.createElement('option');
+            option.value = hotel.id;
+            option.textContent = hotel.name;
+            option.setAttribute('data-index', index);
+            dropdown.appendChild(option);
+        });
+
+        // Add change event listener
+        dropdown.addEventListener('change', function() {
+            var selectedHotelId = this.value;
+            if (!selectedHotelId) {
+                return;
+            }
+
+            // Find the marker for this hotel
+            var markerData = markers.find(function(m) {
+                return m.hotelId == selectedHotelId;
+            });
+
+            if (markerData) {
+                // Trigger marker click
+                google.maps.event.trigger(markerData.marker, 'click');
+            }
+        });
+    }
+
     // Center map on marker with offset for mobile devices
     function centerMapOnMarker(marker, infoWindow) {
         var position = marker.getPosition();
@@ -466,7 +525,7 @@ $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservat
         if (isMobileDevice()) {
             // On mobile, center the map with an offset to account for info window
             // Set zoom first
-            map.setZoom(10);
+            map.setZoom(15);
             
             setTimeout(function() {
                 var mapDiv = document.getElementById('dhr-dining-venue-map');
