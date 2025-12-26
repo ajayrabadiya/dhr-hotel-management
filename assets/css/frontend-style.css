@@ -72,6 +72,11 @@ body {
 
 .dhr-info-window-title {
     font-family: "Open Sans", sans-serif !important;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 140%;
+    margin: 0px 0px 5px;
+    color: #062943;
 }
 
 .dhr-info-window-content {
@@ -884,20 +889,22 @@ body {
     font-family: "Open Sans", sans-serif !important;
 }
 
+.dhr-dining-venue-map-container .dhr-map-row {
+    flex-wrap: nowrap;
+}
+
 .dhr-dining-venue-map-container .dhr-map-left {
-    width: 100%;
-    max-width: 40%;
+    width: 430px;
+    min-width: 430px;
+    margin-left: 10%;
 }
 
 .dhr-dining-venue-map-container .dhr-map-right {
     width: 100%;
-    max-width: 60%;
 }
 
 .dhr-dining-venue-block {
-    max-width: 430px;
     padding-bottom: 90px;
-    margin: 0px auto;
 }
 
 .dhr-dining-venue-block p,
@@ -916,6 +923,14 @@ body {
     align-items: center;
     gap: 10px;
     margin-top: 20px;
+}
+
+.dhr-dining-venue-map-container .dhr-info-window-title {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 140%;
+    margin: 0px 0px 5px;
+    color: #062943;
 }
 
 .dhr-map-reservation .dhr-map-label {
