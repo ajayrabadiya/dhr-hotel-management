@@ -12,6 +12,7 @@ $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : '
 $description = isset($settings['description']) ? $settings['description'] : 'Whether you\'re savoring fresh seafood with a view of Table Mountain or indulging in gourmet delights by the Indian Ocean, our dining experiences promise to delight every palate.';
 $reservation_label = isset($settings['reservation_label']) ? $settings['reservation_label'] : 'RESERVATION BY PHONE';
 $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservation_phone'] : '+27 (0)13 243 9401/2';
+$dropdown_placeholder = isset($settings['dropdown_placeholder']) ? $settings['dropdown_placeholder'] : 'Select a Hotel';
 ?>
 
 <style>
@@ -89,7 +90,7 @@ $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservat
                     <!-- Mobile Hotel Selection Dropdown -->
                     <div class="dhr-mobile-hotel-select" id="dhr-dining-mobile-hotel-select">
                         <select id="dhr-dining-hotel-dropdown" class="dhr-hotel-dropdown">
-                            <option value="">Select a Hotel</option>
+                            <option value=""><?php echo esc_html($dropdown_placeholder); ?></option>
                         </select>
                     </div>
                     <p class="dhr-map-label"><?php echo esc_html($overview_label); ?></p>
@@ -488,7 +489,8 @@ $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservat
         }
 
         // Clear existing options except the first one
-        dropdown.innerHTML = '<option value="">Select a Hotel</option>';
+        var dropdownPlaceholder = '<?php echo esc_js($dropdown_placeholder); ?>';
+        dropdown.innerHTML = '<option value="">' + dropdownPlaceholder + '</option>';
 
         // Add hotels to dropdown
         hotels.forEach(function (hotel, index) {

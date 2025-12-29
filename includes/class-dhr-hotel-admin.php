@@ -525,24 +525,22 @@ class DHR_Hotel_Admin {
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'setting_') === 0) {
                 $setting_key = str_replace('setting_', '', $key);
-                $settings[$setting_key] = sanitize_text_field($value);
+                
+                // Handle different field types
+                if (strpos($setting_key, 'description') !== false || strpos($setting_key, 'text') !== false) {
+                    // Textarea fields
+                    $settings[$setting_key] = sanitize_textarea_field($value);
+                } elseif (strpos($setting_key, 'url') !== false || strpos($setting_key, 'link') !== false) {
+                    // URL fields
+                    $settings[$setting_key] = esc_url_raw($value);
+                } elseif ($setting_key === 'show_numbers' || $setting_key === 'show_list') {
+                    // Boolean/checkbox fields
+                    $settings[$setting_key] = isset($_POST[$key]) && ($value == '1' || $value == true) ? true : false;
+                } else {
+                    // Regular text fields
+                    $settings[$setting_key] = sanitize_text_field($value);
+                }
             }
-        }
-        
-        // Handle textarea fields
-        if (isset($_POST['setting_description'])) {
-            $settings['description'] = sanitize_textarea_field($_POST['setting_description']);
-        }
-        if (isset($_POST['setting_description_text'])) {
-            $settings['description_text'] = sanitize_textarea_field($_POST['setting_description_text']);
-        }
-        
-        // Handle URL fields
-        if (isset($_POST['setting_google_maps_url'])) {
-            $settings['google_maps_url'] = esc_url_raw($_POST['setting_google_maps_url']);
-        }
-        if (isset($_POST['setting_view_on_google_maps_link'])) {
-            $settings['view_on_google_maps_link'] = esc_url_raw($_POST['setting_view_on_google_maps_link']);
         }
         
         $data = array(

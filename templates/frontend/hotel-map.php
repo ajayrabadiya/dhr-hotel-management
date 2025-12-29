@@ -82,6 +82,8 @@ if (!defined('ABSPATH')) {
             $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : get_option('dhr_hotel_location_heading', 'LOCATED IN THE WESTERN CAPE');
             $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : get_option('dhr_hotel_main_heading', 'Find Us');
             $description_text = isset($settings['description_text']) ? $settings['description_text'] : get_option('dhr_hotel_description_text', 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.');
+            $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] : 'Book Now';
+            $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
             ?>
             <?php if (!empty($location_heading)): ?>
                 <h2 class="dhr-location-heading"><?php echo esc_html($location_heading); ?></h2>
@@ -96,8 +98,9 @@ if (!defined('ABSPATH')) {
             <?php endif; ?>
 
             <?php
-            // Get View On Google Maps link from settings or options
+            // Get View On Google Maps link and text from settings or options
             $view_on_google_maps_link = isset($settings['view_on_google_maps_link']) ? $settings['view_on_google_maps_link'] : get_option('dhr_hotel_view_on_google_maps_link', '');
+            $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
             
             // If no link is set, use first hotel's Google Maps URL as fallback
             if (empty($view_on_google_maps_link) && !empty($hotels) && isset($hotels[0]) && !empty($hotels[0]->google_maps_url)) {
@@ -121,7 +124,7 @@ if (!defined('ABSPATH')) {
                             </clipPath>
                         </defs>
                     </svg>
-                    View On Google Maps
+                    <?php echo esc_html($view_on_google_maps_text); ?>
                 </a>
             </div>
             <?php endif; ?>
@@ -195,9 +198,14 @@ if (!defined('ABSPATH')) {
                     </svg>
                 </a>
                 <a href="tel:{phone}" class="dhr-btn-book">
-                    Book Now
+                    {book_now_text}
                 </a>
             </div>
         </div>
     </div>
 </div>
+<script>
+var dhrHotelMapSettings = {
+    book_now_text: '<?php echo esc_js($book_now_text); ?>'
+};
+</script>

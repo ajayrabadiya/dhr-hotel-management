@@ -206,30 +206,34 @@ jQuery(document).ready(function($) {
     function loadMapSettings(map) {
         var settings = JSON.parse(map.settings || '{}');
         var html = '<input type="hidden" name="map_name" value="' + escapeHtml(map.map_name) + '">';
+        html += '<table class="form-table">';
         
         // Generate form fields based on map type
         for (var key in settings) {
-            var value = settings[key];
+            var value = settings[key] || '';
             var fieldName = 'setting_' + key;
             var label = key.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
             
+            html += '<tr>';
+            html += '<th scope="row"><label for="' + fieldName + '">' + label + '</label></th>';
+            html += '<td>';
+            
             if (key.includes('description') || key.includes('text')) {
-                html += '<table class="form-table"><tr>';
-                html += '<th><label for="' + fieldName + '">' + label + '</label></th>';
-                html += '<td><textarea id="' + fieldName + '" name="' + fieldName + '" class="large-text" rows="3">' + escapeHtml(value) + '</textarea></td>';
-                html += '</tr></table>';
+                html += '<textarea id="' + fieldName + '" name="' + fieldName + '" class="large-text" rows="4">' + escapeHtml(value) + '</textarea>';
             } else if (key.includes('url') || key.includes('link')) {
-                html += '<table class="form-table"><tr>';
-                html += '<th><label for="' + fieldName + '">' + label + '</label></th>';
-                html += '<td><input type="url" id="' + fieldName + '" name="' + fieldName + '" class="regular-text" value="' + escapeHtml(value) + '"></td>';
-                html += '</tr></table>';
+                html += '<input type="url" id="' + fieldName + '" name="' + fieldName + '" class="regular-text" value="' + escapeHtml(value) + '">';
+            } else if (key === 'show_numbers' || key === 'show_list') {
+                // Boolean fields
+                html += '<label><input type="checkbox" id="' + fieldName + '" name="' + fieldName + '" value="1"' + (value == true || value == '1' ? ' checked' : '') + '> ' + label + '</label>';
             } else {
-                html += '<table class="form-table"><tr>';
-                html += '<th><label for="' + fieldName + '">' + label + '</label></th>';
-                html += '<td><input type="text" id="' + fieldName + '" name="' + fieldName + '" class="regular-text" value="' + escapeHtml(value) + '"></td>';
-                html += '</tr></table>';
+                html += '<input type="text" id="' + fieldName + '" name="' + fieldName + '" class="regular-text" value="' + escapeHtml(value) + '">';
             }
+            
+            html += '</td>';
+            html += '</tr>';
         }
+        
+        html += '</table>';
         
         $('#dhr-map-id').val(map.id);
         $('#dhr-map-settings-content').html(html);

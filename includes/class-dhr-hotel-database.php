@@ -81,7 +81,9 @@ class DHR_Hotel_Database {
                     'description_text' => 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.',
                     'reservation_label' => 'RESERVATION BY PHONE',
                     'reservation_phone' => '+27 (0)13 243 9401/2',
-                    'view_on_google_maps_link' => ''
+                    'view_on_google_maps_link' => '',
+                    'view_on_google_maps_text' => 'View On Google Maps',
+                    'book_now_text' => 'Book Now'
                 ))
             ),
             array(
@@ -117,7 +119,8 @@ class DHR_Hotel_Database {
                     'main_heading' => 'Find A Dining Venue',
                     'description' => 'Whether you\'re savoring fresh seafood with a view of Table Mountain or indulging in gourmet delights by the Indian Ocean, our dining experiences promise to delight every palate. Join us for an unforgettable gastronomic adventure across our exquisite destinations.',
                     'reservation_label' => 'RESERVATION BY PHONE',
-                    'reservation_phone' => '+27 (0)13 243 9401/2'
+                    'reservation_phone' => '+27 (0)13 243 9401/2',
+                    'dropdown_placeholder' => 'Select a Hotel'
                 ))
             ),
             array(
@@ -129,7 +132,8 @@ class DHR_Hotel_Database {
                     'main_heading' => 'Find A Wedding Venue For Your Dream Celebration',
                     'description' => 'Embraced by the tranquil beauty of lakes, sunlit beaches, wild African bushveld, and majestic mountain views, our venues offer stunning settings that will transform your special moments into unforgettable memories.',
                     'reservation_label' => 'RESERVATION BY PHONE',
-                    'reservation_phone' => '+27 (0)13 243 9401/2'
+                    'reservation_phone' => '+27 (0)13 243 9401/2',
+                    'dropdown_placeholder' => 'Select a Hotel'
                 ))
             ),
             array(

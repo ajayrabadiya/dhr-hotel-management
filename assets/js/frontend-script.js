@@ -333,6 +333,7 @@
 
     function getInfoWindowContent(hotel) {
         var template = $('#dhr-hotel-info-window-template').html();
+        var bookNowText = (typeof dhrHotelMapSettings !== 'undefined' && dhrHotelMapSettings.book_now_text) ? dhrHotelMapSettings.book_now_text : 'Book Now';
 
         var content = template
             .replace(/{name}/g, escapeHtml(hotel.name))
@@ -341,7 +342,8 @@
             .replace(/{image_url}/g, hotel.image_url || (dhrHotelsData.pluginUrl + 'assets/images/default-hotel.jpg'))
             .replace(/{pluginUrl}/g, dhrHotelsData.pluginUrl)
             .replace(/{google_maps_url}/g, hotel.google_maps_url || 'https://www.google.com/maps?q=' + hotel.latitude + ',' + hotel.longitude)
-            .replace(/{phone}/g, escapeHtml(hotel.phone || ''));
+            .replace(/{phone}/g, escapeHtml(hotel.phone || ''))
+            .replace(/{book_now_text}/g, escapeHtml(bookNowText));
 
         return content;
     }
