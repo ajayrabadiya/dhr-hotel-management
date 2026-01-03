@@ -50,480 +50,509 @@ $google_maps_url = isset($settings['google_maps_url']) ? $settings['google_maps_
 </div>
 
 <script>
-(function() {
-    'use strict';
+    (function () {
+        'use strict';
 
-    var map;
-    var markers = [];
-    var infoWindows = [];
-    var pulseOverlays = {}; // Store pulse overlay elements for each marker
-    var activeMarker = null; // Track currently active marker
-    var hoveredMarker = null; // Track currently hovered marker
-    var PulseOverlay; // Will be defined after Google Maps loads
-    var fitMapBounds;
+        var map;
+        var markers = [];
+        var infoWindows = [];
+        var pulseOverlays = {}; // Store pulse overlay elements for each marker
+        var activeMarker = null; // Track currently active marker
+        var hoveredMarker = null; // Track currently hovered marker
+        var PulseOverlay; // Will be defined after Google Maps loads
+        var fitMapBounds;
 
-    // Detect if device is mobile
-    function isMobileDevice() {
-        return window.innerWidth <= 991;
-    }
-
-    // Detect device type for responsive adjustments
-    function getDeviceType() {
-        var width = window.innerWidth;
-        if (width < 768) {
-            return 'mobile';
-        } else if (width < 991) {
-            return 'tablet';
-        } else {
-            return 'desktop';
+        // Detect if device is mobile
+        function isMobileDevice() {
+            return window.innerWidth <= 991;
         }
-    }
 
-    // Function to define PulseOverlay class (called after Google Maps loads)
-    function definePulseOverlay() {
-        // Custom Overlay for Pulse Effect
-        PulseOverlay = function(position, map, isActive) {
-            this.position = position;
-            this.map = map;
-            this.isActive = isActive;
-            this.div = null;
-            this.setMap(map);
-        };
-
-        PulseOverlay.prototype = new google.maps.OverlayView();
-
-        PulseOverlay.prototype.onAdd = function () {
-            var div = document.createElement('div');
-            div.className = 'dhr-marker-pulse';
-            if (this.isActive) {
-                div.classList.add('dhr-marker-pulse-active');
+        // Detect device type for responsive adjustments
+        function getDeviceType() {
+            var width = window.innerWidth;
+            if (width < 768) {
+                return 'mobile';
+            } else if (width < 991) {
+                return 'tablet';
             } else {
-                div.classList.add('dhr-marker-pulse-hover');
+                return 'desktop';
             }
+        }
 
-            // Create SVG structure matching the EXACT marker design
-            var size = this.isActive ? 57 : 27;
-            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.setAttribute('width', size);
-            svg.setAttribute('height', size);
-            svg.setAttribute('viewBox', this.isActive ? '0 0 57 57' : '0 0 27 27');
-            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.display = 'block';
+        // Function to define PulseOverlay class (called after Google Maps loads)
+        function definePulseOverlay() {
+            // Custom Overlay for Pulse Effect
+            PulseOverlay = function (position, map, isActive) {
+                this.position = position;
+                this.map = map;
+                this.isActive = isActive;
+                this.div = null;
+                this.setMap(map);
+            };
 
-            if (this.isActive) {
-                // Active marker structure - EXACT match with lighter shades
-                // Outer circle (pulsing)
-                var outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                outerCircle.setAttribute('cx', '28.314');
-                outerCircle.setAttribute('cy', '28.314');
-                outerCircle.setAttribute('r', '28.314');
-                outerCircle.setAttribute('fill', '#B8E3FF');
-                outerCircle.setAttribute('opacity', '0.1');
-                outerCircle.classList.add('pulse-outer-circle');
-                svg.appendChild(outerCircle);
+            PulseOverlay.prototype = new google.maps.OverlayView();
 
-                // Middle circle (pulsing)
-                var middleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                middleCircle.setAttribute('cx', '27.8784');
-                middleCircle.setAttribute('cy', '28.7496');
-                middleCircle.setAttribute('r', '20.9088');
-                middleCircle.setAttribute('fill', '#7BC9FF');
-                middleCircle.setAttribute('opacity', '0.3');
-                middleCircle.classList.add('pulse-middle-circle');
-                svg.appendChild(middleCircle);
-            } else {
-                // Normal marker structure - EXACT match with lighter shades
-                // Outer circle (pulsing)
-                var outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                outerCircle.setAttribute('cx', '13.068');
-                outerCircle.setAttribute('cy', '13.068');
-                outerCircle.setAttribute('r', '13.068');
-                outerCircle.setAttribute('fill', '#B8E3FF');
-                outerCircle.setAttribute('opacity', '0.6');
-                outerCircle.classList.add('pulse-outer-circle');
-                svg.appendChild(outerCircle);
+            PulseOverlay.prototype.onAdd = function () {
+                var div = document.createElement('div');
+                div.className = 'dhr-marker-pulse';
+                if (this.isActive) {
+                    div.classList.add('dhr-marker-pulse-active');
+                } else {
+                    div.classList.add('dhr-marker-pulse-hover');
+                }
 
-                // Middle circle (pulsing)
-                var middleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                middleCircle.setAttribute('cx', '13.068');
-                middleCircle.setAttribute('cy', '13.0681');
-                middleCircle.setAttribute('r', '6.0984');
-                middleCircle.setAttribute('fill', '#7BC9FF');
-                middleCircle.setAttribute('opacity', '0.3');
-                middleCircle.classList.add('pulse-middle-circle');
-                svg.appendChild(middleCircle);
-            }
+                // Create SVG structure matching the EXACT marker design
+                var size = this.isActive ? 57 : 27;
+                var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', size);
+                svg.setAttribute('height', size);
+                svg.setAttribute('viewBox', this.isActive ? '0 0 57 57' : '0 0 27 27');
+                svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                svg.style.width = '100%';
+                svg.style.height = '100%';
+                svg.style.display = 'block';
 
-            div.appendChild(svg);
-            this.div = div;
+                if (this.isActive) {
+                    // Active marker structure - EXACT match with lighter shades
+                    // Outer circle (pulsing)
+                    var outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    outerCircle.setAttribute('cx', '28.314');
+                    outerCircle.setAttribute('cy', '28.314');
+                    outerCircle.setAttribute('r', '28.314');
+                    outerCircle.setAttribute('fill', '#B8E3FF');
+                    outerCircle.setAttribute('opacity', '0.1');
+                    outerCircle.classList.add('pulse-outer-circle');
+                    svg.appendChild(outerCircle);
 
-            var panes = this.getPanes();
-            panes.overlayLayer.appendChild(div);
+                    // Middle circle (pulsing)
+                    var middleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    middleCircle.setAttribute('cx', '27.8784');
+                    middleCircle.setAttribute('cy', '28.7496');
+                    middleCircle.setAttribute('r', '20.9088');
+                    middleCircle.setAttribute('fill', '#7BC9FF');
+                    middleCircle.setAttribute('opacity', '0.3');
+                    middleCircle.classList.add('pulse-middle-circle');
+                    svg.appendChild(middleCircle);
+                } else {
+                    // Normal marker structure - EXACT match with lighter shades
+                    // Outer circle (pulsing)
+                    var outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    outerCircle.setAttribute('cx', '13.068');
+                    outerCircle.setAttribute('cy', '13.068');
+                    outerCircle.setAttribute('r', '13.068');
+                    outerCircle.setAttribute('fill', '#B8E3FF');
+                    outerCircle.setAttribute('opacity', '0.6');
+                    outerCircle.classList.add('pulse-outer-circle');
+                    svg.appendChild(outerCircle);
 
-            // Force initial draw
-            this.draw();
-        };
+                    // Middle circle (pulsing)
+                    var middleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    middleCircle.setAttribute('cx', '13.068');
+                    middleCircle.setAttribute('cy', '13.0681');
+                    middleCircle.setAttribute('r', '6.0984');
+                    middleCircle.setAttribute('fill', '#7BC9FF');
+                    middleCircle.setAttribute('opacity', '0.3');
+                    middleCircle.classList.add('pulse-middle-circle');
+                    svg.appendChild(middleCircle);
+                }
 
-        PulseOverlay.prototype.draw = function () {
-            var overlayProjection = this.getProjection();
-            if (!overlayProjection) {
+                div.appendChild(svg);
+                this.div = div;
+
+                var panes = this.getPanes();
+                panes.overlayLayer.appendChild(div);
+
+                // Force initial draw
+                this.draw();
+            };
+
+            PulseOverlay.prototype.draw = function () {
+                var overlayProjection = this.getProjection();
+                if (!overlayProjection) {
+                    return;
+                }
+
+                var position = overlayProjection.fromLatLngToDivPixel(this.position);
+
+                if (this.div) {
+                    var size = this.isActive ? 57 : 27;
+
+                    // Match the anchor points of the marker icons exactly
+                    var anchorOffsetX = this.isActive ? 27.8784 : 13.068;
+                    var anchorOffsetY = this.isActive ? 28.7498 : 13.0681;
+                    this.div.style.left = (position.x - anchorOffsetX) + 'px';
+                    this.div.style.top = (position.y - anchorOffsetY) + 'px';
+                    this.div.style.width = size + 'px';
+                    this.div.style.height = size + 'px';
+                    this.div.style.margin = '0';
+                    this.div.style.padding = '0';
+                    this.div.style.border = 'none';
+                    this.div.style.outline = 'none';
+
+                    // Ensure the pulse animation continues
+                    if (this.isActive && !this.div.classList.contains('dhr-marker-pulse-active')) {
+                        this.div.classList.add('dhr-marker-pulse-active');
+                    }
+                }
+            };
+
+            PulseOverlay.prototype.onRemove = function () {
+                if (this.div && this.div.parentNode) {
+                    this.div.parentNode.removeChild(this.div);
+                    this.div = null;
+                }
+            };
+        }
+
+        function initHeadOfficeMap() {
+            if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+                console.error('Google Maps API not loaded');
                 return;
             }
 
-            var position = overlayProjection.fromLatLngToDivPixel(this.position);
+            // Define PulseOverlay class now that Google Maps is loaded
+            definePulseOverlay();
 
-            if (this.div) {
-                var size = this.isActive ? 57 : 27;
-                
-                // Match the anchor points of the marker icons exactly
-                var anchorOffsetX = this.isActive ? 27.8784 : 13.068;
-                var anchorOffsetY = this.isActive ? 28.7498 : 13.0681;
-                this.div.style.left = (position.x - anchorOffsetX) + 'px';
-                this.div.style.top = (position.y - anchorOffsetY) + 'px';
-                this.div.style.width = size + 'px';
-                this.div.style.height = size + 'px';
-                this.div.style.margin = '0';
-                this.div.style.padding = '0';
-                this.div.style.border = 'none';
-                this.div.style.outline = 'none';
-
-                // Ensure the pulse animation continues
-                if (this.isActive && !this.div.classList.contains('dhr-marker-pulse-active')) {
-                    this.div.classList.add('dhr-marker-pulse-active');
-                }
+            // Check if the map element exists
+            var mapElement = document.getElementById('head-office-map');
+            if (!mapElement) {
+                // Map element doesn't exist, this script is not needed
+                return;
             }
-        };
 
-        PulseOverlay.prototype.onRemove = function () {
-            if (this.div && this.div.parentNode) {
-                this.div.parentNode.removeChild(this.div);
-                this.div = null;
+            if (!dhrHotelsData || !dhrHotelsData.hotels || dhrHotelsData.hotels.length === 0) {
+                console.warn('No hotels data available');
+                return;
             }
-        };
-    }
 
-    function initHeadOfficeMap() {
-        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-            console.error('Google Maps API not loaded');
-            return;
-        }
+            var hotels = dhrHotelsData.hotels;
 
-        // Define PulseOverlay class now that Google Maps is loaded
-        definePulseOverlay();
+            // Calculate center of all hotels
+            var bounds = new google.maps.LatLngBounds();
+            var centerLat = 0;
+            var centerLng = 0;
 
-        // Check if the map element exists
-        var mapElement = document.getElementById('head-office-map');
-        if (!mapElement) {
-            // Map element doesn't exist, this script is not needed
-            return;
-        }
-
-        if (!dhrHotelsData || !dhrHotelsData.hotels || dhrHotelsData.hotels.length === 0) {
-            console.warn('No hotels data available');
-            return;
-        }
-
-        var hotels = dhrHotelsData.hotels;
-
-        // Calculate center of all hotels
-        var bounds = new google.maps.LatLngBounds();
-        var centerLat = 0;
-        var centerLng = 0;
-
-        hotels.forEach(function (hotel) {
-            centerLat += parseFloat(hotel.latitude);
-            centerLng += parseFloat(hotel.longitude);
-            bounds.extend(new google.maps.LatLng(
-                parseFloat(hotel.latitude),
-                parseFloat(hotel.longitude)
-            ));
-        });
-
-        centerLat = centerLat / hotels.length;
-        centerLng = centerLng / hotels.length;
-
-        var deviceType = getDeviceType();
-
-        var mapZoom = (deviceType === 'mobile') ? 15 : 10;
-
-        // Initialize map
-        map = new google.maps.Map(document.getElementById('head-office-map'), {
-            zoom: mapZoom,
-            center: { lat: centerLat, lng: centerLng },
-            styles: [
-                {
-                    featureType: 'all',
-                    elementType: 'geometry',
-                    stylers: [{ color: '#f5f5f5' }]
-                },
-                {
-                    featureType: 'water',
-                    elementType: 'geometry',
-                    stylers: [{ color: '#e0e0e0' }]
-                },
-            ]
-        });
-
-        // Fit bounds to show all hotels
-        if (hotels.length > 1) {
-            map.fitBounds(bounds);
-        }
-
-        // Create markers for each hotel
-        hotels.forEach(function (hotel, index) {
-            createMarker(hotel, index);
-        });
-    }
-
-    function createMarker(hotel, index) {
-        var position = {
-            lat: parseFloat(hotel.latitude),
-            lng: parseFloat(hotel.longitude)
-        };
-
-        // Create normal marker icon
-        var normalIcon = createNormalMarkerIcon();
-
-        // Create marker
-        var marker = new google.maps.Marker({
-            position: position,
-            map: map,
-            title: hotel.name,
-            icon: normalIcon
-        });
-
-        // Create info window content
-        var infoWindowContent = getInfoWindowContent(hotel);
-
-        // Create info window
-        var infoWindow = new google.maps.InfoWindow({
-            content: infoWindowContent
-        });
-
-        // Add close listener to info window
-        infoWindow.addListener('closeclick', function () {
-            // Remove active state from all markers when info window is closed
-            setAllMarkersToNormal();
-        });
-
-        // Add hover listeners for pulse effect
-        marker.addListener('mouseover', function () {
-            hoveredMarker = marker;
-            // Only start pulse if not already active
-            if (activeMarker !== marker) {
-                startPulse(marker, false);
-            }
-        });
-
-        marker.addListener('mouseout', function () {
-            hoveredMarker = null;
-            // Only stop pulse if not active
-            if (activeMarker !== marker) {
-                stopPulse(marker);
-            }
-        });
-
-        // Add click listener to marker
-        marker.addListener('click', function () {
-            // Set all markers to normal
-            setAllMarkersToNormal();
-
-            // Set this marker to active (this also sets activeMarker internally)
-            setMarkerToActive(marker);
-
-            // Close all other info windows
-            infoWindows.forEach(function (iw) {
-                iw.close();
+            hotels.forEach(function (hotel) {
+                centerLat += parseFloat(hotel.latitude);
+                centerLng += parseFloat(hotel.longitude);
+                bounds.extend(new google.maps.LatLng(
+                    parseFloat(hotel.latitude),
+                    parseFloat(hotel.longitude)
+                ));
             });
 
-            // Open this info window
-            infoWindow.open(map, marker);
+            centerLat = centerLat / hotels.length;
+            centerLng = centerLng / hotels.length;
 
-            // Center map with mobile offset if needed
-            centerMapOnMarker(marker, infoWindow);
-        });
-
-
-        // Store marker and info window
-        markers.push({
-            marker: marker,
-            infoWindow: infoWindow,
-            hotelId: hotel.id
-        });
-
-        infoWindows.push(infoWindow);
-    }
-
-    function getInfoWindowContent(hotel) {
-        var templateElement = document.getElementById('head-office-info-window-template');
-        var template = templateElement.innerHTML;
-        var bookNowText = 'Get A Quote'; // Default text
-        var pluginUrl = (typeof dhrHotelsData !== 'undefined' && dhrHotelsData.pluginUrl) ? dhrHotelsData.pluginUrl : '';
-
-        var content = template
-            .replace(/{name}/g, escapeHtml(hotel.name))
-            .replace(/{city}/g, escapeHtml(hotel.city))
-            .replace(/{province}/g, escapeHtml(hotel.province))
-            .replace(/{image_url}/g, hotel.image_url || (pluginUrl + 'assets/images/default-hotel.jpg'))
-            .replace(/{pluginUrl}/g, pluginUrl)
-            .replace(/{google_maps_url}/g, hotel.google_maps_url || 'https://www.google.com/maps?q=' + hotel.latitude + ',' + hotel.longitude)
-            .replace(/{phone}/g, escapeHtml(hotel.phone || ''))
-            .replace(/{book_now_text}/g, escapeHtml(bookNowText));
-
-        return content;
-    }
-    
-    function createNormalMarkerIcon() {
-        // Create SVG for normal map marker - outer 2 circles with lighter shades
-        var svg = '<svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.6" cx="13.068" cy="13.068" r="13.068" fill="#B8E3FF"/><circle opacity="0.3" cx="13.068" cy="13.0681" r="6.0984" fill="#7BC9FF"/><circle cx="13.068" cy="13.0681" r="6.0984" fill="#062943"/></svg>';
-
-        return {
-            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-            scaledSize: new google.maps.Size(27, 27),
-            anchor: new google.maps.Point(13.068, 13.0681)
-        };
-    }
-
-    function createActiveMarkerIcon() {
-        // Create SVG for active map marker (more visible) - outer 2 circles with lighter shades
-        var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="28.314" cy="28.314" r="28.314" fill="#B8E3FF"/><circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#7BC9FF"/><circle cx="27.8784" cy="28.7498" r="6.0984" fill="#062943"/></svg>';
-
-        return {
-            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-            scaledSize: new google.maps.Size(57, 57),
-            anchor: new google.maps.Point(27.8784, 28.7498)
-        };
-    }
-
-    function startPulse(marker, isActive) {
-        // Stop any existing pulse for this marker
-        stopPulse(marker);
-
-        var position = marker.getPosition();
-        var pulseOverlay = new PulseOverlay(position, map, isActive);
-        
-        // Store overlay
-        var markerId = marker.getPosition().toString();
-        pulseOverlays[markerId] = pulseOverlay;
-        
-        // Ensure pulse continues by forcing a redraw after a short delay
-        setTimeout(function() {
-            if (pulseOverlay && pulseOverlay.div) {
-                pulseOverlay.draw();
-            }
-        }, 100);
-    }
-
-    function stopPulse(marker) {
-        var markerId = marker.getPosition().toString();
-        if (pulseOverlays[markerId]) {
-            pulseOverlays[markerId].setMap(null);
-            delete pulseOverlays[markerId];
-        }
-    }
-
-    function setAllMarkersToNormal() {
-        var normalIcon = createNormalMarkerIcon();
-        markers.forEach(function (markerData) {
-            // Stop pulse for all markers
-            stopPulse(markerData.marker);
-            markerData.marker.setIcon(normalIcon);
-        });
-        activeMarker = null;
-        hoveredMarker = null;
-    }
-
-    function setMarkerToActive(marker) {
-        // Stop pulse first
-        stopPulse(marker);
-        
-        var activeIcon = createActiveMarkerIcon();
-        marker.setIcon(activeIcon);
-        
-        // Start pulse for active marker
-        activeMarker = marker;
-        hoveredMarker = null;
-        startPulse(marker, true);
-    }
-
-    function escapeHtml(text) {
-        var map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return (text || '').replace(/[&<>"']/g, function (m) { return map[m]; });
-    }
-
-    // Center map on marker with offset for mobile devices
-    function centerMapOnMarker(marker, infoWindow) {
-        var position = marker.getPosition();
-        
-        if (isMobileDevice()) {
-            setTimeout(function () {
-                var mapDiv = document.getElementById('head-office-map');
-                if (!mapDiv) {
-                    map.panTo(position);
-                    return;
-                }
-
-                var mapHeight = mapDiv.offsetHeight;
-                var projection = map.getProjection();
-                if (!projection) {
-                    map.panTo(position);
-                    return;
-                }
-
-                var markerPixel = projection.fromLatLngToContainerPixel(position);
-                var desiredMarkerY = mapHeight * 0.40;
-                var offsetY = markerPixel.y - desiredMarkerY;
-                var currentZoom = map.getZoom();
-                var degreesPerPixel = 360 / (256 * Math.pow(2, currentZoom));
-                var latOffset = offsetY * degreesPerPixel;
-
-                var adjustedPosition = new google.maps.LatLng(
-                    position.lat() - latOffset,
-                    position.lng()
-                );
-
-                map.panTo(adjustedPosition);
-            }, 100);
-        }
-        // Desktop (> 991px): Do not center map on marker click
-    }
-
-    // Handle window resize for mobile devices
-    var resizeTimeout;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(function() {
-            if (map && fitMapBounds) {
-                fitMapBounds();
+            // Adjust center to position map at the bottom (downward)
+            var ne = bounds.getNorthEast();
+            var sw = bounds.getSouthWest();
+            var latSpan = ne.lat() - sw.lat();
+            var lngSpan = ne.lng() - sw.lng();
+            
+            // Apply different adjustments based on device type
+            var deviceType = getDeviceType();
+            var latMultiplier, lngMultiplier;
+            
+            if (deviceType === 'mobile') {
+                latMultiplier = 12;
+                lngMultiplier = 1;
+            } else if (deviceType === 'tablet') {
+                latMultiplier = 10;
+                lngMultiplier = 0;
+            } else {
+                latMultiplier = 0;
+                lngMultiplier = 0;
             }
             
-            // If a marker is active and we're on mobile, recenter it
-            if (isMobileDevice() && activeMarker && map) {
-                var markerData = markers.find(function(m) {
-                    return m.marker === activeMarker;
+            var adjustedCenterLat = centerLat + (latSpan * latMultiplier);
+            var adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
+
+            // Set zoom based on device type
+            var mapZoom = (deviceType === 'mobile') ? 5.6 : 10;
+
+            // Initialize map
+            map = new google.maps.Map(document.getElementById('head-office-map'), {
+                zoom: mapZoom,
+                center: { lat: adjustedCenterLat, lng: adjustedCenterLng },
+                styles: [
+                    {
+                        featureType: 'all',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#f5f5f5' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#e0e0e0' }]
+                    },
+                ]
+            });
+
+            // Create markers for each hotel
+            hotels.forEach(function (hotel, index) {
+                createMarker(hotel, index);
+            });
+        }
+
+        function createMarker(hotel, index) {
+            var position = {
+                lat: parseFloat(hotel.latitude),
+                lng: parseFloat(hotel.longitude)
+            };
+
+            // Create normal marker icon
+            var normalIcon = createNormalMarkerIcon();
+
+            // Create marker
+            var marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                title: hotel.name,
+                icon: normalIcon
+            });
+
+            // Create info window content
+            var infoWindowContent = getInfoWindowContent(hotel);
+
+            // Create info window
+            var infoWindow = new google.maps.InfoWindow({
+                content: infoWindowContent
+            });
+
+            // Add close listener to info window
+            infoWindow.addListener('closeclick', function () {
+                // Remove active state from all markers when info window is closed
+                setAllMarkersToNormal();
+            });
+
+            // Add hover listeners for pulse effect
+            marker.addListener('mouseover', function () {
+                hoveredMarker = marker;
+                // Only start pulse if not already active
+                if (activeMarker !== marker) {
+                    startPulse(marker, false);
+                }
+            });
+
+            marker.addListener('mouseout', function () {
+                hoveredMarker = null;
+                // Only stop pulse if not active
+                if (activeMarker !== marker) {
+                    stopPulse(marker);
+                }
+            });
+
+            // Add click listener to marker
+            marker.addListener('click', function () {
+                // Set all markers to normal
+                setAllMarkersToNormal();
+
+                // Set this marker to active (this also sets activeMarker internally)
+                setMarkerToActive(marker);
+
+                // Close all other info windows
+                infoWindows.forEach(function (iw) {
+                    iw.close();
                 });
-                if (markerData && markerData.infoWindow) {
-                    // Check if info window is open
-                    if (markerData.infoWindow.getMap()) {
-                        centerMapOnMarker(activeMarker, markerData.infoWindow);
+
+                // Open this info window
+                infoWindow.open(map, marker);
+
+                // Center map with mobile offset if needed
+                centerMapOnMarker(marker, infoWindow);
+            });
+
+
+            // Store marker and info window
+            markers.push({
+                marker: marker,
+                infoWindow: infoWindow,
+                hotelId: hotel.id
+            });
+
+            infoWindows.push(infoWindow);
+        }
+
+        function getInfoWindowContent(hotel) {
+            var templateElement = document.getElementById('head-office-info-window-template');
+            var template = templateElement.innerHTML;
+            var bookNowText = 'Get A Quote'; // Default text
+            var pluginUrl = (typeof dhrHotelsData !== 'undefined' && dhrHotelsData.pluginUrl) ? dhrHotelsData.pluginUrl : '';
+
+            var content = template
+                .replace(/{name}/g, escapeHtml(hotel.name))
+                .replace(/{city}/g, escapeHtml(hotel.city))
+                .replace(/{province}/g, escapeHtml(hotel.province))
+                .replace(/{image_url}/g, hotel.image_url || (pluginUrl + 'assets/images/default-hotel.jpg'))
+                .replace(/{pluginUrl}/g, pluginUrl)
+                .replace(/{google_maps_url}/g, hotel.google_maps_url || 'https://www.google.com/maps?q=' + hotel.latitude + ',' + hotel.longitude)
+                .replace(/{phone}/g, escapeHtml(hotel.phone || ''))
+                .replace(/{book_now_text}/g, escapeHtml(bookNowText));
+
+            return content;
+        }
+
+        function createNormalMarkerIcon() {
+            // Create SVG for normal map marker - outer 2 circles with lighter shades
+            var svg = '<svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.6" cx="13.068" cy="13.068" r="13.068" fill="#B8E3FF"/><circle opacity="0.3" cx="13.068" cy="13.0681" r="6.0984" fill="#7BC9FF"/><circle cx="13.068" cy="13.0681" r="6.0984" fill="#062943"/></svg>';
+
+            return {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+                scaledSize: new google.maps.Size(27, 27),
+                anchor: new google.maps.Point(13.068, 13.0681)
+            };
+        }
+
+        function createActiveMarkerIcon() {
+            // Create SVG for active map marker (more visible) - outer 2 circles with lighter shades
+            var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="28.314" cy="28.314" r="28.314" fill="#B8E3FF"/><circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#7BC9FF"/><circle cx="27.8784" cy="28.7498" r="6.0984" fill="#062943"/></svg>';
+
+            return {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+                scaledSize: new google.maps.Size(57, 57),
+                anchor: new google.maps.Point(27.8784, 28.7498)
+            };
+        }
+
+        function startPulse(marker, isActive) {
+            // Stop any existing pulse for this marker
+            stopPulse(marker);
+
+            var position = marker.getPosition();
+            var pulseOverlay = new PulseOverlay(position, map, isActive);
+
+            // Store overlay
+            var markerId = marker.getPosition().toString();
+            pulseOverlays[markerId] = pulseOverlay;
+
+            // Ensure pulse continues by forcing a redraw after a short delay
+            setTimeout(function () {
+                if (pulseOverlay && pulseOverlay.div) {
+                    pulseOverlay.draw();
+                }
+            }, 100);
+        }
+
+        function stopPulse(marker) {
+            var markerId = marker.getPosition().toString();
+            if (pulseOverlays[markerId]) {
+                pulseOverlays[markerId].setMap(null);
+                delete pulseOverlays[markerId];
+            }
+        }
+
+        function setAllMarkersToNormal() {
+            var normalIcon = createNormalMarkerIcon();
+            markers.forEach(function (markerData) {
+                // Stop pulse for all markers
+                stopPulse(markerData.marker);
+                markerData.marker.setIcon(normalIcon);
+            });
+            activeMarker = null;
+            hoveredMarker = null;
+        }
+
+        function setMarkerToActive(marker) {
+            // Stop pulse first
+            stopPulse(marker);
+
+            var activeIcon = createActiveMarkerIcon();
+            marker.setIcon(activeIcon);
+
+            // Start pulse for active marker
+            activeMarker = marker;
+            hoveredMarker = null;
+            startPulse(marker, true);
+        }
+
+        function escapeHtml(text) {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return (text || '').replace(/[&<>"']/g, function (m) { return map[m]; });
+        }
+
+        // Center map on marker with offset for mobile devices
+        function centerMapOnMarker(marker, infoWindow) {
+            var position = marker.getPosition();
+
+            if (isMobileDevice()) {
+                setTimeout(function () {
+                    var mapDiv = document.getElementById('head-office-map');
+                    if (!mapDiv) {
+                        map.panTo(position);
+                        return;
+                    }
+
+                    var mapHeight = mapDiv.offsetHeight;
+                    var projection = map.getProjection();
+                    if (!projection) {
+                        map.panTo(position);
+                        return;
+                    }
+
+                    var markerPixel = projection.fromLatLngToContainerPixel(position);
+                    var desiredMarkerY = mapHeight * 0.40;
+                    var offsetY = markerPixel.y - desiredMarkerY;
+                    var currentZoom = map.getZoom();
+                    var degreesPerPixel = 360 / (256 * Math.pow(2, currentZoom));
+                    var latOffset = offsetY * degreesPerPixel;
+
+                    var adjustedPosition = new google.maps.LatLng(
+                        position.lat() - latOffset,
+                        position.lng()
+                    );
+
+                    map.panTo(adjustedPosition);
+                }, 100);
+            }
+            // Desktop (> 991px): Do not center map on marker click
+        }
+
+        // Handle window resize for mobile devices
+        var resizeTimeout;
+        window.addEventListener('resize', function () {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function () {
+                if (map && fitMapBounds && !activeMarker) {
+                    fitMapBounds();
+                }
+
+                // If a marker is active and we're on mobile, recenter it
+                if (isMobileDevice() && activeMarker && map) {
+                    var markerData = markers.find(function (m) {
+                        return m.marker === activeMarker;
+                    });
+                    if (markerData && markerData.infoWindow) {
+                        // Check if info window is open
+                        if (markerData.infoWindow.getMap()) {
+                            centerMapOnMarker(activeMarker, markerData.infoWindow);
+                        }
                     }
                 }
-            }
-        }, 250);
-    });
+            }, 250);
+        });
 
-    // Initialize map when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            // Wait for Google Maps API to load
+        // Initialize map when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                // Wait for Google Maps API to load
+                if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                    initHeadOfficeMap();
+                } else {
+                    // Wait for Google Maps API
+                    window.addEventListener('load', function () {
+                        setTimeout(initHeadOfficeMap, 1000);
+                    });
+                }
+            });
+        } else {
+            // DOM already loaded
             if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
                 initHeadOfficeMap();
             } else {
@@ -532,18 +561,7 @@ $google_maps_url = isset($settings['google_maps_url']) ? $settings['google_maps_
                     setTimeout(initHeadOfficeMap, 1000);
                 });
             }
-        });
-    } else {
-        // DOM already loaded
-        if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
-            initHeadOfficeMap();
-        } else {
-            // Wait for Google Maps API
-            window.addEventListener('load', function () {
-                setTimeout(initHeadOfficeMap, 1000);
-            });
         }
-    }
 
-})();
+    })();
 </script>

@@ -15,74 +15,6 @@ $legend_dream = isset($settings['legend_dream']) ? $settings['legend_dream'] : '
 $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] : 'Get A Quote';
 ?>
 
-<!-- <style>
-.dhr-marker-pulse {
-    position: absolute;
-    pointer-events: none;
-    transform-origin: center center;
-    z-index: 0;
-    overflow: visible;
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-}
-
-.dhr-marker-pulse svg {
-    display: block;
-    overflow: visible;
-    border: none !important;
-    outline: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.dhr-marker-pulse .pulse-outer-circle {
-    transform-origin: center;
-    animation: pulse-outer 2s ease-in-out infinite;
-}
-
-.dhr-marker-pulse .pulse-middle-circle {
-    transform-origin: center;
-    animation: pulse-middle 2s ease-in-out infinite;
-}
-
-.dhr-marker-pulse.dhr-marker-pulse-active .pulse-outer-circle {
-    animation: pulse-outer-active 2s ease-in-out infinite;
-}
-
-.dhr-marker-pulse.dhr-marker-pulse-active .pulse-middle-circle {
-    animation: pulse-middle-active 2s ease-in-out infinite;
-}
-
-@keyframes pulse-outer {
-    0%   { transform: scale(1);   opacity: 0.15; }
-    50%  { transform: scale(1.7); opacity: 0.35; }
-    100% { transform: scale(1);   opacity: 0.15; }
-}
-
-@keyframes pulse-middle {
-    0%   { transform: scale(1);    opacity: 0.55; }
-    50%  { transform: scale(1.45); opacity: 0.75; }
-    100% { transform: scale(1);    opacity: 0.55; }
-}
-
-@keyframes pulse-outer-active {
-    0%   { transform: scale(1);   opacity: 0.20; }
-    50%  { transform: scale(1.55); opacity: 0.40; }
-    100% { transform: scale(1);   opacity: 0.20; }
-}
-
-@keyframes pulse-middle-active {
-    0%   { transform: scale(1);    opacity: 0.45; }
-    50%  { transform: scale(1.35); opacity: 0.75; }
-    100% { transform: scale(1);    opacity: 0.45; }
-}
-</style> -->
-
-
 <div class="all-maps partner-portfolio-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
     <div id="partner-portfolio-map" class="partner-portfolio-map"></div>
     <div class="partner-info-content">
@@ -364,7 +296,7 @@ var dhrPartnerPortfolioMapSettings = {
             var adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
 
             // Set zoom based on device type
-            var mapZoom = (deviceType === 'mobile') ? 4.8 : 5.504;
+            var mapZoom = (deviceType === 'mobile') ? 5 : 5.504;
 
             map = new google.maps.Map(document.getElementById('partner-portfolio-map'), {
                 zoom: mapZoom,
@@ -384,27 +316,6 @@ var dhrPartnerPortfolioMapSettings = {
                     }
                 ]
             });
-
-            // Function to fit bounds with proper padding (zooms out more on mobile)
-            fitMapBounds = function() {
-                if (hotels.length > 1) {
-                    var mapBounds = new google.maps.LatLngBounds();
-                    hotels.forEach(function (hotel) {
-                        var lat = parseFloat(hotel.latitude);
-                        var lng = parseFloat(hotel.longitude);
-                        if (!isNaN(lat) && !isNaN(lng)) {
-                            mapBounds.extend(new google.maps.LatLng(lat, lng));
-                        }
-                    });
-
-                    if (!mapBounds.isEmpty()) {
-                        map.fitBounds(mapBounds);
-                    }
-                } else if (hotels.length === 1) {
-                    var singleHotelZoom = isMobileDevice() ? 2 : 4;
-                    map.setZoom(singleHotelZoom);
-                }
-            }
 
             // Create markers for each hotel
             hotels.forEach(function (hotel, index) {
@@ -653,7 +564,8 @@ var dhrPartnerPortfolioMapSettings = {
         window.addEventListener('resize', function () {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(function () {
-                if (map && fitMapBounds) {
+                // Only fit bounds if no marker is active (to prevent zoom out on marker click)
+                if (map && fitMapBounds && !activeMarker) {
                     fitMapBounds();
                 }
                 
