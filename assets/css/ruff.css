@@ -1,0 +1,55 @@
+
+
+
+/* Responsive styles for Property Portfolio Map */
+@media (max-width: 575px) {
+    .dhr-property-map-container .dhr-property-map-container {
+        height: auto !important;
+        background-color: #a0b6cb;
+        padding-bottom: 40px;
+    }
+
+    .dhr-property-map-container .dhr-property-panel {
+        position: relative;
+        max-width: calc(100% - 120px);
+        margin: 40px auto 0px;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        padding: 24px;
+    }
+}
+
+
+
+
+/* Responsive styles for Lodges & Camps Map */
+@media (max-width: 575px) {
+    .dhr-lodges-camps-map-container {
+        height: auto !important;
+        background-color: #e0e0e0;
+        padding-bottom: 40px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dhr-lodges-camps-map-container .dhr-lodges-camps-map-wrapper {
+        order: 1;
+    }
+
+    .dhr-lodges-camps-map-container .dhr-lodges-camps-panel {
+        order: 2;
+    }
+
+    .dhr-lodges-camps-map-container .dhr-lodges-camps-panel {
+        position: relative;
+        max-width: calc(100% - 120px);
+        margin: 40px auto 0px;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        padding: 24px;
+    }
+}
