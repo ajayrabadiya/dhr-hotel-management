@@ -26,6 +26,8 @@ define('DHR_HOTEL_PLUGIN_VERSION', '1.0.0');
 require_once DHR_HOTEL_PLUGIN_PATH . 'includes/class-dhr-hotel-database.php';
 require_once DHR_HOTEL_PLUGIN_PATH . 'includes/class-dhr-hotel-admin.php';
 require_once DHR_HOTEL_PLUGIN_PATH . 'includes/class-dhr-hotel-frontend.php';
+require_once DHR_HOTEL_PLUGIN_PATH . 'includes/class-dhr-hotel-api.php';
+require_once DHR_HOTEL_PLUGIN_PATH . 'includes/class-dhr-hotel-rest-api.php';
 require_once DHR_HOTEL_PLUGIN_PATH . 'includes/display-all-shortcodes.php';
 
 /**
@@ -54,12 +56,44 @@ class DHR_Hotel_Management {
         // Hook for new site creation in multisite
         add_action('wpmu_new_blog', array($this, 'new_site_activation'), 10, 6);
         
-        // Initialize admin
+        // Load plugin textdomain - must be on 'init' or later
+        add_action('init', array($this, 'load_textdomain'));
+        
+        // Initialize admin - after init to ensure translations are loaded
+        add_action('init', array($this, 'init_admin'));
+        
+        // Initialize frontend - after init to ensure translations are loaded
+        add_action('init', array($this, 'init_frontend'));
+        
+        // Initialize REST API - can be earlier
+        new DHR_Hotel_REST_API();
+    }
+    
+    /**
+     * Load plugin textdomain
+     */
+    public function load_textdomain() {
+        load_plugin_textdomain(
+            'dhr-hotel-management',
+            false,
+            dirname(plugin_basename(__FILE__)) . '/languages'
+        );
+    }
+    
+    /**
+     * Initialize admin functionality
+     */
+    public function init_admin() {
         if (is_admin()) {
             new DHR_Hotel_Admin();
         }
-        
-        // Initialize frontend
+    }
+    
+    /**
+     * Initialize frontend functionality
+     */
+    public function init_frontend() {
+        // Initialize frontend for both admin and frontend (shortcodes work in both)
         new DHR_Hotel_Frontend();
     }
     

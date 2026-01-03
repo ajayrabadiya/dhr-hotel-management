@@ -18,6 +18,10 @@ class DHR_Hotel_Frontend {
         add_shortcode('dhr_wedding_venue_map', array($this, 'display_wedding_venue_map'));
         add_shortcode('dhr_property_portfolio_map', array($this, 'display_property_portfolio_map'));
         add_shortcode('dhr_lodges_camps_map', array($this, 'display_lodges_camps_map'));
+        
+        // Register hotel rooms shortcode
+        add_shortcode('hotel_rooms', array($this, 'display_hotel_rooms'));
+        
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
     }
     
@@ -262,6 +266,53 @@ class DHR_Hotel_Frontend {
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/lodges-camps-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display hotel rooms shortcode
+     */
+    public function display_hotel_rooms($atts) {
+        $atts = shortcode_atts(array(
+            'hotel_code' => '',
+            'columns' => '2',
+            'show_images' => 'true',
+            'show_amenities' => 'true',
+            'show_description' => 'true'
+        ), $atts);
+        
+        // Validate hotel_code
+        if (empty($atts['hotel_code'])) {
+            return '<p class="dhr-hotel-rooms-error">' . __('Hotel code is required. Please use: [hotel_rooms hotel_code="DRE013"]', 'dhr-hotel-management') . '</p>';
+        }
+        
+        // Get hotel details
+        $hotel_details = DHR_Hotel_Database::get_hotel_details($atts['hotel_code']);
+        
+        if (!$hotel_details) {
+            return '<p class="dhr-hotel-rooms-error">' . sprintf(__('Hotel with code %s not found. Please sync the hotel data first.', 'dhr-hotel-management'), esc_html($atts['hotel_code'])) . '</p>';
+        }
+        
+        // Get rooms
+        $rooms = DHR_Hotel_Database::get_hotel_rooms($atts['hotel_code']);
+        
+        if (empty($rooms)) {
+            return '<p class="dhr-hotel-rooms-error">' . sprintf(__('No rooms found for hotel %s.', 'dhr-hotel-management'), esc_html($hotel_details->hotel_name)) . '</p>';
+        }
+        
+        // Prepare data for template
+        $hotel_data = array(
+            'hotel_code' => $hotel_details->hotel_code,
+            'hotel_name' => $hotel_details->hotel_name,
+            'rooms' => $rooms,
+            'columns' => intval($atts['columns']),
+            'show_images' => filter_var($atts['show_images'], FILTER_VALIDATE_BOOLEAN),
+            'show_amenities' => filter_var($atts['show_amenities'], FILTER_VALIDATE_BOOLEAN),
+            'show_description' => filter_var($atts['show_description'], FILTER_VALIDATE_BOOLEAN)
+        );
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/hotel-rooms.php';
         return ob_get_clean();
     }
 }

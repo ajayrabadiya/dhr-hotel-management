@@ -59,6 +59,82 @@ class DHR_Hotel_Database {
         
         dbDelta($sql_map);
         
+        // Create hotel details table
+        $hotel_details_table = $wpdb->prefix . 'dhr_hotel_details';
+        $sql_details = "CREATE TABLE IF NOT EXISTS $hotel_details_table (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            hotel_code varchar(50) NOT NULL,
+            hotel_name varchar(255) NOT NULL,
+            chain_code varchar(50),
+            chain_name varchar(255),
+            currency_code varchar(10),
+            language_code varchar(10),
+            time_zone varchar(50),
+            when_built varchar(50),
+            hotel_status varchar(50),
+            hotel_status_code varchar(10),
+            latitude decimal(10, 8),
+            longitude decimal(11, 8),
+            description text,
+            renovation_text text,
+            check_in_time varchar(20),
+            check_out_time varchar(20),
+            cancellation_policy text,
+            guarantee_policy text,
+            pets_allowed varchar(50),
+            commission_percent decimal(5, 2),
+            raw_xml_data longtext,
+            last_synced_at datetime,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY hotel_code (hotel_code)
+        ) $charset_collate;";
+        
+        dbDelta($sql_details);
+        
+        // Create hotel rooms table
+        $hotel_rooms_table = $wpdb->prefix . 'dhr_hotel_rooms';
+        $sql_rooms = "CREATE TABLE IF NOT EXISTS $hotel_rooms_table (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            hotel_code varchar(50) NOT NULL,
+            room_type_name varchar(255) NOT NULL,
+            room_type_code varchar(50),
+            max_occupancy int(11),
+            max_adult_occupancy int(11),
+            max_child_occupancy int(11),
+            standard_num_beds int(11),
+            standard_occupancy int(11),
+            room_size decimal(10, 2),
+            description text,
+            amenities longtext,
+            images longtext,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY hotel_code (hotel_code)
+        ) $charset_collate;";
+        
+        dbDelta($sql_rooms);
+        
+        // Create hotel services table
+        $hotel_services_table = $wpdb->prefix . 'dhr_hotel_services';
+        $sql_services = "CREATE TABLE IF NOT EXISTS $hotel_services_table (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            hotel_code varchar(50) NOT NULL,
+            service_code varchar(50),
+            service_name varchar(255),
+            exists_code varchar(100),
+            proximity_code varchar(10),
+            description text,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY hotel_code (hotel_code)
+        ) $charset_collate;";
+        
+        dbDelta($sql_services);
+        
         // Insert default map configurations if they don't exist
         self::create_default_map_configs();
     }
@@ -331,6 +407,208 @@ class DHR_Hotel_Database {
             array('id' => intval($id)),
             array('%d')
         );
+    }
+    
+    /**
+     * Save or update hotel details
+     */
+    public static function save_hotel_details($data) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'dhr_hotel_details';
+        
+        // Ensure table exists
+        $table_exists = $wpdb->get_var($wpdb->prepare(
+            "SHOW TABLES LIKE %s",
+            $table_name
+        ));
+        
+        if (!$table_exists) {
+            self::create_tables();
+        }
+        
+        // Prepare data - convert empty strings to empty strings (not null) for text fields
+        // WordPress wpdb handles null for numeric fields, but we'll use 0.0 for floats if null
+        $prepared_data = array(
+            'hotel_name' => !empty($data['hotel_name']) ? sanitize_text_field($data['hotel_name']) : '',
+            'chain_code' => !empty($data['chain_code']) ? sanitize_text_field($data['chain_code']) : '',
+            'chain_name' => !empty($data['chain_name']) ? sanitize_text_field($data['chain_name']) : '',
+            'currency_code' => !empty($data['currency_code']) ? sanitize_text_field($data['currency_code']) : '',
+            'language_code' => !empty($data['language_code']) ? sanitize_text_field($data['language_code']) : '',
+            'time_zone' => !empty($data['time_zone']) ? sanitize_text_field($data['time_zone']) : '',
+            'when_built' => !empty($data['when_built']) ? sanitize_text_field($data['when_built']) : '',
+            'hotel_status' => !empty($data['hotel_status']) ? sanitize_text_field($data['hotel_status']) : '',
+            'hotel_status_code' => !empty($data['hotel_status_code']) ? sanitize_text_field($data['hotel_status_code']) : '',
+            'latitude' => (!empty($data['latitude']) && $data['latitude'] !== '' && $data['latitude'] !== '0') ? floatval($data['latitude']) : null,
+            'longitude' => (!empty($data['longitude']) && $data['longitude'] !== '' && $data['longitude'] !== '0') ? floatval($data['longitude']) : null,
+            'description' => !empty($data['description']) ? sanitize_textarea_field($data['description']) : '',
+            'renovation_text' => !empty($data['renovation_text']) ? sanitize_textarea_field($data['renovation_text']) : '',
+            'check_in_time' => !empty($data['check_in_time']) ? sanitize_text_field($data['check_in_time']) : '',
+            'check_out_time' => !empty($data['check_out_time']) ? sanitize_text_field($data['check_out_time']) : '',
+            'cancellation_policy' => !empty($data['cancellation_policy']) ? sanitize_textarea_field($data['cancellation_policy']) : '',
+            'guarantee_policy' => !empty($data['guarantee_policy']) ? sanitize_textarea_field($data['guarantee_policy']) : '',
+            'pets_allowed' => !empty($data['pets_allowed']) ? sanitize_text_field($data['pets_allowed']) : '',
+            'commission_percent' => (!empty($data['commission_percent']) && $data['commission_percent'] !== '') ? floatval($data['commission_percent']) : null,
+            'raw_xml_data' => !empty($data['raw_xml_data']) ? $data['raw_xml_data'] : '',
+            'last_synced_at' => current_time('mysql')
+        );
+        
+        // Format specifiers array - must match the order of fields above
+        $format_specifiers = array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%s', '%s');
+        
+        $existing = $wpdb->get_row($wpdb->prepare(
+            "SELECT id FROM $table_name WHERE hotel_code = %s",
+            $data['hotel_code']
+        ));
+        
+        if ($existing) {
+            // Update existing record
+            $result = $wpdb->update(
+                $table_name,
+                $prepared_data,
+                array('hotel_code' => sanitize_text_field($data['hotel_code'])),
+                $format_specifiers,
+                array('%s')
+            );
+            
+            if ($result === false) {
+                // Log error for debugging
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('DHR Hotel: Update failed - ' . $wpdb->last_error);
+                }
+                return false;
+            }
+            
+            return $existing->id;
+        } else {
+            // Insert new record
+            $prepared_data['hotel_code'] = sanitize_text_field($data['hotel_code']);
+            // Add format for hotel_code at the beginning
+            $insert_format_specifiers = array_merge(array('%s'), $format_specifiers);
+            
+            $result = $wpdb->insert(
+                $table_name,
+                $prepared_data,
+                $insert_format_specifiers
+            );
+            
+            if ($result === false) {
+                // Log error for debugging
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('DHR Hotel: Insert failed - ' . $wpdb->last_error);
+                    error_log('DHR Hotel: Last query - ' . $wpdb->last_query);
+                }
+                return false;
+            }
+            
+            return $wpdb->insert_id;
+        }
+    }
+    
+    /**
+     * Save hotel rooms
+     */
+    public static function save_hotel_rooms($hotel_code, $rooms) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'dhr_hotel_rooms';
+        
+        // Delete existing rooms for this hotel
+        $wpdb->delete($table_name, array('hotel_code' => $hotel_code), array('%s'));
+        
+        // Insert new rooms
+        foreach ($rooms as $room) {
+            $wpdb->insert(
+                $table_name,
+                array(
+                    'hotel_code' => sanitize_text_field($hotel_code),
+                    'room_type_name' => sanitize_text_field($room['room_type_name']),
+                    'room_type_code' => sanitize_text_field($room['room_type_code']),
+                    'max_occupancy' => isset($room['max_occupancy']) ? intval($room['max_occupancy']) : null,
+                    'max_adult_occupancy' => isset($room['max_adult_occupancy']) ? intval($room['max_adult_occupancy']) : null,
+                    'max_child_occupancy' => isset($room['max_child_occupancy']) ? intval($room['max_child_occupancy']) : null,
+                    'standard_num_beds' => isset($room['standard_num_beds']) ? intval($room['standard_num_beds']) : null,
+                    'standard_occupancy' => isset($room['standard_occupancy']) ? intval($room['standard_occupancy']) : null,
+                    'room_size' => isset($room['room_size']) ? floatval($room['room_size']) : null,
+                    'description' => sanitize_textarea_field($room['description']),
+                    'amenities' => json_encode($room['amenities']),
+                    'images' => json_encode($room['images'])
+                ),
+                array('%s', '%s', '%s', '%d', '%d', '%d', '%d', '%d', '%f', '%s', '%s', '%s')
+            );
+        }
+    }
+    
+    /**
+     * Save hotel services
+     */
+    public static function save_hotel_services($hotel_code, $services) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'dhr_hotel_services';
+        
+        // Delete existing services for this hotel
+        $wpdb->delete($table_name, array('hotel_code' => $hotel_code), array('%s'));
+        
+        // Insert new services
+        foreach ($services as $service) {
+            $wpdb->insert(
+                $table_name,
+                array(
+                    'hotel_code' => sanitize_text_field($hotel_code),
+                    'service_code' => sanitize_text_field($service['service_code']),
+                    'service_name' => sanitize_text_field($service['service_name']),
+                    'exists_code' => sanitize_text_field($service['exists_code']),
+                    'proximity_code' => sanitize_text_field($service['proximity_code']),
+                    'description' => sanitize_textarea_field($service['description'])
+                ),
+                array('%s', '%s', '%s', '%s', '%s', '%s')
+            );
+        }
+    }
+    
+    /**
+     * Get hotel details by hotel code
+     */
+    public static function get_hotel_details($hotel_code) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'dhr_hotel_details';
+        
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE hotel_code = %s",
+            $hotel_code
+        ));
+    }
+    
+    /**
+     * Get hotel rooms by hotel code
+     */
+    public static function get_hotel_rooms($hotel_code) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'dhr_hotel_rooms';
+        
+        $rooms = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE hotel_code = %s ORDER BY id ASC",
+            $hotel_code
+        ));
+        
+        // Decode JSON fields
+        foreach ($rooms as $room) {
+            $room->amenities = json_decode($room->amenities, true);
+            $room->images = json_decode($room->images, true);
+        }
+        
+        return $rooms;
+    }
+    
+    /**
+     * Get hotel services by hotel code
+     */
+    public static function get_hotel_services($hotel_code) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'dhr_hotel_services';
+        
+        return $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE hotel_code = %s ORDER BY id ASC",
+            $hotel_code
+        ));
     }
 }
 
