@@ -19,37 +19,48 @@ $show_description = $hotel_data['show_description'];
 /**
  * Get amenity icon SVG
  */
-function get_amenity_icon($amenity_name) {
-    // Map amenity names to icon paths
+
+function get_amenity_icon($amenity_name)
+{
+    // Map amenity names to icon font classes
     $icon_map = array(
-        'Shower' => 'M19.0085 8.01001C18.8685 7.77001 18.5585 7.68002 18.3185 7.83002L15.9485 9.20001L16.3585 7.68005C16.4285 7.41005 16.2685 7.13 15.9985 7.06C15.7285 6.99 15.4485 7.15004 15.3785 7.42004L14.7085 9.92004L12.5385 11.17V8.67004L14.3685 6.84003C14.5685 6.64003 14.5685 6.32 14.3685 6.13C14.1685 5.94 13.8485 5.93 13.6585 6.13L12.5485 7.24005V4.51001C12.5485 4.23001 12.3185 4 12.0385 4C11.7585 4 11.5285 4.23001 11.5285 4.51001V7.24005L10.4185 6.13C10.2185 5.93 9.89852 5.93 9.70852 6.13C9.51852 6.33 9.50852 6.65003 9.70852 6.84003L11.5385 8.67004V11.17L9.36852 9.92004L8.69852 7.42004C8.62852 7.15004 8.34852 7 8.07852 7.06C7.80852 7.13 7.64852 7.41005 7.71852 7.68005L8.12852 9.20001L5.75852 7.83002C5.51852 7.69002 5.20852 7.77001 5.06852 8.01001C4.92852 8.25001 5.00852 8.56001 5.25852 8.70001L7.62852 10.07L6.10852 10.48C5.83852 10.55 5.67852 10.83 5.74852 11.1C5.80852 11.32 6.00852 11.47 6.23852 11.47C6.27852 11.47 6.32852 11.47 6.36852 11.45L8.86852 10.78L11.0385 12.03L8.86852 13.28L6.36852 12.61C6.09852 12.54 5.81852 12.7 5.74852 12.97C5.67852 13.24 5.83852 13.52 6.10852 13.59L7.62852 14L5.25852 15.3701C5.01852 15.5101 4.93852 15.82 5.06852 16.06C5.15852 16.22 5.32852 16.31 5.50852 16.31C5.59852 16.31 5.67852 16.2901 5.75852 16.2401L8.12852 14.8701L7.71852 16.39C7.64852 16.66 7.80852 16.94 8.07852 17.01C8.11852 17.02 8.16852 17.03 8.20852 17.03C8.42852 17.03 8.63852 16.88 8.69852 16.66L9.36852 14.16L11.5385 12.91V15.41L9.70852 17.2401C9.50852 17.4401 9.50852 17.76 9.70852 17.95C9.80852 18.05 9.93852 18.1 10.0685 18.1C10.1985 18.1 10.3285 18.05 10.4285 17.95L11.5385 16.84V19.58C11.5385 19.86 11.7685 20.09 12.0485 20.09C12.3285 20.09 12.5585 19.86 12.5585 19.58V16.84L13.6685 17.95C13.8685 18.15 14.1885 18.15 14.3785 17.95C14.5685 17.75 14.5785 17.4301 14.3785 17.2401L12.5485 15.41V12.91L14.7185 14.16L15.3885 16.66C15.4485 16.89 15.6485 17.03 15.8785 17.03C15.9185 17.03 15.9685 17.03 16.0085 17.01C16.2785 16.94 16.4385 16.66 16.3685 16.39L15.9585 14.8701L18.3285 16.2401C18.4085 16.2901 18.4985 16.31 18.5785 16.31C18.7485 16.31 18.9185 16.22 19.0185 16.06C19.1585 15.82 19.0785 15.5101 18.8285 15.3701L16.4585 14L17.9785 13.59C18.2485 13.52 18.4085 13.24 18.3385 12.97C18.2685 12.7 17.9885 12.54 17.7185 12.61L15.2185 13.28L13.0485 12.03L15.2185 10.78L17.7185 11.45C17.7185 11.45 17.8085 11.47 17.8485 11.47C18.0685 11.47 18.2785 11.32 18.3385 11.1C18.4085 10.83 18.2485 10.55 17.9785 10.48L16.4585 10.07L18.8285 8.70001C19.0685 8.56001 19.1485 8.25001 19.0185 8.01001H19.0085Z',
-        'Bidet' => 'M19.0085 8.01001C18.8685 7.77001 18.5585 7.68002 18.3185 7.83002L15.9485 9.20001L16.3585 7.68005C16.4285 7.41005 16.2685 7.13 15.9985 7.06C15.7285 6.99 15.4485 7.15004 15.3785 7.42004L14.7085 9.92004L12.5385 11.17V8.67004L14.3685 6.84003C14.5685 6.64003 14.5685 6.32 14.3685 6.13C14.1685 5.94 13.8485 5.93 13.6585 6.13L12.5485 7.24005V4.51001C12.5485 4.23001 12.3185 4 12.0385 4C11.7585 4 11.5285 4.23001 11.5285 4.51001V7.24005L10.4185 6.13C10.2185 5.93 9.89852 5.93 9.70852 6.13C9.51852 6.33 9.50852 6.65003 9.70852 6.84003L11.5385 8.67004V11.17L9.36852 9.92004L8.69852 7.42004C8.62852 7.15004 8.34852 7 8.07852 7.06C7.80852 7.13 7.64852 7.41005 7.71852 7.68005L8.12852 9.20001L5.75852 7.83002C5.51852 7.69002 5.20852 7.77001 5.06852 8.01001C4.92852 8.25001 5.00852 8.56001 5.25852 8.70001L7.62852 10.07L6.10852 10.48C5.83852 10.55 5.67852 10.83 5.74852 11.1C5.80852 11.32 6.00852 11.47 6.23852 11.47C6.27852 11.47 6.32852 11.47 6.36852 11.45L8.86852 10.78L11.0385 12.03L8.86852 13.28L6.36852 12.61C6.09852 12.54 5.81852 12.7 5.74852 12.97C5.67852 13.24 5.83852 13.52 6.10852 13.59L7.62852 14L5.25852 15.3701C5.01852 15.5101 4.93852 15.82 5.06852 16.06C5.15852 16.22 5.32852 16.31 5.50852 16.31C5.59852 16.31 5.67852 16.2901 5.75852 16.2401L8.12852 14.8701L7.71852 16.39C7.64852 16.66 7.80852 16.94 8.07852 17.01C8.11852 17.02 8.16852 17.03 8.20852 17.03C8.42852 17.03 8.63852 16.88 8.69852 16.66L9.36852 14.16L11.5385 12.91V15.41L9.70852 17.2401C9.50852 17.4401 9.50852 17.76 9.70852 17.95C9.80852 18.05 9.93852 18.1 10.0685 18.1C10.1985 18.1 10.3285 18.05 10.4285 17.95L11.5385 16.84V19.58C11.5385 19.86 11.7685 20.09 12.0485 20.09C12.3285 20.09 12.5585 19.86 12.5585 19.58V16.84L13.6685 17.95C13.8685 18.15 14.1885 18.15 14.3785 17.95C14.5685 17.75 14.5785 17.4301 14.3785 17.2401L12.5485 15.41V12.91L14.7185 14.16L15.3885 16.66C15.4485 16.89 15.6485 17.03 15.8785 17.03C15.9185 17.03 15.9685 17.03 16.0085 17.01C16.2785 16.94 16.4385 16.66 16.3685 16.39L15.9585 14.8701L18.3285 16.2401C18.4085 16.2901 18.4985 16.31 18.5785 16.31C18.7485 16.31 18.9185 16.22 19.0185 16.06C19.1585 15.82 19.0785 15.5101 18.8285 15.3701L16.4585 14L17.9785 13.59C18.2485 13.52 18.4085 13.24 18.3385 12.97C18.2685 12.7 17.9885 12.54 17.7185 12.61L15.2185 13.28L13.0485 12.03L15.2185 10.78L17.7185 11.45C17.7185 11.45 17.8085 11.47 17.8485 11.47C18.0685 11.47 18.2785 11.32 18.3385 11.1C18.4085 10.83 18.2485 10.55 17.9785 10.48L16.4585 10.07L18.8285 8.70001C19.0685 8.56001 19.1485 8.25001 19.0185 8.01001H19.0085Z',
-        'Bath Tub' => 'M19.0085 8.01001C18.8685 7.77001 18.5585 7.68002 18.3185 7.83002L15.9485 9.20001L16.3585 7.68005C16.4285 7.41005 16.2685 7.13 15.9985 7.06C15.7285 6.99 15.4485 7.15004 15.3785 7.42004L14.7085 9.92004L12.5385 11.17V8.67004L14.3685 6.84003C14.5685 6.64003 14.5685 6.32 14.3685 6.13C14.1685 5.94 13.8485 5.93 13.6585 6.13L12.5485 7.24005V4.51001C12.5485 4.23001 12.3185 4 12.0385 4C11.7585 4 11.5285 4.23001 11.5285 4.51001V7.24005L10.4185 6.13C10.2185 5.93 9.89852 5.93 9.70852 6.13C9.51852 6.33 9.50852 6.65003 9.70852 6.84003L11.5385 8.67004V11.17L9.36852 9.92004L8.69852 7.42004C8.62852 7.15004 8.34852 7 8.07852 7.06C7.80852 7.13 7.64852 7.41005 7.71852 7.68005L8.12852 9.20001L5.75852 7.83002C5.51852 7.69002 5.20852 7.77001 5.06852 8.01001C4.92852 8.25001 5.00852 8.56001 5.25852 8.70001L7.62852 10.07L6.10852 10.48C5.83852 10.55 5.67852 10.83 5.74852 11.1C5.80852 11.32 6.00852 11.47 6.23852 11.47C6.27852 11.47 6.32852 11.47 6.36852 11.45L8.86852 10.78L11.0385 12.03L8.86852 13.28L6.36852 12.61C6.09852 12.54 5.81852 12.7 5.74852 12.97C5.67852 13.24 5.83852 13.52 6.10852 13.59L7.62852 14L5.25852 15.3701C5.01852 15.5101 4.93852 15.82 5.06852 16.06C5.15852 16.22 5.32852 16.31 5.50852 16.31C5.59852 16.31 5.67852 16.2901 5.75852 16.2401L8.12852 14.8701L7.71852 16.39C7.64852 16.66 7.80852 16.94 8.07852 17.01C8.11852 17.02 8.16852 17.03 8.20852 17.03C8.42852 17.03 8.63852 16.88 8.69852 16.66L9.36852 14.16L11.5385 12.91V15.41L9.70852 17.2401C9.50852 17.4401 9.50852 17.76 9.70852 17.95C9.80852 18.05 9.93852 18.1 10.0685 18.1C10.1985 18.1 10.3285 18.05 10.4285 17.95L11.5385 16.84V19.58C11.5385 19.86 11.7685 20.09 12.0485 20.09C12.3285 20.09 12.5585 19.86 12.5585 19.58V16.84L13.6685 17.95C13.8685 18.15 14.1885 18.15 14.3785 17.95C14.5685 17.75 14.5785 17.4301 14.3785 17.2401L12.5485 15.41V12.91L14.7185 14.16L15.3885 16.66C15.4485 16.89 15.6485 17.03 15.8785 17.03C15.9185 17.03 15.9685 17.03 16.0085 17.01C16.2785 16.94 16.4385 16.66 16.3685 16.39L15.9585 14.8701L18.3285 16.2401C18.4085 16.2901 18.4985 16.31 18.5785 16.31C18.7485 16.31 18.9185 16.22 19.0185 16.06C19.1585 15.82 19.0785 15.5101 18.8285 15.3701L16.4585 14L17.9785 13.59C18.2485 13.52 18.4085 13.24 18.3385 12.97C18.2685 12.7 17.9885 12.54 17.7185 12.61L15.2185 13.28L13.0485 12.03L15.2185 10.78L17.7185 11.45C17.7185 11.45 17.8085 11.47 17.8485 11.47C18.0685 11.47 18.2785 11.32 18.3385 11.1C18.4085 10.83 18.2485 10.55 17.9785 10.48L16.4585 10.07L18.8285 8.70001C19.0685 8.56001 19.1485 8.25001 19.0185 8.01001H19.0085Z',
-        'Bathrobes' => 'M19.0085 8.01001C18.8685 7.77001 18.5585 7.68002 18.3185 7.83002L15.9485 9.20001L16.3585 7.68005C16.4285 7.41005 16.2685 7.13 15.9985 7.06C15.7285 6.99 15.4485 7.15004 15.3785 7.42004L14.7085 9.92004L12.5385 11.17V8.67004L14.3685 6.84003C14.5685 6.64003 14.5685 6.32 14.3685 6.13C14.1685 5.94 13.8485 5.93 13.6585 6.13L12.5485 7.24005V4.51001C12.5485 4.23001 12.3185 4 12.0385 4C11.7585 4 11.5285 4.23001 11.5285 4.51001V7.24005L10.4185 6.13C10.2185 5.93 9.89852 5.93 9.70852 6.13C9.51852 6.33 9.50852 6.65003 9.70852 6.84003L11.5385 8.67004V11.17L9.36852 9.92004L8.69852 7.42004C8.62852 7.15004 8.34852 7 8.07852 7.06C7.80852 7.13 7.64852 7.41005 7.71852 7.68005L8.12852 9.20001L5.75852 7.83002C5.51852 7.69002 5.20852 7.77001 5.06852 8.01001C4.92852 8.25001 5.00852 8.56001 5.25852 8.70001L7.62852 10.07L6.10852 10.48C5.83852 10.55 5.67852 10.83 5.74852 11.1C5.80852 11.32 6.00852 11.47 6.23852 11.47C6.27852 11.47 6.32852 11.47 6.36852 11.45L8.86852 10.78L11.0385 12.03L8.86852 13.28L6.36852 12.61C6.09852 12.54 5.81852 12.7 5.74852 12.97C5.67852 13.24 5.83852 13.52 6.10852 13.59L7.62852 14L5.25852 15.3701C5.01852 15.5101 4.93852 15.82 5.06852 16.06C5.15852 16.22 5.32852 16.31 5.50852 16.31C5.59852 16.31 5.67852 16.2901 5.75852 16.2401L8.12852 14.8701L7.71852 16.39C7.64852 16.66 7.80852 16.94 8.07852 17.01C8.11852 17.02 8.16852 17.03 8.20852 17.03C8.42852 17.03 8.63852 16.88 8.69852 16.66L9.36852 14.16L11.5385 12.91V15.41L9.70852 17.2401C9.50852 17.4401 9.50852 17.76 9.70852 17.95C9.80852 18.05 9.93852 18.1 10.0685 18.1C10.1985 18.1 10.3285 18.05 10.4285 17.95L11.5385 16.84V19.58C11.5385 19.86 11.7685 20.09 12.0485 20.09C12.3285 20.09 12.5585 19.86 12.5585 19.58V16.84L13.6685 17.95C13.8685 18.15 14.1885 18.15 14.3785 17.95C14.5685 17.75 14.5785 17.4301 14.3785 17.2401L12.5485 15.41V12.91L14.7185 14.16L15.3885 16.66C15.4485 16.89 15.6485 17.03 15.8785 17.03C15.9185 17.03 15.9685 17.03 16.0085 17.01C16.2785 16.94 16.4385 16.66 16.3685 16.39L15.9585 14.8701L18.3285 16.2401C18.4085 16.2901 18.4985 16.31 18.5785 16.31C18.7485 16.31 18.9185 16.22 19.0185 16.06C19.1585 15.82 19.0785 15.5101 18.8285 15.3701L16.4585 14L17.9785 13.59C18.2485 13.52 18.4085 13.24 18.3385 12.97C18.2685 12.7 17.9885 12.54 17.7185 12.61L15.2185 13.28L13.0485 12.03L15.2185 10.78L17.7185 11.45C17.7185 11.45 17.8085 11.47 17.8485 11.47C18.0685 11.47 18.2785 11.32 18.3385 11.1C18.4085 10.83 18.2485 10.55 17.9785 10.48L16.4585 10.07L18.8285 8.70001C19.0685 8.56001 19.1485 8.25001 19.0185 8.01001H19.0085Z',
+        'Shower' => 'fa-dhr-shower',
+        'Bidet' => 'fa-dhr-dish-washer',
+        'Bath Tub' => 'fa-dhr-bathtub',
+        'Bathrobes' => 'fa-dhr-bathroom',
+        'DSTV' => 'fa-dhr-dstv',
+        'Internet available' => 'fa-dhr-internet-available',
+        'Safe' => 'fa-dhr-safe',
+        'Air Conditioning' => 'fa-dhr-air-conditioning',
+        'Minibar' => 'fa-dhr-minibar',
+        'Balcony' => 'fa-dhr-balcony',
     );
-    
-    $path = isset($icon_map[$amenity_name]) ? $icon_map[$amenity_name] : $icon_map['Shower'];
-    
-    return '<svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="' . $path . '" fill="#D3AA74"></path></svg>';
+
+    $icon_class = isset($icon_map[$amenity_name])
+        ? $icon_map[$amenity_name]
+        : 'fa-dhr-air-conditioning';
+
+    return '<i aria-hidden="true" class="' . esc_attr($icon_class) . '"></i>';
 }
 
 /**
  * Format room description
  */
-function format_room_description($room) {
+function format_room_description($room)
+{
     $parts = array();
-    
+
     // Bed type
     if (!empty($room->standard_num_beds)) {
         $bed_text = $room->standard_num_beds > 1 ? 'beds' : 'bed';
         $parts[] = $room->standard_num_beds . ' ' . $bed_text;
     }
-    
+
     // Room type
     if (!empty($room->room_type_name)) {
         $parts[] = $room->room_type_name;
     }
-    
+
     // Occupancy
     if (!empty($room->max_occupancy)) {
         $adults = $room->max_occupancy;
@@ -60,87 +71,159 @@ function format_room_description($room) {
             $parts[] = $adults . ' adults';
         }
     }
-    
+
     return implode(' • ', $parts);
 }
 ?>
 
-<div class="bys-rooms-grid" data-columns="<?php echo esc_attr($columns); ?>">
-    <?php foreach ($rooms as $room): 
-        $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
-        $room_amenities = !empty($room->amenities) && is_array($room->amenities) ? $room->amenities : array();
-        $first_image = !empty($room_images) ? $room_images[0] : 'https://dummyimage.com/1024x682/ccc/000';
-        $has_images = $show_images && !empty($room_images);
-        $room_price = 0; // Can be extended to get from pricing API
-    ?>
-        <div class="bys-room-card">
-            <span class="bys-room-price"></span>
-            
-            <?php if ($has_images): ?>
-                <div class="bys-room-image">
-                    <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>" loading="lazy">
-                    <div class="bys-room-price-badge">
-                        <span class="bys-price-label">FROM</span>
-                        <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
-                        <span class="bys-price-period">/ NIGHT</span>
+<link rel='stylesheet' id='custom-icons-animation-css-css'
+    href='https://dhr.4shaw-development.co/le-franschhoek-hotel-spa/wp-content/uploads/elementor/custom-icons/facilitiesandactivityicons/css/animation.css?ver=1743154111'
+    media='all' />
+<link rel='stylesheet' id='custom-icons-facilitiesandactivityicons-codes-css-css'
+    href='https://dhr.4shaw-development.co/le-franschhoek-hotel-spa/wp-content/uploads/elementor/custom-icons/facilitiesandactivityicons/css/facilitiesandactivityicons-codes.css?ver=1743154111'
+    media='all' />
+<link rel='stylesheet' id='custom-icons-facilitiesandactivityicons-embedded-css-css'
+    href='https://dhr.4shaw-development.co/le-franschhoek-hotel-spa/wp-content/uploads/elementor/custom-icons/facilitiesandactivityicons/css/facilitiesandactivityicons-embedded.css?ver=1743154111'
+    media='all' />
+<link rel='stylesheet' id='custom-icons-facilitiesandactivityicons-ie7-codes-css-css'
+    href='https://dhr.4shaw-development.co/le-franschhoek-hotel-spa/wp-content/uploads/elementor/custom-icons/facilitiesandactivityicons/css/facilitiesandactivityicons-ie7-codes.css?ver=1743154111'
+    media='all' />
+<link rel='stylesheet' id='custom-icons-facilitiesandactivityicons-ie7-css-css'
+    href='https://dhr.4shaw-development.co/le-franschhoek-hotel-spa/wp-content/uploads/elementor/custom-icons/facilitiesandactivityicons/css/facilitiesandactivityicons-ie7.css?ver=1743154111'
+    media='all' />
+<link rel='stylesheet' id='custom-icons-facilitiesandactivityicons-css-css'
+    href='https://dhr.4shaw-development.co/le-franschhoek-hotel-spa/wp-content/uploads/elementor/custom-icons/facilitiesandactivityicons/css/facilitiesandactivityicons.css?ver=1743154111'
+    media='all' />
+
+<div class="bys-hotel-rooms">
+    <div class="bys-rooms-grid" data-columns="<?php echo esc_attr($columns); ?>">
+        <?php foreach ($rooms as $room):
+            $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
+            $room_amenities = !empty($room->amenities) && is_array($room->amenities) ? $room->amenities : array();
+            $first_image = !empty($room_images) ? $room_images[0] : 'https://dummyimage.com/1024x682/ccc/000';
+            $has_images = $show_images && !empty($room_images);
+            $room_price = 0; // Can be extended to get from pricing API
+            ?>
+            <div class="bys-room-card">
+                <span class="bys-room-price"></span>
+    
+                <?php if ($has_images): ?>
+                    <div class="bys-room-image">
+                        <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>"
+                            loading="lazy">
+                        <div class="bys-room-price-badge">
+                            <span class="bys-price-label">FROM</span>
+                            <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
+                            <span class="bys-price-period">/ NIGHT</span>
+                        </div>
                     </div>
-                </div>
-            <?php else: ?>
-                <div class="bys-room-image bys-room-image-placeholder">
-                    <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>" loading="lazy">
-                    <div class="bys-room-price-badge">
-                        <span class="bys-price-label">FROM</span>
-                        <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
-                        <span class="bys-price-period">/ NIGHT</span>
-                    </div>
-                </div>
-            <?php endif; ?>
-            
-            <div class="bys-room-content">
-                <h3 class="bys-room-title"><?php echo esc_html($room->room_type_name); ?></h3>
-                
-                <?php if ($room->max_occupancy): ?>
-                    <div class="bys-room-specs">
-                        <span class="bys-room-specs-line"><?php echo esc_html($room->max_occupancy); ?> <?php echo $room->max_occupancy == 1 ? __('Guest', 'dhr-hotel-management') : __('Guests', 'dhr-hotel-management'); ?></span>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if ($show_amenities && !empty($room_amenities)): ?>
-                    <ul class="bys-room-amenities">
-                        <?php foreach ($room_amenities as $amenity): 
-                            $amenity_name = isset($amenity['name']) ? $amenity['name'] : (is_string($amenity) ? $amenity : '');
-                            if (empty($amenity_name)) continue;
-                        ?>
-                            <li class="bys-room-amenity-item">
-                                <span class="bys-amenity-icon">
-                                    <?php echo get_amenity_icon($amenity_name); ?>
-                                </span>
-                                <span class="bys-amenity-text"><?php echo esc_html($amenity_name); ?></span>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php endif; ?>
-                
-                <?php if ($show_description): ?>
-                    <div class="bys-room-description">
-                        <?php echo esc_html(format_room_description($room)); ?>
+                <?php else: ?>
+                    <div class="bys-room-image bys-room-image-placeholder">
+                        <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>"
+                            loading="lazy">
+                        <div class="bys-room-price-badge">
+                            <span class="bys-price-label">FROM</span>
+                            <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
+                            <span class="bys-price-period">/ NIGHT</span>
+                        </div>
                     </div>
                 <?php endif; ?>
-                
-                <div class="bys-room-actions">
-                    <a href="#" class="bys-book-now-link" 
-                       data-room-code="<?php echo esc_attr($room->room_type_code); ?>" 
-                       data-hotel-code="<?php echo esc_attr($hotel_code); ?>" 
-                       data-property-id="" 
-                       data-checkin="<?php echo esc_attr(date('Y-m-d', strtotime('+1 day'))); ?>" 
-                       data-checkout="<?php echo esc_attr(date('Y-m-d', strtotime('+3 days'))); ?>" 
-                       data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>" 
-                       data-children="0" 
-                       data-rooms="1">
-                        <?php _e('Book Now', 'dhr-hotel-management'); ?>
-                    </a>
+    
+                <div class="bys-room-content">
+                    <h3 class="bys-room-title"><?php echo esc_html($room->room_type_name); ?></h3>
+    
+                    <?php if ($room->max_occupancy): ?>
+                        <div class="bys-room-specs">
+                            <span class="bys-room-specs-line"><?php echo esc_html($room->max_occupancy); ?>
+                                <?php echo $room->max_occupancy == 1 ? __('Guest', 'dhr-hotel-management') : __('Guests', 'dhr-hotel-management'); ?></span>
+                        </div>
+                    <?php endif; ?>
+    
+                    <?php if ($show_amenities && !empty($room_amenities)): ?>
+                        <ul class="bys-room-amenities">
+                            <?php foreach ($room_amenities as $amenity):
+                                $amenity_name = isset($amenity['name']) ? $amenity['name'] : (is_string($amenity) ? $amenity : '');
+                                if (empty($amenity_name))
+                                    continue;
+                                ?>
+                                <li class="bys-room-amenity-item">
+                                    <span class="bys-amenity-icon">
+                                        <?php echo get_amenity_icon($amenity_name); ?>
+                                    </span>
+                                    <span class="bys-amenity-text"><?php echo esc_html($amenity_name); ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+    
+                    <?php if ($show_description): ?>
+                        <div class="bys-room-description">
+                            <?php echo esc_html(format_room_description($room)); ?>
+                        </div>
+                    <?php endif; ?>
+    
+                    <div class="bys-room-actions">
+                        <a href="#" class="bys-book-now-link" data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
+                            data-hotel-code="<?php echo esc_attr($hotel_code); ?>" data-property-id=""
+                            data-checkin="<?php echo esc_attr(date('Y-m-d', strtotime('+1 day'))); ?>"
+                            data-checkout="<?php echo esc_attr(date('Y-m-d', strtotime('+3 days'))); ?>"
+                            data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>" data-children="0" data-rooms="1">
+                            <?php _e('Book Now', 'dhr-hotel-management'); ?>
+                        </a>
+                        <!-- <a href="#" class="bys-book-now-button" data-room-code="<?php //echo esc_attr($room->room_type_code); ?>"
+                            data-hotel-code="<?php //echo esc_attr($hotel_code); ?>" data-property-id=""
+                            data-checkin="<?php //echo esc_attr(date('Y-m-d', strtotime('+1 day'))); ?>"
+                            data-checkout="<?php //echo esc_attr(date('Y-m-d', strtotime('+3 days'))); ?>"
+                            data-adults="<?php //echo esc_attr($room->max_occupancy ?: 2); ?>" data-children="0" data-rooms="1">
+                            <?php //_e('Book Now', 'dhr-hotel-management'); ?>
+                        </a> -->
+                    </div>
                 </div>
             </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<?php $plugin_url = plugin_dir_url( dirname(__FILE__, 2) ); ?>
+
+<!-- Package Experience Design -->
+<div class="bys-packages">
+    <div class="bys-packages-grid">
+        <div class="bys-packages-card">
+            <div class="bys-packages-card__top">
+                <div class="bys-packages-card__frature-img" style="background-image: url('<?php echo esc_url( $plugin_url . 'assets/images/package/1.png' ); ?>')"></div>
+                <div class="card__top-content">
+                    <img class="top-left__icon" src="<?php echo esc_url( $plugin_url . 'assets/images/icons/experience-icon.svg' ); ?>" alt="">
+                </div>
+                <div class="package-overlay">
+                    <span class="package-overlay__label">Package Experience</span>
+                    <h3 class="package-overlay__title">Easter in the Winelands <span>(3 Night Stay)</span></h3>
+                    <div class="package-overlay__divider"></div>
+                    <div class="package-overlay__location">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="18" viewBox="0 0 12 18">
+                            <path d="M6 0.75C3.1084 0.75 0.75 3.1084 0.75 6C0.75 8.63672 2.71289 10.8135 5.25 11.1797V18H6.75V11.1797C9.28711 10.8135 11.25 8.63672 11.25 6C11.25 3.1084 8.8916 0.75 6 0.75ZM6 2.25C8.08008 2.25 9.75 3.91992 9.75 6C9.75 8.08008 8.08008 9.75 6 9.75C3.91992 9.75 2.25 8.08008 2.25 6C2.25 3.91992 3.91992 2.25 6 2.25ZM6 3C4.35059 3 3 4.35059 3 6H4.5C4.5 5.16211 5.16211 4.5 6 4.5V3Z"></path>
+                        </svg>
+                        <div>
+                            <h6>Le Franschhoek Hotel & Spae</h6>
+                            <p>Franschhoek, ZA</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bys-package-content">
+                <h4 class="package-content__title">INCLUDED</h4>
+                <div>
+                    <p class="package-content__description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.</p>
+                    <ul class="bys-package-features">
+                        <li>Stay 4 nights over Easter Weekend 2024 and get 30% off the 4th night</li>
+                        <li>An unforgettable 4-night stay in the beautiful winelands including breakfast</li>
+                        <li>Kids under 12 years stay free, including breakfast</li>
+                        <li>Easter Hunt included on Easter Sunday for the kids</li>
+                    </ul>
+                </div>
+                <div class="package-content__divider"></div>
+                <a href="#" class="bys-package-button">View Package</a>
+            </div>
         </div>
-    <?php endforeach; ?>
+    </div>
 </div>

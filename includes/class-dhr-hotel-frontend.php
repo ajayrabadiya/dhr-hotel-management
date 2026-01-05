@@ -206,7 +206,7 @@ class DHR_Hotel_Frontend {
      */
     public function display_dining_venue_map($atts) {
         $atts = shortcode_atts(array(
-            'height' => '600px'
+            'height' => '620px'
         ), $atts);
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
