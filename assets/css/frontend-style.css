@@ -1632,6 +1632,10 @@ div:focus-visible {
     display: block;
 }
 
+.bys-packages .package-overlay {
+    width: 100%;
+}
+
 .bys-packages .package-overlay__label {
     font-size: 12px;
     font-weight: 600;
@@ -1640,11 +1644,27 @@ div:focus-visible {
     text-transform: uppercase;
 }
 
+.bys-packages .package-overlay__main-title {
+    font-size: 28px;
+    font-weight: 300;
+    line-height: 125%;
+    color: #FFFFFF;
+    margin-bottom: 5px;
+}
+
 .bys-packages .package-overlay__title {
     font-size: 23px;
     font-weight: 300;
     line-height: 32px;
     color: #FFFFFF;
+}
+
+.bys-packages .package-overlay__description {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 140%;
+    color: #FFFFFF;
+    margin-bottom: 10px;
 }
 
 .bys-packages .bys-package-overlay-label {
@@ -1655,6 +1675,15 @@ div:focus-visible {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 0 0 5px 0;
+}
+
+.bys-packages .package-overlay__valid {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 140%;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    margin-bottom: 5px;
 }
 
 .bys-packages .package-overlay__divider {
@@ -1707,6 +1736,14 @@ div:focus-visible {
     font-weight: 400;
     line-height: 18px;
     color: #ebdbca;
+}
+
+.bys-packages .package-overlay__btn-grp {
+    margin-top: 35px;
+}
+
+.bys-packages .package-overlay__btn-grp .bys-package-button {
+    width: 100%;
 }
 
 .bys-packages .bys-package-content {
@@ -1810,6 +1847,11 @@ div:focus-visible {
     color: #ffffff;
 }
 
+.bys-packages .button--theme-3 {
+    background-color: #FFC25B;
+    color: #371B0B;
+}
+
 .bys-packages .bys-package-button:hover {
     background-color: #D3AA74;
     color: #062943;
@@ -1825,6 +1867,9 @@ div:focus-visible {
     color: #e0c8a9;
 }
 
+.bys-packages .button--theme-3:hover {
+    background-color: #E0C8A9;
+}
 
 /* First Package Design */
 @media (max-width: 767px) {
@@ -1834,6 +1879,99 @@ div:focus-visible {
         display: none;
     }
 }
+
+/* Kids Package */
+.kids-packages__design {
+
+}
 /* .first-packages__design {
 
 } */
+
+/* Forth Package Design */
+.early-bird-packages-grid {
+
+}
+
+.bys-packages .early-bird-packages-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    max-width: 1140px;
+    margin: 0 auto;
+    align-items: stretch;
+}
+
+@media (max-width: 1024px) {
+    .bys-packages .early-bird-packages-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .bys-packages .early-bird-packages-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+.bys-packages .bird-packages-card {
+    position: relative;
+    height: 550px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 1;
+    transition: all .25s ease-in-out;
+}
+
+.bys-packages .bird-packages-card__top {
+    
+}
+
+@media (max-width: 767px) {
+    .bys-packages .bys-packages-card__top {
+        height: 480px;
+        padding: 30px;
+    }
+}
+
+.bys-packages .top-left__icon {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+
+.bys-packages .bird-packages-card__frature-img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    transition: transform 0.8s;
+    z-index: -1;
+}
+
+.bys-packages .bird-packages-card:hover .bys-packages-card__frature-img {
+    transform: scale(1.1);
+}
+
+.bys-packages .bird-packages-card::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 36.52%, rgba(0, 0, 0, 0.67) 79.04%);
+    transition: all .25s ease-in-out;
+    z-index: -1;
+}
