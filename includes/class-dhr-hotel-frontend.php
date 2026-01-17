@@ -22,6 +22,13 @@ class DHR_Hotel_Frontend {
         // Register hotel rooms shortcode
         add_shortcode('hotel_rooms', array($this, 'display_hotel_rooms'));
         
+        // Register package design shortcodes
+        add_shortcode('dhr_package_first_design', array($this, 'display_package_first_design'));
+        add_shortcode('dhr_package_second_design', array($this, 'display_package_second_design'));
+        add_shortcode('dhr_package_kids_design', array($this, 'display_package_kids_design'));
+        add_shortcode('dhr_package_early_bird_design', array($this, 'display_package_early_bird_design'));
+        add_shortcode('dhr_package_experiences_design', array($this, 'display_package_experiences_design'));
+        
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
     }
     
@@ -313,6 +320,61 @@ class DHR_Hotel_Frontend {
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/hotel-rooms.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display first package design shortcode
+     */
+    public function display_package_first_design($atts) {
+        $atts = shortcode_atts(array(), $atts);
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-first-design.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display second package design shortcode
+     */
+    public function display_package_second_design($atts) {
+        $atts = shortcode_atts(array(), $atts);
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-second-design.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display kids package design shortcode
+     */
+    public function display_package_kids_design($atts) {
+        $atts = shortcode_atts(array(), $atts);
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-kids-design.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display early bird package design shortcode
+     */
+    public function display_package_early_bird_design($atts) {
+        $atts = shortcode_atts(array(), $atts);
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-early-bird-design.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display experiences package design shortcode
+     */
+    public function display_package_experiences_design($atts) {
+        $atts = shortcode_atts(array(), $atts);
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-experiences-design.php';
         return ob_get_clean();
     }
 }
