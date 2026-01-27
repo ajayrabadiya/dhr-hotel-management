@@ -1526,8 +1526,19 @@ div:focus-visible {
 .bys-packages {
     font-family: "Open Sans", sans-serif !important;
     max-width: 100%;
-    padding: 60px 20px;
+    /* padding: 60px 20px; */
     background-color: #F5F8F9;
+}
+
+.bys-packages h1,
+.bys-packages h2,
+.bys-packages h3,
+.bys-packages h4,
+.bys-packages h5,
+.bys-packages h6,
+.bys-packages p,
+.bys-packages span {
+    font-family: "Open Sans", sans-serif !important;
 }
 
 .bys-packages .bys-packages-grid {
@@ -1657,6 +1668,7 @@ div:focus-visible {
     font-weight: 300;
     line-height: 32px;
     color: #FFFFFF;
+    margin: 0;
 }
 
 .bys-packages .package-overlay__description {
@@ -1741,6 +1753,7 @@ div:focus-visible {
     font-size: 13px;
     font-weight: 400;
     line-height: 19px;
+    margin-top: 0;
     margin-block-end: 1px;
     color: #FFFFFF;
 }
@@ -1750,6 +1763,7 @@ div:focus-visible {
     font-weight: 400;
     line-height: 18px;
     color: #ebdbca;
+    margin: 0;
 }
 
 .bys-packages .package-overlay__btn-grp {
@@ -1780,6 +1794,7 @@ div:focus-visible {
     text-transform: uppercase;
     line-height: 16px;
     color: #d3aa74;
+    margin: 0;
 }
 
 .bys-packages .package-content__description {
@@ -1843,6 +1858,8 @@ div:focus-visible {
     align-items: center;
     justify-content: center;
     transition: all 0.25s ease-in-out;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 @media (min-width: 1024px) {
@@ -1854,12 +1871,55 @@ div:focus-visible {
     .second-packages__design .desktop-view-package {
         display: none;
     }
+    .mobile-view-package-button {
+        margin-top: 20px;
+    }
 }
 
 @media (max-width: 767px) {
     .bys-packages .bys-package-button {
         width: 100%;
     }
+}
+
+/* Package Swiper Pagination Styles - Mobile Only */
+.package-swiper-pagination {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    margin-top: 40px;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+}
+
+@media (min-width: 768px) {
+    .package-swiper-pagination {
+        display: none !important;
+    }
+}
+
+.package-swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    border-radius: 50%;
+    background-color: #CDD2D4;
+    opacity: 1;
+    margin: 0 3.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    outline: none;
+}
+
+.package-swiper-pagination-bullet-active {
+    background-color: #062943;
+    width: 10px;
+    height: 10px;
+    transform: scale(1);
 }
 
 .bys-packages .button--theme-1 {
@@ -2076,8 +2136,9 @@ div:focus-visible {
 }
 
 .bird-packages-card .card__top-badge .package-overlay__tag {
+    font-family: "Jost", Sans-serif !important;
     font-size: 12px !important;
-    font-weight: 400;
+    font-weight: 500;
     line-height: 20px;
     margin: 0;
     text-transform: uppercase;

@@ -533,7 +533,6 @@ function format_room_description($room)
     <div class="early-bird-packages-grid">
         <div class="bird-packages-card">
             <div class="bird-packages-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>
-
             <div class="bird-packages-card__premium-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/primium-img.png'); ?>')"></div>
             <div class="card__bottom-content">
                 <div class="card__top-badge">
