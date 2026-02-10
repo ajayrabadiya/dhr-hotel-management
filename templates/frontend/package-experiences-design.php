@@ -15,11 +15,6 @@ $plugin_url = plugin_dir_url(dirname(__FILE__, 2));
 <div class="bird-packages__experinces">
     <div class="bird-packages__first">
         <div class="bird-packages__experinces__container">
-            <div class="bird-packages__first__content">
-                <span class="bird-packages__content__label">PACKAGED EXPERIENCES</span>
-                <h1 class="bird-packages__content__title">We have the perfect holiday waiting for you</h1>
-                <p class="bird-packages__content__description">Discover the perfect holiday with Dream Hotels & Resorts in South Africa. Our family-friendly properties offer activities for all ages, including pools, fishing trips, and safari drives. For romantic getaways, enjoy candlelit dinners, sunset cruises, and private spa sessions. Reconnect with nature at our serene hideouts with yoga, meditation, and spa treatments. Safari enthusiasts can join expert-led game drives, stargazing, and birding. Adventure seekers will love our locations near hiking trails and water sports. Enjoy cultural festivals like the Cape Town Minstrel Carnival and Knysna Oyster Festival. Relax on sun-drenched beaches, perfect for swimming, surfing, and snorkeling. At Dream Hotels & Resorts, every stay is unforgettable.</p>
-            </div>
             <div class="bird-packages__tags">
                 <div class="bird-packages__tag__card">
                     <svg width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -565,11 +565,6 @@ function format_room_description($room)
     <div class="bird-packages__experinces">
         <div class="bird-packages__first">
             <div class="bird-packages__experinces__container">
-                <div class="bird-packages__first__content">
-                    <span class="bird-packages__content__label">PACKAGED EXPERIENCES</span>
-                    <h1 class="bird-packages__content__title">We have the perfect holiday waiting for you</h1>
-                    <p class="bird-packages__content__description">Discover the perfect holiday with Dream Hotels & Resorts in South Africa. Our family-friendly properties offer activities for all ages, including pools, fishing trips, and safari drives. For romantic getaways, enjoy candlelit dinners, sunset cruises, and private spa sessions. Reconnect with nature at our serene hideouts with yoga, meditation, and spa treatments. Safari enthusiasts can join expert-led game drives, stargazing, and birding. Adventure seekers will love our locations near hiking trails and water sports. Enjoy cultural festivals like the Cape Town Minstrel Carnival and Knysna Oyster Festival. Relax on sun-drenched beaches, perfect for swimming, surfing, and snorkeling. At Dream Hotels & Resorts, every stay is unforgettable.</p>
-                </div>
                 <div class="bird-packages__tags">
                     <div class="bird-packages__tag__card">
                         <svg width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -750,74 +745,76 @@ function format_room_description($room)
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const accordionTriggers = document.querySelectorAll('.bird-packages__content__title__tag');
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const accordionTriggers = document.querySelectorAll('.bird-packages__content__title__tag');
 
-                function isMobileView() {
-                    return window.innerWidth < 1024;
-                }
+        function isMobileView() {
+            return window.innerWidth < 1024;
+        }
 
-                function closeAllAccordions() {
-                    accordionTriggers.forEach(trigger => {
-                        const card = trigger.closest('.bird-packages-grid__card__info');
-                        const wrapper = card.querySelector('.bird-packages__content__description-wrapper');
+        function closeAllAccordions() {
+            accordionTriggers.forEach(trigger => {
+                const card = trigger.closest('.bird-packages-grid__card__info');
+                const wrapper = card.querySelector('.bird-packages__content__description-wrapper');
 
+                wrapper.style.height = '0px';
+                trigger.classList.remove('active');
+            });
+        }
+
+        function toggleAccordion(trigger, wrapper, description) {
+            if (!isMobileView()) return;
+
+            const isActive = trigger.classList.contains('active');
+
+            if (isActive) {
+                wrapper.style.height = '0px';
+                trigger.classList.remove('active');
+            } else {
+                closeAllAccordions();
+
+                const fullHeight = description.scrollHeight;
+                wrapper.style.height = fullHeight + 'px';
+                trigger.classList.add('active');
+            }
+        }
+
+        function handleResize() {
+            accordionTriggers.forEach(trigger => {
+                const card = trigger.closest('.bird-packages-grid__card__info');
+                const wrapper = card.querySelector('.bird-packages__content__description-wrapper');
+                const description = card.querySelector('.bird-packages__content__description');
+
+                if (isMobileView()) {
+                    if (!trigger.classList.contains('active')) {
                         wrapper.style.height = '0px';
-                        trigger.classList.remove('active');
-                    });
-                }
-
-                function toggleAccordion(trigger, wrapper, description) {
-                    if (!isMobileView()) return;
-
-                    const isActive = trigger.classList.contains('active');
-
-                    if (isActive) {
-                        wrapper.style.height = '0px';
-                        trigger.classList.remove('active');
                     } else {
-                        closeAllAccordions();
-
                         const fullHeight = description.scrollHeight;
                         wrapper.style.height = fullHeight + 'px';
-                        trigger.classList.add('active');
                     }
+                } else {
+                    wrapper.style.height = 'auto';
+                    trigger.classList.remove('active');
                 }
-
-                function handleResize() {
-                    accordionTriggers.forEach(trigger => {
-                        const card = trigger.closest('.bird-packages-grid__card__info');
-                        const wrapper = card.querySelector('.bird-packages__content__description-wrapper');
-                        const description = card.querySelector('.bird-packages__content__description');
-
-                        if (isMobileView()) {
-                            if (!trigger.classList.contains('active')) {
-                                wrapper.style.height = '0px';
-                            } else {
-                                const fullHeight = description.scrollHeight;
-                                wrapper.style.height = fullHeight + 'px';
-                            }
-                        } else {
-                            wrapper.style.height = 'auto';
-                            trigger.classList.remove('active');
-                        }
-                    });
-                }
-
-                accordionTriggers.forEach(trigger => {
-                    const card = trigger.closest('.bird-packages-grid__card__info');
-                    const wrapper = card.querySelector('.bird-packages__content__description-wrapper');
-                    const description = card.querySelector('.bird-packages__content__description');
-
-                    trigger.addEventListener('click', function() {
-                        toggleAccordion(trigger, wrapper, description);
-                    });
-                });
-
-                window.addEventListener('resize', handleResize);
-
-                handleResize();
             });
-        </script>
+        }
+
+        accordionTriggers.forEach(trigger => {
+            const card = trigger.closest('.bird-packages-grid__card__info');
+            const wrapper = card.querySelector('.bird-packages__content__description-wrapper');
+            const description = card.querySelector('.bird-packages__content__description');
+
+            trigger.addEventListener('click', function() {
+                toggleAccordion(trigger, wrapper, description);
+            });
+        });
+
+        window.addEventListener('resize', handleResize);
+
+        handleResize();
+    });
+</script>
