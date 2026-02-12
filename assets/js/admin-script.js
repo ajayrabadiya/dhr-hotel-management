@@ -73,6 +73,49 @@
                 }
             }
         });
+
+        // SHR hotel sync from list page (AJAX helper)
+        $('#dhr-shr-sync-hotel-list-form').on('submit', function(e) {
+            var $form = $(this);
+            var $btn  = $('#dhr-shr-sync-hotel-list-btn');
+            var code  = $('#dhr_shr_sync_hotel_code').val().trim();
+
+            if (!code) {
+                alert('Please enter a hotel code.');
+                e.preventDefault();
+                return false;
+            }
+
+            if (typeof dhrHotelAdmin === 'undefined') {
+                // Fallback to normal form submit if AJAX config not present
+                return true;
+            }
+
+            e.preventDefault();
+
+            $btn.prop('disabled', true);
+
+            $.post(
+                dhrHotelAdmin.ajaxurl,
+                {
+                    action: 'dhr_sync_shr_hotel_ajax',
+                    nonce: dhrHotelAdmin.shrSyncNonce || dhrHotelAdmin.nonce,
+                    hotel_code: code
+                }
+            ).done(function(response) {
+                if (response && response.success) {
+                    alert(response.data.message);
+                    window.location.reload();
+                } else {
+                    var msg = response && response.data && response.data.message ? response.data.message : 'Unknown error.';
+                    alert('Sync failed: ' + msg);
+                }
+            }).fail(function() {
+                alert('An error occurred while syncing the hotel. Please try again.');
+            }).always(function() {
+                $btn.prop('disabled', false);
+            });
+        });
         
         function updateCopyButton(button) {
             button.addClass('copied');

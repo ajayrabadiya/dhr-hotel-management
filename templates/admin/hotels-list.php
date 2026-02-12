@@ -18,9 +18,6 @@ $messages = array(
 
 <div class="wrap dhr-hotel-admin">
     <h1 class="wp-heading-inline"><?php _e('DHR Hotel Management', 'dhr-hotel-management'); ?></h1>
-    <a href="<?php echo admin_url('admin.php?page=dhr-hotel-add'); ?>" class="page-title-action">
-        <?php _e('Add New Hotel', 'dhr-hotel-management'); ?>
-    </a>
     
     <?php if ($message && isset($messages[$message])): ?>
         <div class="notice notice-<?php echo $messages[$message]['type']; ?> is-dismissible">
@@ -28,10 +25,41 @@ $messages = array(
         </div>
     <?php endif; ?>
     
+    <p style="margin-top: 15px; max-width: 600px;">
+        <?php _e('Add a new hotel from an external CRS (such as SHR) by entering its hotel code in the sync field below.', 'dhr-hotel-management'); ?>
+    </p>
+
+    <form id="dhr-shr-sync-hotel-list-form" method="post" action="<?php echo admin_url('admin-post.php'); ?>" style="margin: 20px 0;">
+        <?php wp_nonce_field('dhr_sync_shr_hotel_nonce'); ?>
+        <input type="hidden" name="action" value="dhr_sync_shr_hotel">
+        <table class="form-table">
+            <tr>
+                <th style="width: 160px;">
+                    <label for="dhr_shr_sync_hotel_code"><?php _e('Sync New Hotel by Code', 'dhr-hotel-management'); ?></label>
+                </th>
+                <td>
+                    <input type="text"
+                           id="dhr_shr_sync_hotel_code"
+                           name="hotel_code"
+                           class="regular-text"
+                           placeholder="<?php esc_attr_e('e.g. DRE013', 'dhr-hotel-management'); ?>">
+                    <button type="submit"
+                            class="button button-secondary"
+                            id="dhr-shr-sync-hotel-list-btn"
+                            style="margin-left: 10px;">
+                        <span class="dashicons dashicons-update" style="vertical-align: middle;"></span>
+                        <?php _e('Sync & Add Hotel', 'dhr-hotel-management'); ?>
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </form>
+
     <table class="wp-list-table widefat fixed striped">
         <thead>
             <tr>
                 <th><?php _e('ID', 'dhr-hotel-management'); ?></th>
+                <th><?php _e('Hotel Code', 'dhr-hotel-management'); ?></th>
                 <th><?php _e('Name', 'dhr-hotel-management'); ?></th>
                 <th><?php _e('City', 'dhr-hotel-management'); ?></th>
                 <th><?php _e('Province', 'dhr-hotel-management'); ?></th>
@@ -51,6 +79,7 @@ $messages = array(
                 <?php foreach ($hotels as $hotel): ?>
                     <tr>
                         <td><?php echo esc_html($hotel->id); ?></td>
+                        <td><?php echo !empty($hotel->hotel_code) ? esc_html($hotel->hotel_code) : '&ndash;'; ?></td>
                         <td><strong><?php echo esc_html($hotel->name); ?></strong></td>
                         <td><?php echo esc_html($hotel->city); ?></td>
                         <td><?php echo esc_html($hotel->province); ?></td>

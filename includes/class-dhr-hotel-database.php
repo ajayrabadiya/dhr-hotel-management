@@ -20,6 +20,7 @@ class DHR_Hotel_Database {
         
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
             id int(11) NOT NULL AUTO_INCREMENT,
+            hotel_code varchar(50) DEFAULT NULL,
             name varchar(255) NOT NULL,
             description text,
             address varchar(500) NOT NULL,
@@ -36,7 +37,8 @@ class DHR_Hotel_Database {
             status varchar(20) DEFAULT 'active',
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id)
+            PRIMARY KEY (id),
+            UNIQUE KEY hotel_code (hotel_code)
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -330,6 +332,22 @@ class DHR_Hotel_Database {
             $id
         ));
     }
+
+    /**
+     * Get hotel by SHR/remote hotel code
+     *
+     * @param string $hotel_code
+     * @return object|null
+     */
+    public static function get_hotel_by_code($hotel_code) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'dhr_hotels';
+
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE hotel_code = %s",
+            $hotel_code
+        ));
+    }
     
     /**
      * Insert new hotel
@@ -341,6 +359,7 @@ class DHR_Hotel_Database {
         $result = $wpdb->insert(
             $table_name,
             array(
+                'hotel_code' => isset($data['hotel_code']) ? sanitize_text_field($data['hotel_code']) : '',
                 'name' => sanitize_text_field($data['name']),
                 'description' => sanitize_textarea_field($data['description']),
                 'address' => sanitize_text_field($data['address']),
@@ -356,7 +375,7 @@ class DHR_Hotel_Database {
                 'google_maps_url' => esc_url_raw($data['google_maps_url']),
                 'status' => sanitize_text_field($data['status'])
             ),
-            array('%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s')
+            array('%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
         );
         
         return $result !== false ? $wpdb->insert_id : false;
@@ -372,6 +391,7 @@ class DHR_Hotel_Database {
         $result = $wpdb->update(
             $table_name,
             array(
+                'hotel_code' => isset($data['hotel_code']) ? sanitize_text_field($data['hotel_code']) : '',
                 'name' => sanitize_text_field($data['name']),
                 'description' => sanitize_textarea_field($data['description']),
                 'address' => sanitize_text_field($data['address']),
@@ -388,7 +408,7 @@ class DHR_Hotel_Database {
                 'status' => sanitize_text_field($data['status'])
             ),
             array('id' => intval($id)),
-            array('%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s'),
+            array('%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s'),
             array('%d')
         );
         

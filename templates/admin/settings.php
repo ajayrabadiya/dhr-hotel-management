@@ -21,6 +21,15 @@ $api_url = get_option('dhr_hotel_api_url', 'https://ota.windsurfercrs.com/HotelD
 $api_username = get_option('dhr_hotel_api_username', '4SHAWDREAM1225');
 $api_password_encrypted = get_option('dhr_hotel_api_password', '');
 $api_password = !empty($api_password_encrypted) ? base64_decode($api_password_encrypted) : '';
+
+// SHR WS Shop API (REST) settings
+$shr_access_token = get_option('dhr_shr_access_token', '');
+$shr_client_id = get_option('dhr_shr_client_id', '');
+$shr_client_secret_encrypted = get_option('dhr_shr_client_secret', '');
+$shr_client_secret = !empty($shr_client_secret_encrypted) ? base64_decode($shr_client_secret_encrypted) : '';
+$shr_scope = get_option('dhr_shr_scope', 'wsapi.hoteldetails.read');
+$shr_token_url = get_option('dhr_shr_token_url', 'https://id.shrglobal.com/connect/token');
+$shr_shop_base_url = get_option('dhr_shr_shop_base_url', 'https://api.shrglobal.com/shop');
 ?>
 
 <div class="wrap dhr-hotel-admin">
@@ -118,6 +127,159 @@ $api_password = !empty($api_password_encrypted) ? base64_decode($api_password_en
                     <?php endif; ?>
                 </td>
             </tr>
+            <tr>
+                <th colspan="2"><h2><?php _e('SHR WS Shop API (REST) Settings', 'dhr-hotel-management'); ?></h2></th>
+            </tr>
+            <tr>
+                <th><label for="shr_manual_access_token"><?php _e('Access Token', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="text"
+                           id="shr_manual_access_token"
+                           name="shr_manual_access_token"
+                           class="large-text"
+                           value="<?php echo esc_attr($shr_access_token); ?>"
+                           placeholder="<?php esc_attr_e('Enter your access token directly', 'dhr-hotel-management'); ?>">
+                    <p class="description">
+                        <?php _e('Enter your SHR access token directly. If provided, this will be used instead of generating a token from client credentials.', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th colspan="2">
+                    <h3 style="margin-top: 20px;"><?php _e('Optional: Client Credentials (for auto token generation)', 'dhr-hotel-management'); ?></h3>
+                    <p class="description" style="font-weight: normal;">
+                        <?php _e('Only configure these if you want the plugin to automatically generate tokens. If you have a token, use the Access Token field above instead.', 'dhr-hotel-management'); ?>
+                    </p>
+                </th>
+            </tr>
+            <tr>
+                <th><label for="shr_client_id"><?php _e('Client ID', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="text"
+                           id="shr_client_id"
+                           name="shr_client_id"
+                           class="regular-text"
+                           value="<?php echo esc_attr($shr_client_id); ?>"
+                           placeholder="WSAPI_...">
+                    <p class="description">
+                        <?php _e('Client ID for automatic token generation (optional).', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="shr_client_secret"><?php _e('Client Secret', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="password"
+                           id="shr_client_secret"
+                           name="shr_client_secret"
+                           class="regular-text"
+                           value=""
+                           placeholder="<?php echo !empty($shr_client_secret) ? esc_attr__('Enter new secret to update', 'dhr-hotel-management') : esc_attr__('Enter client secret', 'dhr-hotel-management'); ?>">
+                    <?php if (!empty($shr_client_secret)) : ?>
+                        <p class="description" style="color:#46b450;margin-top:5px;">
+                            <span class="dashicons dashicons-yes-alt" style="vertical-align:middle;font-size:16px;"></span>
+                            <?php _e('Secret is currently stored. Enter a new value to replace it.', 'dhr-hotel-management'); ?>
+                        </p>
+                    <?php else : ?>
+                        <p class="description">
+                            <?php _e('Client secret for automatic token generation (optional).', 'dhr-hotel-management'); ?>
+                        </p>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="shr_scope"><?php _e('Scope', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="text"
+                           id="shr_scope"
+                           name="shr_scope"
+                           class="regular-text"
+                           value="<?php echo esc_attr($shr_scope); ?>"
+                           placeholder="wsapi.hoteldetails.read">
+                    <p class="description">
+                        <?php _e('OAuth2 scope used when requesting the access token.', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="shr_token_url"><?php _e('Token URL', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="url"
+                           id="shr_token_url"
+                           name="shr_token_url"
+                           class="regular-text"
+                           value="<?php echo esc_attr($shr_token_url); ?>"
+                           placeholder="https://id.shrglobal.com/connect/token">
+                    <p class="description">
+                        <?php _e('Endpoint used to request OAuth2 access tokens.', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="shr_shop_base_url"><?php _e('Shop API Base URL', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="url"
+                           id="shr_shop_base_url"
+                           name="shr_shop_base_url"
+                           class="regular-text"
+                           value="<?php echo esc_attr($shr_shop_base_url); ?>"
+                           placeholder="https://api.shrglobal.com/shop">
+                    <p class="description">
+                        <?php _e('Base URL for the SHR Shop API (used for /hotelDetails/ calls).', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th colspan="2">
+                    <h3 style="margin-top: 20px;"><?php _e('Optional Query Parameters', 'dhr-hotel-management'); ?></h3>
+                    <p class="description" style="font-weight: normal;">
+                        <?php _e('These parameters may be required by your SHR API configuration. Leave empty if not needed.', 'dhr-hotel-management'); ?>
+                    </p>
+                </th>
+            </tr>
+            <tr>
+                <th><label for="shr_hotel_id"><?php _e('Hotel ID', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="text"
+                           id="shr_hotel_id"
+                           name="shr_hotel_id"
+                           class="regular-text"
+                           value="<?php echo esc_attr(get_option('dhr_shr_hotel_id', '')); ?>"
+                           placeholder="7707">
+                    <p class="description">
+                        <?php _e('Optional hotel ID parameter for API calls.', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="shr_language_id"><?php _e('Language ID', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="text"
+                           id="shr_language_id"
+                           name="shr_language_id"
+                           class="regular-text"
+                           value="<?php echo esc_attr(get_option('dhr_shr_language_id', '4416')); ?>"
+                           placeholder="4416">
+                    <p class="description">
+                        <?php _e('Language ID for API calls (default: 4416).', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="shr_channel_id"><?php _e('Channel ID', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="text"
+                           id="shr_channel_id"
+                           name="shr_channel_id"
+                           class="regular-text"
+                           value="<?php echo esc_attr(get_option('dhr_shr_channel_id', '6232')); ?>"
+                           placeholder="6232">
+                    <p class="description">
+                        <?php _e('Channel ID for API calls (default: 6232).', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+
             <tr>
                 <th colspan="2"><h2><?php _e('Map Display Settings', 'dhr-hotel-management'); ?></h2></th>
             </tr>
