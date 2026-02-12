@@ -44,6 +44,8 @@ class DHR_Hotel_Database {
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
 
+        self::maybe_upgrade_dhr_hotels_table($table_name);
+
         // Add FULLTEXT index for search (only on text columns; id/lat/long/dates cannot be in FULLTEXT)
         $fulltext_index = $wpdb->prefix . 'dhr_hotels_fulltext';
         $index_exists   = $wpdb->get_var($wpdb->prepare(
@@ -152,7 +154,53 @@ class DHR_Hotel_Database {
         // Insert default map configurations if they don't exist
         self::create_default_map_configs();
     }
-    
+
+    /**
+     * Add missing columns to wp_dhr_hotels if the table was created with an older schema.
+     */
+    public static function maybe_upgrade_dhr_hotels_table($table_name) {
+        global $wpdb;
+
+        $existing = $wpdb->get_col($wpdb->prepare(
+            "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE table_schema = %s AND table_name = %s",
+            DB_NAME,
+            $table_name
+        ));
+        if (!is_array($existing)) {
+            return;
+        }
+
+        $columns_to_add = array(
+            'hotel_code'      => "ADD COLUMN hotel_code varchar(50) DEFAULT NULL AFTER id",
+            'name'            => "ADD COLUMN name varchar(255) NOT NULL DEFAULT '' AFTER hotel_code",
+            'description'     => "ADD COLUMN description text AFTER name",
+            'address'         => "ADD COLUMN address varchar(500) NOT NULL DEFAULT '' AFTER description",
+            'city'            => "ADD COLUMN city varchar(100) NOT NULL DEFAULT '' AFTER address",
+            'province'        => "ADD COLUMN province varchar(100) NOT NULL DEFAULT '' AFTER city",
+            'country'         => "ADD COLUMN country varchar(100) DEFAULT 'South Africa' AFTER province",
+            'latitude'        => "ADD COLUMN latitude decimal(10,8) NOT NULL DEFAULT 0 AFTER country",
+            'longitude'       => "ADD COLUMN longitude decimal(11,8) NOT NULL DEFAULT 0 AFTER latitude",
+            'phone'           => "ADD COLUMN phone varchar(50) DEFAULT NULL AFTER longitude",
+            'email'           => "ADD COLUMN email varchar(255) DEFAULT NULL AFTER phone",
+            'website'         => "ADD COLUMN website varchar(255) DEFAULT NULL AFTER email",
+            'image_url'       => "ADD COLUMN image_url varchar(500) DEFAULT NULL AFTER website",
+            'google_maps_url' => "ADD COLUMN google_maps_url varchar(500) DEFAULT NULL AFTER image_url",
+            'status'          => "ADD COLUMN status varchar(20) DEFAULT 'active' AFTER google_maps_url",
+            'created_at'      => "ADD COLUMN created_at datetime DEFAULT CURRENT_TIMESTAMP AFTER status",
+            'updated_at'      => "ADD COLUMN updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at",
+        );
+
+        foreach ($columns_to_add as $col => $alter_sql) {
+            if (!in_array($col, $existing, true)) {
+                $wpdb->query("ALTER TABLE `$table_name` " . $alter_sql);
+            }
+        }
+
+        if (!in_array('hotel_code', $existing, true)) {
+            $wpdb->query("ALTER TABLE `$table_name` ADD UNIQUE KEY hotel_code (hotel_code)");
+        }
+    }
+
     /**
      * Create default map configurations
      */
@@ -363,33 +411,58 @@ class DHR_Hotel_Database {
     
     /**
      * Insert new hotel
+     * All values are coerced to non-null to avoid DB errors (NOT NULL columns).
      */
     public static function insert_hotel($data) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'dhr_hotels';
-        
+
+        $data = wp_parse_args($data, array(
+            'hotel_code'      => '',
+            'name'            => '',
+            'description'     => '',
+            'address'         => '',
+            'city'            => '',
+            'province'        => '',
+            'country'         => 'South Africa',
+            'latitude'        => 0,
+            'longitude'       => 0,
+            'phone'           => '',
+            'email'           => '',
+            'website'         => '',
+            'image_url'       => '',
+            'google_maps_url' => '',
+            'status'          => 'active',
+        ));
+
+        $row = array(
+            'hotel_code'      => sanitize_text_field((string) $data['hotel_code']),
+            'name'            => sanitize_text_field((string) $data['name']) ?: 'Hotel',
+            'description'     => sanitize_textarea_field((string) $data['description']),
+            'address'         => sanitize_text_field((string) $data['address']),
+            'city'            => sanitize_text_field((string) $data['city']),
+            'province'        => sanitize_text_field((string) $data['province']),
+            'country'         => sanitize_text_field((string) $data['country']) ?: 'South Africa',
+            'latitude'        => floatval($data['latitude']),
+            'longitude'       => floatval($data['longitude']),
+            'phone'           => sanitize_text_field((string) $data['phone']),
+            'email'           => sanitize_email((string) $data['email']),
+            'website'         => esc_url_raw((string) $data['website']) ?: '',
+            'image_url'       => esc_url_raw((string) $data['image_url']) ?: '',
+            'google_maps_url' => esc_url_raw((string) $data['google_maps_url']) ?: '',
+            'status'          => sanitize_text_field((string) $data['status']) ?: 'active',
+        );
+
         $result = $wpdb->insert(
             $table_name,
-            array(
-                'hotel_code' => isset($data['hotel_code']) ? sanitize_text_field($data['hotel_code']) : '',
-                'name' => sanitize_text_field($data['name']),
-                'description' => sanitize_textarea_field($data['description']),
-                'address' => sanitize_text_field($data['address']),
-                'city' => sanitize_text_field($data['city']),
-                'province' => sanitize_text_field($data['province']),
-                'country' => sanitize_text_field($data['country']),
-                'latitude' => floatval($data['latitude']),
-                'longitude' => floatval($data['longitude']),
-                'phone' => sanitize_text_field($data['phone']),
-                'email' => sanitize_email($data['email']),
-                'website' => esc_url_raw($data['website']),
-                'image_url' => esc_url_raw($data['image_url']),
-                'google_maps_url' => esc_url_raw($data['google_maps_url']),
-                'status' => sanitize_text_field($data['status'])
-            ),
-            array('%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+            $row,
+            array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s')
         );
-        
+
+        if ($result === false && defined('WP_DEBUG') && WP_DEBUG && $wpdb->last_error) {
+            error_log('DHR insert_hotel failed: ' . $wpdb->last_error);
+        }
+
         return $result !== false ? $wpdb->insert_id : false;
     }
     
@@ -399,31 +472,43 @@ class DHR_Hotel_Database {
     public static function update_hotel($id, $data) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'dhr_hotels';
-        
+
+        $data = wp_parse_args($data, array(
+            'hotel_code' => '', 'name' => '', 'description' => '', 'address' => '', 'city' => '', 'province' => '',
+            'country' => 'South Africa', 'latitude' => 0, 'longitude' => 0, 'phone' => '', 'email' => '',
+            'website' => '', 'image_url' => '', 'google_maps_url' => '', 'status' => 'active',
+        ));
+
+        $row = array(
+            'hotel_code'      => sanitize_text_field((string) $data['hotel_code']),
+            'name'            => sanitize_text_field((string) $data['name']) ?: 'Hotel',
+            'description'     => sanitize_textarea_field((string) $data['description']),
+            'address'         => sanitize_text_field((string) $data['address']),
+            'city'            => sanitize_text_field((string) $data['city']),
+            'province'        => sanitize_text_field((string) $data['province']),
+            'country'         => sanitize_text_field((string) $data['country']) ?: 'South Africa',
+            'latitude'        => floatval($data['latitude']),
+            'longitude'       => floatval($data['longitude']),
+            'phone'           => sanitize_text_field((string) $data['phone']),
+            'email'           => sanitize_email((string) $data['email']),
+            'website'         => esc_url_raw((string) $data['website']) ?: '',
+            'image_url'       => esc_url_raw((string) $data['image_url']) ?: '',
+            'google_maps_url' => esc_url_raw((string) $data['google_maps_url']) ?: '',
+            'status'          => sanitize_text_field((string) $data['status']) ?: 'active',
+        );
+
         $result = $wpdb->update(
             $table_name,
-            array(
-                'hotel_code' => isset($data['hotel_code']) ? sanitize_text_field($data['hotel_code']) : '',
-                'name' => sanitize_text_field($data['name']),
-                'description' => sanitize_textarea_field($data['description']),
-                'address' => sanitize_text_field($data['address']),
-                'city' => sanitize_text_field($data['city']),
-                'province' => sanitize_text_field($data['province']),
-                'country' => sanitize_text_field($data['country']),
-                'latitude' => floatval($data['latitude']),
-                'longitude' => floatval($data['longitude']),
-                'phone' => sanitize_text_field($data['phone']),
-                'email' => sanitize_email($data['email']),
-                'website' => esc_url_raw($data['website']),
-                'image_url' => esc_url_raw($data['image_url']),
-                'google_maps_url' => esc_url_raw($data['google_maps_url']),
-                'status' => sanitize_text_field($data['status'])
-            ),
+            $row,
             array('id' => intval($id)),
-            array('%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s'),
+            array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s'),
             array('%d')
         );
-        
+
+        if ($result === false && defined('WP_DEBUG') && WP_DEBUG && $wpdb->last_error) {
+            error_log('DHR update_hotel failed: ' . $wpdb->last_error);
+        }
+
         return $result !== false;
     }
     

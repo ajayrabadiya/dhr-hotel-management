@@ -58,6 +58,9 @@ class DHR_Hotel_Management {
         
         // Load plugin textdomain - must be on 'init' or later
         add_action('init', array($this, 'load_textdomain'));
+
+        // Ensure hotels table has all columns (e.g. hotel_code) for existing installs
+        add_action('admin_init', array($this, 'maybe_upgrade_hotels_table'));
         
         // Initialize admin - after init to ensure translations are loaded
         add_action('init', array($this, 'init_admin'));
@@ -69,6 +72,17 @@ class DHR_Hotel_Management {
         new DHR_Hotel_REST_API();
     }
     
+    /**
+     * Run hotels table schema upgrade (add missing columns like hotel_code) for existing installs.
+     */
+    public function maybe_upgrade_hotels_table() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'dhr_hotels';
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name)) === $table_name) {
+            DHR_Hotel_Database::maybe_upgrade_dhr_hotels_table($table_name);
+        }
+    }
+
     /**
      * Load plugin textdomain
      */

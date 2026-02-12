@@ -972,42 +972,45 @@ class DHR_Hotel_API {
 
         $normalised = $this->normalise_shr_hotel_data($hotel_code, $api_result['data']);
 
-        // Insert or update hotel record
-        $existing = DHR_Hotel_Database::get_hotel_by_code($hotel_code);
-
         $hotel_data = array(
             'hotel_code'      => $normalised['hotel_code'],
-            'name'            => $normalised['name'],
-            'description'     => $normalised['description'],
-            'address'         => $normalised['address'],
-            'city'            => $normalised['city'],
-            'province'        => $normalised['province'],
-            'country'         => $normalised['country'],
-            'latitude'        => $normalised['latitude'],
-            'longitude'       => $normalised['longitude'],
-            'phone'           => $normalised['phone'],
-            'email'           => $normalised['email'],
-            'website'         => $normalised['website'],
-            'image_url'       => $normalised['image_url'],
-            'google_maps_url' => $normalised['google_maps_url'],
+            'name'            => $normalised['name'] ?? '',
+            'description'     => $normalised['description'] ?? '',
+            'address'         => $normalised['address'] ?? '',
+            'city'            => $normalised['city'] ?? '',
+            'province'        => $normalised['province'] ?? '',
+            'country'         => $normalised['country'] ?? 'South Africa',
+            'latitude'        => isset($normalised['latitude']) ? floatval($normalised['latitude']) : 0,
+            'longitude'       => isset($normalised['longitude']) ? floatval($normalised['longitude']) : 0,
+            'phone'           => $normalised['phone'] ?? '',
+            'email'           => $normalised['email'] ?? '',
+            'website'         => $normalised['website'] ?? '',
+            'image_url'       => $normalised['image_url'] ?? '',
+            'google_maps_url' => $normalised['google_maps_url'] ?? '',
             'status'          => 'active',
         );
+
+        $existing = DHR_Hotel_Database::get_hotel_by_code($hotel_code);
 
         if ($existing) {
             $hotel_id = $existing->id;
             $updated  = DHR_Hotel_Database::update_hotel($hotel_id, $hotel_data);
             if (!$updated) {
+                global $wpdb;
+                $db_error = $wpdb->last_error ? ' ' . $wpdb->last_error : '';
                 return array(
                     'success' => false,
-                    'error'   => __('Failed to update existing hotel record.', 'dhr-hotel-management'),
+                    'error'   => __('Failed to update existing hotel record.', 'dhr-hotel-management') . $db_error,
                 );
             }
         } else {
             $hotel_id = DHR_Hotel_Database::insert_hotel($hotel_data);
             if ($hotel_id === false) {
+                global $wpdb;
+                $db_error = $wpdb->last_error ? ' ' . $wpdb->last_error : '';
                 return array(
                     'success' => false,
-                    'error'   => __('Failed to insert new hotel record.', 'dhr-hotel-management'),
+                    'error'   => __('Failed to insert new hotel record.', 'dhr-hotel-management') . $db_error,
                 );
             }
         }
