@@ -12,9 +12,9 @@ if (!defined('ABSPATH')) {
     <div id="hotel-map" class="hotel-map"></div>
     <div class="hotel-info-content">
         <?php
-        $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : get_option('dhr_hotel_location_heading', 'LOCATED IN THE WESTERN CAPE');
-        $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : get_option('dhr_hotel_main_heading', 'Find Us');
-        $description_text = isset($settings['description_text']) ? $settings['description_text'] : get_option('dhr_hotel_description_text', 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.');
+        $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : 'LOCATED IN THE WESTERN CAPE';
+        $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : 'Find Us';
+        $description_text = isset($settings['description_text']) ? $settings['description_text'] : 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.';
         $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] : 'Book Now';
         $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
         ?>
@@ -32,7 +32,7 @@ if (!defined('ABSPATH')) {
 
         <?php
         // Get View On Google Maps link and text from settings or options
-        $view_on_google_maps_link = isset($settings['view_on_google_maps_link']) ? $settings['view_on_google_maps_link'] : get_option('dhr_hotel_view_on_google_maps_link', '');
+        $view_on_google_maps_link = isset($settings['view_on_google_maps_link']) ? $settings['view_on_google_maps_link'] : '';
         $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
 
         // If no link is set, use first hotel's Google Maps URL as fallback
@@ -76,8 +76,8 @@ if (!defined('ABSPATH')) {
 
         <?php
         // Get reservation settings from map config or options
-        $reservation_label = isset($settings['reservation_label']) ? $settings['reservation_label'] : get_option('dhr_hotel_reservation_label', 'RESERVATION BY PHONE');
-        $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservation_phone'] : get_option('dhr_hotel_reservation_phone', '');
+        $reservation_label = isset($settings['reservation_label']) ? $settings['reservation_label'] : 'RESERVATION BY PHONE';
+        $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservation_phone'] : '';
 
         // Use setting phone if available, otherwise fall back to first hotel's phone
         $display_phone = !empty($reservation_phone) ? $reservation_phone : '';

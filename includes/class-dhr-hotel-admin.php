@@ -242,25 +242,6 @@ class DHR_Hotel_Admin {
         $shr_shop_base_url = isset($_POST['shr_shop_base_url']) ? esc_url_raw($_POST['shr_shop_base_url']) : 'https://api.shrglobal.com/shop';
         update_option('dhr_shr_shop_base_url', rtrim($shr_shop_base_url, '/'));
 
-        // Save map display settings
-        $location_heading = isset($_POST['location_heading']) ? sanitize_text_field($_POST['location_heading']) : '';
-        update_option('dhr_hotel_location_heading', $location_heading);
-        
-        $main_heading = isset($_POST['main_heading']) ? sanitize_text_field($_POST['main_heading']) : '';
-        update_option('dhr_hotel_main_heading', $main_heading);
-        
-        $description_text = isset($_POST['description_text']) ? sanitize_textarea_field($_POST['description_text']) : '';
-        update_option('dhr_hotel_description_text', $description_text);
-        
-        $reservation_label = isset($_POST['reservation_label']) ? sanitize_text_field($_POST['reservation_label']) : '';
-        update_option('dhr_hotel_reservation_label', $reservation_label);
-        
-        $reservation_phone = isset($_POST['reservation_phone']) ? sanitize_text_field($_POST['reservation_phone']) : '';
-        update_option('dhr_hotel_reservation_phone', $reservation_phone);
-        
-        $view_on_google_maps_link = isset($_POST['view_on_google_maps_link']) ? esc_url_raw($_POST['view_on_google_maps_link']) : '';
-        update_option('dhr_hotel_view_on_google_maps_link', $view_on_google_maps_link);
-        
         wp_redirect(admin_url('admin.php?page=dhr-hotel-settings&message=saved'));
         exit;
     }
