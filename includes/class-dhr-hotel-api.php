@@ -463,44 +463,28 @@ class DHR_Hotel_API {
     }
 
     /**
-     * Get cached SHR access token or request a new one
+     * Clear cached SHR access token (so next call will request a new one).
+     * Used when API returns 401 to force token refresh.
      */
-    public function get_shr_access_token() {
-        // Check for manually configured token first
-        $manual_token = get_option('dhr_shr_manual_access_token', '');
-        if (!empty($manual_token)) {
-            return array(
-                'success'      => true,
-                'access_token' => $manual_token,
-                'from_cache'   => false,
-                'manual'       => true,
-            );
-        }
+    private function clear_shr_token_cache() {
+        delete_option('dhr_shr_access_token');
+        delete_option('dhr_shr_access_token_expires_at');
+    }
 
-        // Check cached token
-        $cached_token = get_option('dhr_shr_access_token', '');
-        $expires_at   = intval(get_option('dhr_shr_access_token_expires_at', 0));
-
-        // Reuse token if still valid (with 60s buffer)
-        if (!empty($cached_token) && $expires_at > (time() + 60)) {
-            return array(
-                'success'      => true,
-                'access_token' => $cached_token,
-                'from_cache'   => true,
-            );
-        }
-
-        // Request new token (only if client credentials are configured)
+    /**
+     * Request a new SHR access token from id.shrglobal.com/connect/token.
+     * Uses client_credentials grant; no Bearer on this request.
+     */
+    private function request_shr_token_from_api() {
         $client_id     = $this->get_shr_client_id();
         $client_secret = $this->get_shr_client_secret();
         $scope         = $this->get_shr_scope();
         $token_url     = $this->get_shr_token_url();
 
-        // If no client credentials, return error
         if (empty($client_id) || empty($client_secret)) {
             return array(
                 'success' => false,
-                'error'   => __('SHR access token is not configured. Please either set a manual access token or configure client ID and secret.', 'dhr-hotel-management'),
+                'error'   => __('SHR client ID and secret are required to generate a token.', 'dhr-hotel-management'),
             );
         }
 
@@ -546,71 +530,95 @@ class DHR_Hotel_API {
         $access_token = $data['access_token'];
         $expires_in   = isset($data['expires_in']) ? intval($data['expires_in']) : 3600;
 
-        // Cache token and expiry
         update_option('dhr_shr_access_token', $access_token);
         update_option('dhr_shr_access_token_expires_at', time() + $expires_in);
 
         return array(
             'success'      => true,
             'access_token' => $access_token,
-            'from_cache'   => false,
         );
     }
 
     /**
-     * Call SHR /hotelDetails/{hotelCode} and return raw decoded data
+     * Get SHR access token: use manual token if set, else cached token if still valid, else request new one.
+     * Does not generate a token on every request; reuses cache until expiry (with 60s buffer).
+     *
+     * @param bool $force_refresh If true, ignore cache and request a new token (used after 401).
+     * @param bool $force_from_api If true, skip manual and cache and get a fresh token from token API (for 401 retry).
+     * @return array { success, access_token?, manual?, error? }
      */
-    private function call_shr_hotel_details($hotel_code) {
-        $token_result = $this->get_shr_access_token();
-        if (!$token_result['success']) {
-            return $token_result;
+    public function get_shr_access_token($force_refresh = false, $force_from_api = false) {
+        // After 401 we want a fresh token from API only (ignore manual and cache)
+        if ($force_from_api) {
+            $result = $this->request_shr_token_from_api();
+            if (!$result['success']) {
+                return array(
+                    'success' => false,
+                    'error'   => isset($result['error']) ? $result['error'] : __('Failed to get SHR token.', 'dhr-hotel-management'),
+                );
+            }
+            return array(
+                'success'      => true,
+                'access_token' => $result['access_token'],
+                'from_cache'   => false,
+                'manual'       => false,
+            );
         }
 
-        $access_token = $token_result['access_token'];
-        $base_url     = $this->get_shr_shop_base_url();
+        // Manual token is always used as-is (no expiry, no refresh)
+        $manual_token = get_option('dhr_shr_manual_access_token', '');
+        if (!empty($manual_token)) {
+            return array(
+                'success'      => true,
+                'access_token' => trim($manual_token),
+                'from_cache'   => false,
+                'manual'       => true,
+            );
+        }
 
-        // Build URL - ensure no double slashes
-        $base_url = rtrim($base_url, '/');
-        $url = $base_url . '/hotelDetails/' . rawurlencode($hotel_code);
+        // When 401 occurred, cache was cleared; force_refresh means "get new token"
+        if (!$force_refresh) {
+            $cached_token = get_option('dhr_shr_access_token', '');
+            $expires_at   = intval(get_option('dhr_shr_access_token_expires_at', 0));
+            if (!empty($cached_token) && $expires_at > (time() + 60)) {
+                return array(
+                    'success'      => true,
+                    'access_token' => trim($cached_token),
+                    'from_cache'   => true,
+                    'manual'       => false,
+                );
+            }
+        }
 
-        // Get configurable parameters from settings
-        $hotel_id = get_option('dhr_shr_hotel_id', '');
-        $language_id = get_option('dhr_shr_language_id', '4416');
-        $channel_id = get_option('dhr_shr_channel_id', '6232');
+        $result = $this->request_shr_token_from_api();
+        if (!$result['success']) {
+            return array(
+                'success' => false,
+                'error'   => isset($result['error']) ? $result['error'] : __('Failed to get SHR token.', 'dhr-hotel-management'),
+            );
+        }
 
-        // Build query parameters - use minimal required params first
-        $params = array(
-            'requiredDetails' => 'all',
+        return array(
+            'success'      => true,
+            'access_token' => trim($result['access_token']),
+            'from_cache'   => false,
+            'manual'       => false,
         );
+    }
 
-        // Add optional parameters if configured
-        if (!empty($hotel_id)) {
-            $params['hotelID'] = $hotel_id;
+    /**
+     * Perform one SHR hotelDetails GET request (used for initial call and retry after 401).
+     */
+    private function do_shr_hotel_details_request($url, $access_token) {
+        $token = trim($access_token);
+        if (stripos($token, 'Bearer ') === 0) {
+            $token = trim(substr($token, 7));
         }
-        if (!empty($language_id)) {
-            $params['languageId'] = $language_id;
-        }
-        if (!empty($channel_id)) {
-            $params['channelId'] = $channel_id;
-        }
-
-        // Allow filtering of parameters
-        $params = apply_filters(
-            'dhr_shr_hotel_details_query_args',
-            $params,
-            $hotel_code
-        );
-
-        // Build URL with query parameters
-        if (!empty($params)) {
-            $url = add_query_arg($params, $url);
-        }
-
         $response = wp_remote_get(
             $url,
             array(
                 'headers' => array(
-                    'Authorization' => 'Bearer ' . $access_token,
+                    'Authorization' => 'Bearer ' . $token,
                     'Accept'        => 'application/json',
                     'Content-Type'  => 'application/json',
                 ),
@@ -620,8 +628,10 @@ class DHR_Hotel_API {
 
         if (is_wp_error($response)) {
             return array(
-                'success' => false,
-                'error'   => $response->get_error_message(),
+                'status_code' => 0,
+                'body'        => '',
+                'data'        => null,
+                'error'       => $response->get_error_message(),
             );
         }
 
@@ -629,15 +639,86 @@ class DHR_Hotel_API {
         $body        = wp_remote_retrieve_body($response);
         $data        = json_decode($body, true);
 
+        return array(
+            'status_code' => $status_code,
+            'body'        => $body,
+            'data'        => is_array($data) ? $data : null,
+        );
+    }
+
+    /**
+     * Call SHR /hotelDetails/{hotelCode} and return raw decoded data.
+     * Uses cached token when valid; on 401 (Unauthorized) regenerates token and retries once.
+     */
+    private function call_shr_hotel_details($hotel_code) {
+        $token_result = $this->get_shr_access_token(false);
+        if (!$token_result['success']) {
+            return $token_result;
+        }
+
+        $access_token = $token_result['access_token'];
+        $is_manual    = !empty($token_result['manual']);
+        $base_url    = $this->get_shr_shop_base_url();
+        $base_url    = rtrim($base_url, '/');
+        $url         = $base_url . '/hotelDetails/' . rawurlencode($hotel_code);
+
+        $hotel_id    = get_option('dhr_shr_hotel_id', '');
+        $language_id = get_option('dhr_shr_language_id', '4416');
+        $channel_id  = get_option('dhr_shr_channel_id', '30');
+
+        $params = array(
+            'channelId'        => $channel_id,
+            'requiredDetails'  => 'all',
+        );
+        if (!empty($hotel_id)) {
+            $params['hotelID'] = $hotel_id;
+        }
+        if (!empty($language_id)) {
+            $params['languageId'] = $language_id;
+        }
+
+        $params = apply_filters('dhr_shr_hotel_details_query_args', $params, $hotel_code);
+        if (!empty($params)) {
+            $url = add_query_arg($params, $url);
+        }
+
+        $result = $this->do_shr_hotel_details_request($url, $access_token);
+
+        if (!empty($result['error'])) {
+            return array(
+                'success' => false,
+                'error'   => $result['error'],
+            );
+        }
+
+        $status_code = $result['status_code'];
+        $body        = $result['body'];
+        $data        = $result['data'];
+
+        // 401 invalid_token: get fresh token from API and retry once (when client credentials are configured)
+        if ($status_code === 401) {
+            $client_id     = $this->get_shr_client_id();
+            $client_secret = $this->get_shr_client_secret();
+            if (!empty($client_id) && !empty($client_secret)) {
+                $this->clear_shr_token_cache();
+                $token_result = $this->get_shr_access_token(true, true);
+                if ($token_result['success']) {
+                    $result = $this->do_shr_hotel_details_request($url, $token_result['access_token']);
+                    if (!empty($result['error'])) {
+                        return array('success' => false, 'error' => $result['error']);
+                    }
+                    $status_code = $result['status_code'];
+                    $body        = $result['body'];
+                    $data        = $result['data'];
+                }
+            }
+        }
+
         if ($status_code !== 200) {
-            // Try to extract error message from response
             $error_message = sprintf(
-                /* translators: 1: HTTP status code */
                 __('SHR hotelDetails request failed (status %d).', 'dhr-hotel-management'),
                 $status_code
             );
-
-            // Try to get more details from error response
             if (!empty($body)) {
                 $error_data = json_decode($body, true);
                 if (is_array($error_data)) {
@@ -649,18 +730,14 @@ class DHR_Hotel_API {
                         $error_message .= ' ' . $error_data['error_description'];
                     }
                 } else {
-                    // If not JSON, include first 200 chars of body
                     $error_message .= ' Response: ' . substr(strip_tags($body), 0, 200);
                 }
             }
-
-            // Log full error for debugging
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('DHR SHR API Error - URL: ' . $url);
                 error_log('DHR SHR API Error - Status: ' . $status_code);
                 error_log('DHR SHR API Error - Response: ' . $body);
             }
-
             return array(
                 'success' => false,
                 'error'   => $error_message,

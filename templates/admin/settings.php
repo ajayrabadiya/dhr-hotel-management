@@ -10,14 +10,15 @@ if (!defined('ABSPATH')) {
 $message = isset($_GET['message']) ? sanitize_text_field($_GET['message']) : '';
 $api_key = get_option('dhr_hotel_google_maps_api_key', '');
 
-// SHR WS Shop API (REST) settings
-$shr_access_token = get_option('dhr_shr_access_token', '');
+// SHR WS Shop API (REST) settings – manual token is used for Sync & Add Hotel (no expiry)
+$shr_manual_access_token = get_option('dhr_shr_manual_access_token', '');
 $shr_client_id = get_option('dhr_shr_client_id', '');
 $shr_client_secret_encrypted = get_option('dhr_shr_client_secret', '');
 $shr_client_secret = !empty($shr_client_secret_encrypted) ? base64_decode($shr_client_secret_encrypted) : '';
 $shr_scope = get_option('dhr_shr_scope', 'wsapi.hoteldetails.read');
 $shr_token_url = get_option('dhr_shr_token_url', 'https://id.shrglobal.com/connect/token');
 $shr_shop_base_url = get_option('dhr_shr_shop_base_url', 'https://api.shrglobal.com/shop');
+$shr_channel_id = get_option('dhr_shr_channel_id', '30');
 ?>
 
 <div class="wrap dhr-hotel-admin">
@@ -57,10 +58,10 @@ $shr_shop_base_url = get_option('dhr_shr_shop_base_url', 'https://api.shrglobal.
                            id="shr_manual_access_token"
                            name="shr_manual_access_token"
                            class="large-text"
-                           value="<?php echo esc_attr($shr_access_token); ?>"
+                           value="<?php echo esc_attr($shr_manual_access_token); ?>"
                            placeholder="<?php esc_attr_e('Enter your access token directly', 'dhr-hotel-management'); ?>">
                     <p class="description">
-                        <?php _e('Enter your SHR access token directly. If provided, this will be used instead of generating a token from client credentials.', 'dhr-hotel-management'); ?>
+                        <?php _e('Paste your Bearer token (e.g. from Postman). Used for Sync & Add Hotel; when set, the token is not auto-generated or expired.', 'dhr-hotel-management'); ?>
                     </p>
                 </td>
             </tr>
@@ -146,6 +147,20 @@ $shr_shop_base_url = get_option('dhr_shr_shop_base_url', 'https://api.shrglobal.
                            placeholder="https://api.shrglobal.com/shop">
                     <p class="description">
                         <?php _e('Base URL for the SHR Shop API (used for /hotelDetails/ calls).', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="shr_channel_id"><?php _e('Channel ID', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="text"
+                           id="shr_channel_id"
+                           name="shr_channel_id"
+                           class="regular-text"
+                           value="<?php echo esc_attr($shr_channel_id); ?>"
+                           placeholder="30">
+                    <p class="description">
+                        <?php _e('Query parameter for hotelDetails (e.g. 30). Must match your SHR/Postman setup.', 'dhr-hotel-management'); ?>
                     </p>
                 </td>
             </tr>

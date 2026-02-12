@@ -242,6 +242,9 @@ class DHR_Hotel_Admin {
         $shr_shop_base_url = isset($_POST['shr_shop_base_url']) ? esc_url_raw($_POST['shr_shop_base_url']) : 'https://api.shrglobal.com/shop';
         update_option('dhr_shr_shop_base_url', rtrim($shr_shop_base_url, '/'));
 
+        $shr_channel_id = isset($_POST['shr_channel_id']) ? sanitize_text_field($_POST['shr_channel_id']) : '30';
+        update_option('dhr_shr_channel_id', $shr_channel_id);
+
         wp_redirect(admin_url('admin.php?page=dhr-hotel-settings&message=saved'));
         exit;
     }
