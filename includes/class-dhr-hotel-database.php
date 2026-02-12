@@ -43,7 +43,19 @@ class DHR_Hotel_Database {
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
-        
+
+        // Add FULLTEXT index for search (only on text columns; id/lat/long/dates cannot be in FULLTEXT)
+        $fulltext_index = $wpdb->prefix . 'dhr_hotels_fulltext';
+        $index_exists   = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = %s AND table_name = %s AND index_name = %s",
+            DB_NAME,
+            $table_name,
+            $fulltext_index
+        ));
+        if (!$index_exists) {
+            $wpdb->query("ALTER TABLE `$table_name` ADD FULLTEXT INDEX `$fulltext_index` (`name`, `description`, `address`, `city`, `province`, `country`, `phone`, `email`, `website`, `image_url`, `google_maps_url`, `status`)");
+        }
+
         // Create map configurations table
         $map_config_table = $wpdb->prefix . 'dhr_map_configs';
         $sql_map = "CREATE TABLE IF NOT EXISTS $map_config_table (

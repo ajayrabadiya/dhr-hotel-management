@@ -754,6 +754,18 @@ class DHR_Hotel_API {
             );
         }
 
+        // Store last API response for debugging / print (transient expires in 1 hour)
+        set_transient('dhr_last_shr_api_response', array(
+            'hotel_code' => $hotel_code,
+            'body'       => $body,
+            'data'       => $data,
+            'at'         => current_time('mysql'),
+        ), HOUR_IN_SECONDS);
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('DHR SHR API Response [' . $hotel_code . ']: ' . substr($body, 0, 5000) . (strlen($body) > 5000 ? '...' : ''));
+        }
+
         return array(
             'success' => true,
             'data'    => $data,
@@ -783,35 +795,30 @@ class DHR_Hotel_API {
             $description = wp_strip_all_tags($info['generalPolicy']);
         }
 
-        // Address from contactInfo.address
-        $address = '';
-        $city = '';
-        $province = '';
-        $country = 'South Africa';
+        // Address from contactInfo.address, or locationDesc when no contactInfo
+        $address   = '';
+        $city      = '';
+        $province  = '';
+        $country   = 'South Africa';
         $postal_code = '';
 
         if (!empty($info['contactInfo']['address'])) {
             $addr = $info['contactInfo']['address'];
-            
-            // Build address from addressLine array
             if (!empty($addr['addressLine']) && is_array($addr['addressLine'])) {
                 $address = implode(', ', array_filter($addr['addressLine']));
             }
-            
-            $city = isset($addr['cityName']) ? $addr['cityName'] : '';
-            $province = isset($addr['stateProv']['state']) ? $addr['stateProv']['state'] : '';
+            $city      = isset($addr['cityName']) ? $addr['cityName'] : '';
+            $province  = isset($addr['stateProv']['state']) ? $addr['stateProv']['state'] : '';
             $postal_code = isset($addr['postalCode']) ? $addr['postalCode'] : '';
-            
-            // Country code mapping (ZA = South Africa)
             if (!empty($addr['countryName']['code'])) {
-                $country_code = $addr['countryName']['code'];
-                // Map common codes to full names
-                $country_map = array(
-                    'ZA' => 'South Africa',
-                    'US' => 'United States',
-                    'GB' => 'United Kingdom',
-                );
-                $country = isset($country_map[$country_code]) ? $country_map[$country_code] : $country_code;
+                $country_map = array('ZA' => 'South Africa', 'US' => 'United States', 'GB' => 'United Kingdom');
+                $country = isset($country_map[$addr['countryName']['code']]) ? $country_map[$addr['countryName']['code']] : $addr['countryName']['code'];
+            }
+        }
+        if (empty($address) && !empty($info['locationDesc'])) {
+            $address = wp_trim_words(wp_strip_all_tags($info['locationDesc']), 50);
+            if (strlen($address) > 500) {
+                $address = substr($address, 0, 497) . '...';
             }
         }
 
@@ -819,17 +826,15 @@ class DHR_Hotel_API {
         $latitude = isset($info['latitude']) ? floatval($info['latitude']) : 0;
         $longitude = isset($info['longitude']) ? floatval($info['longitude']) : 0;
 
-        // Phone from contactInfo.phones array (find primary voice phone)
+        // Phone: contactInfo.phones first, then resPhone (API response format without contactInfo)
         $phone = '';
         if (!empty($info['contactInfo']['phones']) && is_array($info['contactInfo']['phones'])) {
             foreach ($info['contactInfo']['phones'] as $phone_obj) {
-                if (isset($phone_obj['phoneTechType']) && $phone_obj['phoneTechType'] === 'voice' 
+                if (isset($phone_obj['phoneTechType']) && $phone_obj['phoneTechType'] === 'voice'
                     && isset($phone_obj['primary']) && $phone_obj['primary'] === true) {
-                    // Build full phone number
                     $country_code = isset($phone_obj['countryAccessCode']) ? $phone_obj['countryAccessCode'] : '';
-                    $area_code = isset($phone_obj['areaCityCode']) ? $phone_obj['areaCityCode'] : '';
-                    $number = isset($phone_obj['phoneNumber']) ? $phone_obj['phoneNumber'] : '';
-                    
+                    $area_code    = isset($phone_obj['areaCityCode']) ? $phone_obj['areaCityCode'] : '';
+                    $number       = isset($phone_obj['phoneNumber']) ? $phone_obj['phoneNumber'] : '';
                     if ($country_code && $area_code && $number) {
                         $phone = '+' . $country_code . '-' . $area_code . '-' . $number;
                     } elseif ($number) {
@@ -838,20 +843,15 @@ class DHR_Hotel_API {
                     break;
                 }
             }
-            // Fallback: use resPhone if available
-            if (empty($phone) && !empty($info['resPhone'])) {
-                $phone = $info['resPhone'];
-            }
+        }
+        if (empty($phone) && !empty($info['resPhone'])) {
+            $phone = is_string($info['resPhone']) ? trim($info['resPhone']) : '';
         }
 
-        // Email from contactInfo.emails array
+        // Email: contactInfo.emails first, then resEmail (API response format without contactInfo)
         $email = '';
         if (!empty($info['contactInfo']['emails']) && is_array($info['contactInfo']['emails'])) {
-            // Get first email value (may contain multiple emails separated by semicolon)
-            $email_str = isset($info['contactInfo']['emails'][0]['value']) 
-                ? $info['contactInfo']['emails'][0]['value'] 
-                : '';
-            // Take first email if multiple
+            $email_str = isset($info['contactInfo']['emails'][0]['value']) ? $info['contactInfo']['emails'][0]['value'] : '';
             if (strpos($email_str, ';') !== false) {
                 $emails = explode(';', $email_str);
                 $email = trim($emails[0]);
@@ -859,9 +859,8 @@ class DHR_Hotel_API {
                 $email = trim($email_str);
             }
         }
-        // Fallback: use resEmail
         if (empty($email) && !empty($info['resEmail'])) {
-            $email_str = $info['resEmail'];
+            $email_str = is_string($info['resEmail']) ? $info['resEmail'] : '';
             if (strpos($email_str, ';') !== false) {
                 $emails = explode(';', $email_str);
                 $email = trim($emails[0]);
@@ -896,22 +895,35 @@ class DHR_Hotel_API {
                 }
             }
         }
-        // Fallback: use urlHotel
+        // Fallback: use urlHotel then resUrlBase (API response format)
         if (empty($website) && !empty($info['urlHotel'])) {
             $url_value = $info['urlHotel'];
-            $website = (strpos($url_value, 'http') === 0) ? $url_value : 'https://' . $url_value;
+            $website   = (strpos($url_value, 'http') === 0) ? $url_value : 'https://' . $url_value;
+        }
+        if (empty($website) && !empty($info['resUrlBase'])) {
+            $url_value = $info['resUrlBase'];
+            $website   = (strpos($url_value, 'http') === 0) ? $url_value : 'https://' . $url_value;
         }
 
-        // Image URL - get first propertyImage_Stardard from images array
+        // Image URL: first propertyImage_Stardard, then propertyLogo, then first image with fileName
         $image_url = '';
         if (!empty($info['images']) && is_array($info['images'])) {
             foreach ($info['images'] as $img) {
-                if (isset($img['mediaType']) && $img['mediaType'] === 'propertyImage_Stardard') {
-                    $image_url = isset($img['fileName']) ? $img['fileName'] : '';
-                    if (!empty($image_url)) {
+                if (isset($img['mediaType']) && $img['mediaType'] === 'propertyImage_Stardard' && !empty($img['fileName'])) {
+                    $image_url = $img['fileName'];
+                    break;
+                }
+            }
+            if (empty($image_url)) {
+                foreach ($info['images'] as $img) {
+                    if (isset($img['mediaType']) && $img['mediaType'] === 'propertyLogo' && !empty($img['fileName'])) {
+                        $image_url = $img['fileName'];
                         break;
                     }
                 }
+            }
+            if (empty($image_url) && !empty($info['images'][0]['fileName'])) {
+                $image_url = $info['images'][0]['fileName'];
             }
         }
 
