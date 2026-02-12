@@ -36,6 +36,23 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
     </div>
 </div>
 
+<?php
+$hotels_js = array();
+if (!empty($hotels)) {
+    foreach ($hotels as $h) {
+        $hotels_js[] = array(
+            'id' => (int) $h->id, 'name' => isset($h->name) ? $h->name : '', 'description' => isset($h->description) ? $h->description : '',
+            'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
+            'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
+            'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+        );
+    }
+}
+?>
+<script>
+    var dhrThisMapHotels = <?php echo json_encode($hotels_js); ?>;
+</script>
 <script>
     (function () {
         'use strict';
@@ -209,12 +226,11 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
                 return;
             }
 
-            if (!dhrHotelsData || !dhrHotelsData.hotels || dhrHotelsData.hotels.length === 0) {
+            var hotels = (typeof dhrThisMapHotels !== 'undefined' && dhrThisMapHotels.length) ? dhrThisMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
+            if (!hotels || hotels.length === 0) {
                 console.warn('No hotels data available');
                 return;
             }
-
-            var hotels = dhrHotelsData.hotels;
 
             // Calculate center of all hotels
             var bounds = new google.maps.LatLngBounds();

@@ -141,6 +141,24 @@ class DHR_Hotel_Frontend {
     }
     
     /**
+     * Filter hotels to only those selected for this map. If no selection is set, returns all.
+     */
+    public static function filter_hotels_by_map_selection($hotels, $settings) {
+        if (empty($settings['selected_hotel_ids']) || !is_array($settings['selected_hotel_ids'])) {
+            return $hotels;
+        }
+        $ids = array_map('intval', array_values($settings['selected_hotel_ids']));
+        $ids = array_filter($ids);
+        if (empty($ids)) {
+            return $hotels;
+        }
+        $hotels = array_filter($hotels, function($h) use ($ids) {
+            return in_array((int) $h->id, $ids, true);
+        });
+        return array_values($hotels);
+    }
+
+    /**
      * Display hotel map shortcode (Map 1 - Standard)
      */
     public function display_hotel_map($atts) {
@@ -168,6 +186,7 @@ class DHR_Hotel_Frontend {
         // Get map config
         $map_config = DHR_Hotel_Database::get_map_config('dhr_hotel_map');
         $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/hotel-map.php';
@@ -185,6 +204,7 @@ class DHR_Hotel_Frontend {
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_head_office_map');
         $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/head-office-map.php';
@@ -202,6 +222,7 @@ class DHR_Hotel_Frontend {
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_partner_portfolio_map');
         $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/partner-portfolio-map.php';
@@ -219,6 +240,7 @@ class DHR_Hotel_Frontend {
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_dining_venue_map');
         $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/dining-venue-map.php';
@@ -236,6 +258,7 @@ class DHR_Hotel_Frontend {
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_wedding_venue_map');
         $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/wedding-venue-map.php';
@@ -253,6 +276,7 @@ class DHR_Hotel_Frontend {
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_property_portfolio_map');
         $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/property-portfolio-map.php';
@@ -270,6 +294,7 @@ class DHR_Hotel_Frontend {
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_lodges_camps_map');
         $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/lodges-camps-map.php';

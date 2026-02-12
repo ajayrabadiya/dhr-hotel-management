@@ -292,10 +292,21 @@ class DHR_Hotel_Admin {
         $map_id = isset($_POST['map_id']) ? intval($_POST['map_id']) : 0;
         $settings = array();
         
+        // Selected hotel IDs for this map (multi-select)
+        if (isset($_POST['setting_selected_hotels']) && is_array($_POST['setting_selected_hotels'])) {
+            $settings['selected_hotel_ids'] = array_map('intval', array_values($_POST['setting_selected_hotels']));
+            $settings['selected_hotel_ids'] = array_filter($settings['selected_hotel_ids']);
+        } else {
+            $settings['selected_hotel_ids'] = array();
+        }
+
         // Get all POST data and build settings array
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'setting_') === 0) {
                 $setting_key = str_replace('setting_', '', $key);
+                if ($setting_key === 'selected_hotels') {
+                    continue; // already handled above
+                }
                 
                 // Handle different field types
                 if (strpos($setting_key, 'description') !== false || strpos($setting_key, 'text') !== false) {
