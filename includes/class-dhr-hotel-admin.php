@@ -17,8 +17,6 @@ class DHR_Hotel_Admin {
         add_action('admin_post_dhr_save_settings', array($this, 'save_settings'));
         add_action('admin_post_dhr_save_map_config', array($this, 'save_map_config'));
         add_action('admin_post_dhr_create_default_maps', array($this, 'create_default_maps'));
-        add_action('admin_post_dhr_sync_hotel_data', array($this, 'sync_hotel_data'));
-        add_action('wp_ajax_dhr_sync_hotel_ajax', array($this, 'sync_hotel_data_ajax'));
 
         // SHR WS Shop API (REST) sync actions
         add_action('admin_post_dhr_sync_shr_hotel', array($this, 'sync_shr_hotel'));
@@ -93,7 +91,6 @@ class DHR_Hotel_Admin {
         // Localize script for AJAX
         wp_localize_script('dhr-hotel-admin-script', 'dhrHotelAdmin', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('dhr_sync_hotel_ajax_nonce'),
             'shrSyncNonce' => wp_create_nonce('dhr_sync_shr_hotel_ajax_nonce')
         ));
         
@@ -212,24 +209,6 @@ class DHR_Hotel_Admin {
         }
         
         check_admin_referer('dhr_settings_nonce');
-        
-        // Save API settings
-        $api_url = isset($_POST['api_url']) ? esc_url_raw($_POST['api_url']) : '';
-        if (!empty($api_url)) {
-            update_option('dhr_hotel_api_url', rtrim($api_url, '/'));
-        }
-        
-        $api_username = isset($_POST['api_username']) ? sanitize_text_field($_POST['api_username']) : '';
-        if (!empty($api_username)) {
-            update_option('dhr_hotel_api_username', $api_username);
-        }
-        
-        // Save API password (only if provided, otherwise keep existing)
-        $api_password = isset($_POST['api_password']) ? $_POST['api_password'] : '';
-        if (!empty($api_password)) {
-            // Encode password in base64 for basic obfuscation
-            update_option('dhr_hotel_api_password', base64_encode($api_password));
-        }
         
         $api_key = isset($_POST['google_maps_api_key']) ? sanitize_text_field($_POST['google_maps_api_key']) : '';
         update_option('dhr_hotel_google_maps_api_key', $api_key);
@@ -395,72 +374,6 @@ class DHR_Hotel_Admin {
     }
     
     /**
-     * Sync hotel data from SOAP API
-     */
-    public function sync_hotel_data() {
-        if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.'));
-        }
-        
-        check_admin_referer('dhr_sync_hotel_nonce');
-        
-        $hotel_code = isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '';
-        
-        if (empty($hotel_code)) {
-            wp_redirect(admin_url('admin.php?page=dhr-hotel-settings&message=sync_error&error=' . urlencode('Hotel code is required')));
-            exit;
-        }
-        
-        $api = new DHR_Hotel_API();
-        $result = $api->fetch_and_save_hotel_data($hotel_code);
-        
-        if ($result['success']) {
-            wp_redirect(admin_url('admin.php?page=dhr-hotel-settings&message=sync_success&hotel_code=' . urlencode($hotel_code)));
-        } else {
-            wp_redirect(admin_url('admin.php?page=dhr-hotel-settings&message=sync_error&error=' . urlencode($result['error'])));
-        }
-        exit;
-    }
-    
-    /**
-     * Sync hotel data via AJAX
-     */
-    public function sync_hotel_data_ajax() {
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => 'Insufficient permissions'));
-            return;
-        }
-        
-        check_ajax_referer('dhr_sync_hotel_ajax_nonce', 'nonce');
-        
-        $hotel_code = isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '';
-        
-        if (empty($hotel_code)) {
-            wp_send_json_error(array('message' => 'Hotel code is required'));
-            return;
-        }
-        
-        $api = new DHR_Hotel_API();
-        $result = $api->fetch_and_save_hotel_data($hotel_code);
-        
-        if ($result['success']) {
-            // Get updated hotel details
-            $hotel_details = DHR_Hotel_Database::get_hotel_details($hotel_code);
-            $rooms = DHR_Hotel_Database::get_hotel_rooms($hotel_code);
-            
-            wp_send_json_success(array(
-                'message' => 'Hotel data synced successfully',
-                'hotel_code' => $hotel_code,
-                'hotel_name' => $hotel_details ? $hotel_details->hotel_name : '',
-                'rooms_count' => count($rooms),
-                'last_synced' => $hotel_details ? $hotel_details->last_synced_at : ''
-            ));
-        } else {
-            wp_send_json_error(array('message' => $result['error']));
-        }
-    }
-
-    /**
      * Sync a hotel from SHR WS Shop API (non-AJAX, from list form)
      */
     public function sync_shr_hotel() {
@@ -520,20 +433,6 @@ class DHR_Hotel_Admin {
         } else {
             wp_send_json_error(array('message' => $result['error']));
         }
-    }
-    
-    /**
-     * Get all synced hotels
-     */
-    public static function get_synced_hotels() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'dhr_hotel_details';
-        
-        return $wpdb->get_results(
-            "SELECT hotel_code, hotel_name, last_synced_at 
-             FROM $table_name 
-             ORDER BY last_synced_at DESC"
-        );
     }
 }
 
