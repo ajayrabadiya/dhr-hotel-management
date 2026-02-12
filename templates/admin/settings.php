@@ -155,56 +155,6 @@ $shr_shop_base_url = get_option('dhr_shr_shop_base_url', 'https://api.shrglobal.
                     </p>
                 </td>
             </tr>
-            <tr>
-                <th colspan="2">
-                    <h3 style="margin-top: 20px;"><?php _e('Optional Query Parameters', 'dhr-hotel-management'); ?></h3>
-                    <p class="description" style="font-weight: normal;">
-                        <?php _e('These parameters may be required by your SHR API configuration. Leave empty if not needed.', 'dhr-hotel-management'); ?>
-                    </p>
-                </th>
-            </tr>
-            <tr>
-                <th><label for="shr_hotel_id"><?php _e('Hotel ID', 'dhr-hotel-management'); ?></label></th>
-                <td>
-                    <input type="text"
-                           id="shr_hotel_id"
-                           name="shr_hotel_id"
-                           class="regular-text"
-                           value="<?php echo esc_attr(get_option('dhr_shr_hotel_id', '')); ?>"
-                           placeholder="7707">
-                    <p class="description">
-                        <?php _e('Optional hotel ID parameter for API calls.', 'dhr-hotel-management'); ?>
-                    </p>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="shr_language_id"><?php _e('Language ID', 'dhr-hotel-management'); ?></label></th>
-                <td>
-                    <input type="text"
-                           id="shr_language_id"
-                           name="shr_language_id"
-                           class="regular-text"
-                           value="<?php echo esc_attr(get_option('dhr_shr_language_id', '4416')); ?>"
-                           placeholder="4416">
-                    <p class="description">
-                        <?php _e('Language ID for API calls (default: 4416).', 'dhr-hotel-management'); ?>
-                    </p>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="shr_channel_id"><?php _e('Channel ID', 'dhr-hotel-management'); ?></label></th>
-                <td>
-                    <input type="text"
-                           id="shr_channel_id"
-                           name="shr_channel_id"
-                           class="regular-text"
-                           value="<?php echo esc_attr(get_option('dhr_shr_channel_id', '6232')); ?>"
-                           placeholder="6232">
-                    <p class="description">
-                        <?php _e('Channel ID for API calls (default: 6232).', 'dhr-hotel-management'); ?>
-                    </p>
-                </td>
-            </tr>
 
             <tr>
                 <th colspan="2"><h2><?php _e('Map Display Settings', 'dhr-hotel-management'); ?></h2></th>

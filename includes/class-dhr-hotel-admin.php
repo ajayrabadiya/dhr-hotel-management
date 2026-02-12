@@ -242,16 +242,6 @@ class DHR_Hotel_Admin {
         $shr_shop_base_url = isset($_POST['shr_shop_base_url']) ? esc_url_raw($_POST['shr_shop_base_url']) : 'https://api.shrglobal.com/shop';
         update_option('dhr_shr_shop_base_url', rtrim($shr_shop_base_url, '/'));
 
-        // Optional query parameters
-        $shr_hotel_id = isset($_POST['shr_hotel_id']) ? sanitize_text_field($_POST['shr_hotel_id']) : '';
-        update_option('dhr_shr_hotel_id', $shr_hotel_id);
-
-        $shr_language_id = isset($_POST['shr_language_id']) ? sanitize_text_field($_POST['shr_language_id']) : '4416';
-        update_option('dhr_shr_language_id', $shr_language_id);
-
-        $shr_channel_id = isset($_POST['shr_channel_id']) ? sanitize_text_field($_POST['shr_channel_id']) : '6232';
-        update_option('dhr_shr_channel_id', $shr_channel_id);
-        
         // Save map display settings
         $location_heading = isset($_POST['location_heading']) ? sanitize_text_field($_POST['location_heading']) : '';
         update_option('dhr_hotel_location_heading', $location_heading);
