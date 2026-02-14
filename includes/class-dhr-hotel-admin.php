@@ -292,36 +292,46 @@ class DHR_Hotel_Admin {
         $map_id = isset($_POST['map_id']) ? intval($_POST['map_id']) : 0;
         $settings = array();
         
-        // Selected hotel IDs for this map (multi-select)
+        // Selected hotel IDs for this map (multi-select) - always store as sequential integer array for JSON [1,2,3]
+        $selected_ids = array();
         if (isset($_POST['setting_selected_hotels']) && is_array($_POST['setting_selected_hotels'])) {
-            $settings['selected_hotel_ids'] = array_map('intval', array_values($_POST['setting_selected_hotels']));
-            $settings['selected_hotel_ids'] = array_filter($settings['selected_hotel_ids']);
+            $selected_ids = array_values(array_filter(array_map('intval', array_values($_POST['setting_selected_hotels']))));
         } else {
-            $settings['selected_hotel_ids'] = array();
+            // Fallback: collect from any setting_selected_hotels* keys (handles different PHP/server POST key formats)
+            foreach ($_POST as $key => $value) {
+                if ($key === 'setting_selected_hotels' && is_array($value)) {
+                    $selected_ids = array_values(array_filter(array_map('intval', array_values($value))));
+                    break;
+                }
+                if (strpos($key, 'setting_selected_hotels[') === 0 && is_numeric(str_replace(array('setting_selected_hotels[', ']'), '', $key))) {
+                    $selected_ids[] = intval($value);
+                }
+            }
+            if (!empty($selected_ids)) {
+                $selected_ids = array_values(array_unique(array_filter($selected_ids)));
+            }
         }
+        $settings['selected_hotel_ids'] = $selected_ids;
 
         // Get all POST data and build settings array
         foreach ($_POST as $key => $value) {
-            if (strpos($key, 'setting_') === 0) {
-                $setting_key = str_replace('setting_', '', $key);
-                if ($setting_key === 'selected_hotels') {
-                    continue; // already handled above
-                }
-                
-                // Handle different field types
-                if (strpos($setting_key, 'description') !== false || strpos($setting_key, 'text') !== false) {
-                    // Textarea fields
-                    $settings[$setting_key] = sanitize_textarea_field($value);
-                } elseif (strpos($setting_key, 'url') !== false || strpos($setting_key, 'link') !== false) {
-                    // URL fields
-                    $settings[$setting_key] = esc_url_raw($value);
-                } elseif ($setting_key === 'show_numbers' || $setting_key === 'show_list') {
-                    // Boolean/checkbox fields
-                    $settings[$setting_key] = isset($_POST[$key]) && ($value == '1' || $value == true) ? true : false;
-                } else {
-                    // Regular text fields
-                    $settings[$setting_key] = sanitize_text_field($value);
-                }
+            if (strpos($key, 'setting_') !== 0) {
+                continue;
+            }
+            $setting_key = str_replace('setting_', '', $key);
+            // Never overwrite selected_hotel_ids from form fields; skip any selected_hotels key
+            if ($setting_key === 'selected_hotels' || strpos($setting_key, 'selected_hotels') === 0) {
+                continue;
+            }
+            // Handle different field types
+            if (strpos($setting_key, 'description') !== false || strpos($setting_key, 'text') !== false) {
+                $settings[$setting_key] = sanitize_textarea_field($value);
+            } elseif (strpos($setting_key, 'url') !== false || strpos($setting_key, 'link') !== false) {
+                $settings[$setting_key] = esc_url_raw($value);
+            } elseif ($setting_key === 'show_numbers' || $setting_key === 'show_list') {
+                $settings[$setting_key] = isset($_POST[$key]) && ($value == '1' || $value == true) ? true : false;
+            } else {
+                $settings[$setting_key] = sanitize_text_field($value);
             }
         }
         

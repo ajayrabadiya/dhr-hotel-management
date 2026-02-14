@@ -269,48 +269,51 @@ var dhrThisMapHotels = <?php echo json_encode($hotels_js); ?>;
                 return;
             }
 
-            // Calculate center of all hotels
-            var bounds = new google.maps.LatLngBounds();
-            var centerLat = 0;
-            var centerLng = 0;
-
-            hotels.forEach(function (hotel) {
-                var lat = parseFloat(hotel.latitude);
-                var lng = parseFloat(hotel.longitude);
-                centerLat += lat;
-                centerLng += lng;
-                bounds.extend(new google.maps.LatLng(lat, lng));
-            });
-
-            centerLat = centerLat / hotels.length;
-            centerLng = centerLng / hotels.length;
-
-            // Adjust center to position map at the bottom (downward)
-            var ne = bounds.getNorthEast();
-            var sw = bounds.getSouthWest();
-            var latSpan = ne.lat() - sw.lat();
-            var lngSpan = ne.lng() - sw.lng();
-            
-            // Apply different adjustments based on device type
-            var deviceType = getDeviceType();
-            var latMultiplier, lngMultiplier;
-            
-            if (deviceType === 'mobile') {
-                latMultiplier = 13;
-                lngMultiplier = 1;
-            } else if (deviceType === 'tablet') {
-                latMultiplier = 8;
-                lngMultiplier = 0;
-            } else {
-                latMultiplier = 14;
-                lngMultiplier = -1.2;
+            // Filter to hotels with valid latitude/longitude so one bad entry does not break the map
+            function isValidCoord(val) {
+                var n = parseFloat(val);
+                return isFinite(n) && n >= -90 && n <= 90;
             }
-            
-            var adjustedCenterLat = centerLat + (latSpan * latMultiplier);
-            var adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
+            function isValidLng(val) {
+                var n = parseFloat(val);
+                return isFinite(n) && n >= -180 && n <= 180;
+            }
+            var validHotels = hotels.filter(function (hotel) {
+                return isValidCoord(hotel.latitude) && isValidLng(hotel.longitude);
+            });
+            if (validHotels.length === 0) {
+                console.warn('No hotels with valid coordinates; showing default center');
+            }
 
-            // Set zoom based on device type
+            var bounds = new google.maps.LatLngBounds();
+            var deviceType = getDeviceType();
             var mapZoom = (deviceType === 'mobile') ? 5 : 5.504;
+            var adjustedCenterLat, adjustedCenterLng;
+
+            if (validHotels.length > 0) {
+                var centerLat = 0;
+                var centerLng = 0;
+                validHotels.forEach(function (hotel) {
+                    var lat = parseFloat(hotel.latitude);
+                    var lng = parseFloat(hotel.longitude);
+                    centerLat += lat;
+                    centerLng += lng;
+                    bounds.extend(new google.maps.LatLng(lat, lng));
+                });
+                centerLat = centerLat / validHotels.length;
+                centerLng = centerLng / validHotels.length;
+                var ne = bounds.getNorthEast();
+                var sw = bounds.getSouthWest();
+                var latSpan = ne.lat() - sw.lat();
+                var lngSpan = ne.lng() - sw.lng();
+                var latMultiplier = (deviceType === 'mobile') ? 13 : (deviceType === 'tablet') ? 8 : 14;
+                var lngMultiplier = (deviceType === 'mobile') ? 1 : (deviceType === 'tablet') ? 0 : -1.2;
+                adjustedCenterLat = centerLat + (latSpan * latMultiplier);
+                adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
+            } else {
+                adjustedCenterLat = -33.9249;
+                adjustedCenterLng = 18.4241;
+            }
 
             map = new google.maps.Map(document.getElementById('partner-portfolio-map'), {
                 zoom: mapZoom,
@@ -331,8 +334,8 @@ var dhrThisMapHotels = <?php echo json_encode($hotels_js); ?>;
                 ]
             });
 
-            // Create markers for each hotel
-            hotels.forEach(function (hotel, index) {
+            // Create markers for each valid hotel
+            validHotels.forEach(function (hotel, index) {
                 createMarker(hotel, index);
             });
         }

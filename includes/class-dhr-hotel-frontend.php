@@ -141,14 +141,45 @@ class DHR_Hotel_Frontend {
     }
     
     /**
+     * Decode map config settings safely (string or array, always return array).
+     *
+     * @param object|null $map_config Map config row from database.
+     * @return array
+     */
+    public static function get_map_settings($map_config) {
+        $settings = array();
+        if ($map_config && !empty($map_config->settings)) {
+            $settings = is_string($map_config->settings) ? json_decode($map_config->settings, true) : (array) $map_config->settings;
+            $settings = is_array($settings) ? $settings : array();
+        }
+        return $settings;
+    }
+
+    /**
      * Filter hotels to only those selected for this map. If no selection is set, returns all.
+     * Normalizes selected_hotel_ids from array, object, comma-separated string, or single value.
      */
     public static function filter_hotels_by_map_selection($hotels, $settings) {
-        if (empty($settings['selected_hotel_ids']) || !is_array($settings['selected_hotel_ids'])) {
+        $raw = isset($settings['selected_hotel_ids']) ? $settings['selected_hotel_ids'] : null;
+        if ($raw === null || $raw === '') {
             return $hotels;
         }
-        $ids = array_map('intval', array_values($settings['selected_hotel_ids']));
-        $ids = array_filter($ids);
+
+        $ids = array();
+        if (is_array($raw)) {
+            $ids = array_values(array_map('intval', $raw));
+        } elseif (is_object($raw)) {
+            $ids = array_values(array_map('intval', (array) $raw));
+        } elseif (is_string($raw)) {
+            if (strpos($raw, ',') !== false) {
+                $ids = array_values(array_map('intval', array_map('trim', explode(',', $raw))));
+            } else {
+                $ids = array(intval($raw));
+            }
+        } else {
+            $ids = array(intval($raw));
+        }
+        $ids = array_values(array_filter($ids));
         if (empty($ids)) {
             return $hotels;
         }
@@ -183,9 +214,9 @@ class DHR_Hotel_Frontend {
             });
         }
         
-        // Get map config
+        // Get map config and decode settings
         $map_config = DHR_Hotel_Database::get_map_config('dhr_hotel_map');
-        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $settings = self::get_map_settings($map_config);
         $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
@@ -203,7 +234,7 @@ class DHR_Hotel_Frontend {
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_head_office_map');
-        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $settings = self::get_map_settings($map_config);
         $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
@@ -221,7 +252,7 @@ class DHR_Hotel_Frontend {
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_partner_portfolio_map');
-        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $settings = self::get_map_settings($map_config);
         $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
@@ -239,7 +270,7 @@ class DHR_Hotel_Frontend {
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_dining_venue_map');
-        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $settings = self::get_map_settings($map_config);
         $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
@@ -257,7 +288,7 @@ class DHR_Hotel_Frontend {
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_wedding_venue_map');
-        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $settings = self::get_map_settings($map_config);
         $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
@@ -275,7 +306,7 @@ class DHR_Hotel_Frontend {
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_property_portfolio_map');
-        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $settings = self::get_map_settings($map_config);
         $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
@@ -293,7 +324,7 @@ class DHR_Hotel_Frontend {
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');
         $map_config = DHR_Hotel_Database::get_map_config('dhr_lodges_camps_map');
-        $settings = $map_config ? json_decode($map_config->settings, true) : array();
+        $settings = self::get_map_settings($map_config);
         $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
         ob_start();
