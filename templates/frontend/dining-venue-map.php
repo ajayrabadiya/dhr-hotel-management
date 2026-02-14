@@ -103,7 +103,7 @@ if (!empty($hotels)) {
     var dhrDiningVenueMapSettings = {
         book_now_text: '<?php echo esc_js($book_now_text); ?>'
     };
-    var dhrThisMapHotels = <?php echo json_encode($hotels_js); ?>;
+    var dhrDiningVenueMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
 
 <script>
@@ -276,7 +276,7 @@ if (!empty($hotels)) {
                 return;
             }
 
-            var hotels = (typeof dhrThisMapHotels !== 'undefined' && dhrThisMapHotels.length) ? dhrThisMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
+            var hotels = (typeof dhrDiningVenueMapHotels !== 'undefined' && dhrDiningVenueMapHotels.length) ? dhrDiningVenueMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
             if (!hotels || hotels.length === 0) {
                 console.warn('No hotels data available');
                 return;
