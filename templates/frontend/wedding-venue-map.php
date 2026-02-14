@@ -101,7 +101,7 @@ if (!empty($hotels)) {
 var dhrWeddingVenueMapSettings = {
     book_now_text: '<?php echo esc_js($book_now_text); ?>'
 };
-var dhrThisMapHotels = <?php echo json_encode($hotels_js); ?>;
+var dhrWeddingVenueMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
 <script>
     (function () {
@@ -272,7 +272,7 @@ var dhrThisMapHotels = <?php echo json_encode($hotels_js); ?>;
                 return;
             }
 
-            var hotels = (typeof dhrThisMapHotels !== 'undefined' && dhrThisMapHotels.length) ? dhrThisMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
+            var hotels = (typeof dhrWeddingVenueMapHotels !== 'undefined' && dhrWeddingVenueMapHotels.length) ? dhrWeddingVenueMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
             if (!hotels || hotels.length === 0) {
                 console.warn('No hotels data available');
                 return;

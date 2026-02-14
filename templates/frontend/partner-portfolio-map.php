@@ -73,7 +73,7 @@ if (!empty($hotels)) {
 var dhrPartnerPortfolioMapSettings = {
     book_now_text: '<?php echo esc_js($book_now_text); ?>'
 };
-var dhrThisMapHotels = <?php echo json_encode($hotels_js); ?>;
+var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
 
 <script>
@@ -263,7 +263,7 @@ var dhrThisMapHotels = <?php echo json_encode($hotels_js); ?>;
                 return;
             }
 
-            var hotels = (typeof dhrThisMapHotels !== 'undefined' && dhrThisMapHotels.length) ? dhrThisMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
+            var hotels = (typeof dhrPartnerPortfolioMapHotels !== 'undefined' && dhrPartnerPortfolioMapHotels.length) ? dhrPartnerPortfolioMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
             if (!hotels || hotels.length === 0) {
                 console.warn('No hotels data available');
                 return;

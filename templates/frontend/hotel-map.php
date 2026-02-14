@@ -162,7 +162,7 @@ if (!empty($hotels)) {
     var dhrHotelMapSettings = {
         book_now_text: '<?php echo esc_js($book_now_text); ?>'
     };
-    var dhrThisMapHotels = <?php echo wp_json_encode($hotels_js); ?>;
+    var dhrHotelMapHotels = <?php echo wp_json_encode($hotels_js); ?>;
 </script>
 
 <script>
@@ -337,8 +337,8 @@ if (!empty($hotels)) {
 
             var hotels = [];
             try {
-                if (typeof dhrThisMapHotels !== 'undefined' && Array.isArray(dhrThisMapHotels) && dhrThisMapHotels.length > 0) {
-                    hotels = dhrThisMapHotels;
+                if (typeof dhrHotelMapHotels !== 'undefined' && Array.isArray(dhrHotelMapHotels) && dhrHotelMapHotels.length > 0) {
+                    hotels = dhrHotelMapHotels;
                 } else if (typeof dhrHotelsData !== 'undefined' && dhrHotelsData && Array.isArray(dhrHotelsData.hotels) && dhrHotelsData.hotels.length > 0) {
                     hotels = dhrHotelsData.hotels;
                 }

@@ -64,7 +64,7 @@ if (!empty($hotels)) {
 }
 ?>
 <script>
-    var dhrThisMapHotels = <?php echo json_encode($hotels_js); ?>;
+    var dhrHeadOfficeMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
 <script>
     (function () {
@@ -237,7 +237,7 @@ if (!empty($hotels)) {
                 return;
             }
 
-            var hotels = (typeof dhrThisMapHotels !== 'undefined' && dhrThisMapHotels.length) ? dhrThisMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
+            var hotels = (typeof dhrHeadOfficeMapHotels !== 'undefined' && dhrHeadOfficeMapHotels.length) ? dhrHeadOfficeMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
             if (!hotels || hotels.length === 0) {
                 console.warn('No hotels data available');
                 return;
