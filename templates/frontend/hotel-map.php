@@ -12,9 +12,9 @@ if (!defined('ABSPATH')) {
     <div id="hotel-map" class="hotel-map"></div>
     <div class="hotel-info-content">
         <?php
-        $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : get_option('dhr_hotel_location_heading', 'LOCATED IN THE WESTERN CAPE');
-        $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : get_option('dhr_hotel_main_heading', 'Find Us');
-        $description_text = isset($settings['description_text']) ? $settings['description_text'] : get_option('dhr_hotel_description_text', 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.');
+        $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : 'LOCATED IN THE WESTERN CAPE';
+        $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : 'Find Us';
+        $description_text = isset($settings['description_text']) ? $settings['description_text'] : 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.';
         $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] : 'Book Now';
         $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
         ?>
@@ -32,7 +32,7 @@ if (!defined('ABSPATH')) {
 
         <?php
         // Get View On Google Maps link and text from settings or options
-        $view_on_google_maps_link = isset($settings['view_on_google_maps_link']) ? $settings['view_on_google_maps_link'] : get_option('dhr_hotel_view_on_google_maps_link', '');
+        $view_on_google_maps_link = isset($settings['view_on_google_maps_link']) ? $settings['view_on_google_maps_link'] : '';
         $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
 
         // If no link is set, use first hotel's Google Maps URL as fallback
@@ -76,8 +76,8 @@ if (!defined('ABSPATH')) {
 
         <?php
         // Get reservation settings from map config or options
-        $reservation_label = isset($settings['reservation_label']) ? $settings['reservation_label'] : get_option('dhr_hotel_reservation_label', 'RESERVATION BY PHONE');
-        $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservation_phone'] : get_option('dhr_hotel_reservation_phone', '');
+        $reservation_label = isset($settings['reservation_label']) ? $settings['reservation_label'] : 'RESERVATION BY PHONE';
+        $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservation_phone'] : '';
 
         // Use setting phone if available, otherwise fall back to first hotel's phone
         $display_phone = !empty($reservation_phone) ? $reservation_phone : '';
@@ -134,10 +134,35 @@ if (!defined('ABSPATH')) {
         </div>
     </div>
 </div>
+<?php
+$hotels_js = array();
+if (!empty($hotels)) {
+    foreach ($hotels as $h) {
+        $hotels_js[] = array(
+            'id' => (int) $h->id,
+            'name' => isset($h->name) ? $h->name : '',
+            'description' => isset($h->description) ? $h->description : '',
+            'address' => isset($h->address) ? $h->address : '',
+            'city' => isset($h->city) ? $h->city : '',
+            'province' => isset($h->province) ? $h->province : '',
+            'country' => isset($h->country) ? $h->country : '',
+            'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0,
+            'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
+            'phone' => isset($h->phone) ? $h->phone : '',
+            'email' => isset($h->email) ? $h->email : '',
+            'website' => isset($h->website) ? $h->website : '',
+            'image_url' => isset($h->image_url) ? $h->image_url : '',
+            'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '',
+            'status' => isset($h->status) ? $h->status : 'active'
+        );
+    }
+}
+?>
 <script>
     var dhrHotelMapSettings = {
         book_now_text: '<?php echo esc_js($book_now_text); ?>'
     };
+    var dhrThisMapHotels = <?php echo wp_json_encode($hotels_js); ?>;
 </script>
 
 <script>
@@ -310,55 +335,69 @@ if (!defined('ABSPATH')) {
                 return;
             }
 
-            if (!dhrHotelsData || !dhrHotelsData.hotels || dhrHotelsData.hotels.length === 0) {
-                console.warn('No hotels data available');
+            var hotels = [];
+            try {
+                if (typeof dhrThisMapHotels !== 'undefined' && Array.isArray(dhrThisMapHotels) && dhrThisMapHotels.length > 0) {
+                    hotels = dhrThisMapHotels;
+                } else if (typeof dhrHotelsData !== 'undefined' && dhrHotelsData && Array.isArray(dhrHotelsData.hotels) && dhrHotelsData.hotels.length > 0) {
+                    hotels = dhrHotelsData.hotels;
+                }
+            } catch (e) {
+                if (typeof dhrHotelsData !== 'undefined' && dhrHotelsData && dhrHotelsData.hotels) {
+                    hotels = dhrHotelsData.hotels;
+                }
+            }
+            if (!hotels || hotels.length === 0) {
+                console.warn('DHR Hotel Map: No hotels data available');
                 return;
             }
 
-            var hotels = dhrHotelsData.hotels;
-
-            // Calculate center of all hotels
-            var bounds = new google.maps.LatLngBounds();
-            var centerLat = 0;
-            var centerLng = 0;
-
-            hotels.forEach(function (hotel) {
-                var lat = parseFloat(hotel.latitude);
-                var lng = parseFloat(hotel.longitude);
-                centerLat += lat;
-                centerLng += lng;
-                bounds.extend(new google.maps.LatLng(lat, lng));
+            // Filter to hotels with valid latitude/longitude so one bad entry does not break the map
+            function isValidCoord(val) {
+                var n = parseFloat(val);
+                return isFinite(n) && n >= -90 && n <= 90;
+            }
+            function isValidLng(val) {
+                var n = parseFloat(val);
+                return isFinite(n) && n >= -180 && n <= 180;
+            }
+            var validHotels = hotels.filter(function (hotel) {
+                return isValidCoord(hotel.latitude) && isValidLng(hotel.longitude);
             });
-
-            centerLat = centerLat / hotels.length;
-            centerLng = centerLng / hotels.length;
-
-            // Adjust center to position map at the bottom (downward)
-            var ne = bounds.getNorthEast();
-            var sw = bounds.getSouthWest();
-            var latSpan = ne.lat() - sw.lat();
-            var lngSpan = ne.lng() - sw.lng();
-            
-            // Apply different adjustments based on device type
-            var deviceType = getDeviceType();
-            var latMultiplier, lngMultiplier;
-
-            if (deviceType === 'mobile') {
-                latMultiplier = 0;
-                lngMultiplier = 0;
-            } else if (deviceType === 'tablet') {
-                latMultiplier = 0;
-                lngMultiplier = -0.2;
-            } else {
-                latMultiplier = 0;
-                lngMultiplier = -0.24;
+            if (validHotels.length === 0) {
+                console.warn('No hotels with valid coordinates; showing default center');
             }
 
-            var adjustedCenterLat = centerLat + (latSpan * latMultiplier);
-            var adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
-
-            // Set zoom based on device type
+            // Calculate center and bounds from valid hotels only; fallback for none
+            var bounds = new google.maps.LatLngBounds();
+            var centerLat, centerLng, adjustedCenterLat, adjustedCenterLng;
+            var deviceType = getDeviceType();
             var mapZoom = (deviceType === 'mobile') ? 8.7 : 9.7;
+
+            if (validHotels.length > 0) {
+                var centerLatSum = 0;
+                var centerLngSum = 0;
+                validHotels.forEach(function (hotel) {
+                    var lat = parseFloat(hotel.latitude);
+                    var lng = parseFloat(hotel.longitude);
+                    centerLatSum += lat;
+                    centerLngSum += lng;
+                    bounds.extend(new google.maps.LatLng(lat, lng));
+                });
+                centerLat = centerLatSum / validHotels.length;
+                centerLng = centerLngSum / validHotels.length;
+                var ne = bounds.getNorthEast();
+                var sw = bounds.getSouthWest();
+                var latSpan = ne.lat() - sw.lat();
+                var lngSpan = ne.lng() - sw.lng();
+                var latMultiplier = 0;
+                var lngMultiplier = (deviceType === 'mobile') ? 0 : (deviceType === 'tablet') ? -0.2 : -0.24;
+                adjustedCenterLat = centerLat + (latSpan * latMultiplier);
+                adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
+            } else {
+                adjustedCenterLat = -33.9249;
+                adjustedCenterLng = 18.4241;
+            }
 
             map = new google.maps.Map(document.getElementById('hotel-map'), {
                 zoom: mapZoom,
@@ -383,8 +422,8 @@ if (!defined('ABSPATH')) {
                 ]
             });
 
-            // Create markers for each hotel
-            hotels.forEach(function (hotel, index) {
+            // Create markers for each valid hotel
+            validHotels.forEach(function (hotel, index) {
                 createMarker(hotel, index);
             });
         }

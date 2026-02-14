@@ -24,11 +24,6 @@ if (is_multisite()) {
         
         // Delete plugin options for this site
         delete_option('dhr_hotel_google_maps_api_key');
-        delete_option('dhr_hotel_location_heading');
-        delete_option('dhr_hotel_main_heading');
-        delete_option('dhr_hotel_description_text');
-        delete_option('dhr_hotel_reservation_label');
-        delete_option('dhr_hotel_reservation_phone');
         delete_option('dhr_hotel_settings');
         
         restore_current_blog();
@@ -40,11 +35,6 @@ if (is_multisite()) {
     
     // Delete plugin options
     delete_option('dhr_hotel_google_maps_api_key');
-    delete_option('dhr_hotel_location_heading');
-    delete_option('dhr_hotel_main_heading');
-    delete_option('dhr_hotel_description_text');
-    delete_option('dhr_hotel_reservation_label');
-    delete_option('dhr_hotel_reservation_phone');
     delete_option('dhr_hotel_settings');
 }
 
