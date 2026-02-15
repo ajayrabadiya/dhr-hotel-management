@@ -167,7 +167,7 @@ class DHR_Hotel_Frontend {
      * Normalizes selected_hotel_ids from array, object, comma-separated string, or single value.
      */
     public static function filter_hotels_by_map_selection($hotels, $settings) {
-        if (!isset($settings['selected_hotel_ids'])) {
+        if (!isset($settings['selected_hotel_ids']) || $settings['selected_hotel_ids'] === null || empty($settings['selected_hotel_ids'])) {
             return [];
         }
         $raw = $settings['selected_hotel_ids'];
@@ -374,25 +374,28 @@ class DHR_Hotel_Frontend {
         if (empty($atts['hotel_code'])) {
             return '<p class="dhr-hotel-rooms-error">' . __('Hotel code is required. Please use: [hotel_rooms hotel_code="DRE013"]', 'dhr-hotel-management') . '</p>';
         }
-        
-        // Get hotel details
-        $hotel_details = DHR_Hotel_Database::get_hotel_details($atts['hotel_code']);
-        
-        if (!$hotel_details) {
-            return '<p class="dhr-hotel-rooms-error">' . sprintf(__('Hotel with code %s not found. Please sync the hotel data first.', 'dhr-hotel-management'), esc_html($atts['hotel_code'])) . '</p>';
+
+        $hotel_code = $atts['hotel_code'];
+
+        // Fetch rooms from SHR API (with token auto-regeneration on expiry)
+        $api   = new DHR_Hotel_API();
+        $result = $api->get_shr_hotel_rooms($hotel_code);
+
+        if (!$result['success']) {
+            return '<p class="dhr-hotel-rooms-error">' . esc_html($result['error']) . '</p>';
         }
-        
-        // Get rooms
-        $rooms = DHR_Hotel_Database::get_hotel_rooms($atts['hotel_code']);
-        
+
+        $rooms       = isset($result['rooms']) ? $result['rooms'] : array();
+        $hotel_name  = isset($result['hotel_name']) ? $result['hotel_name'] : $hotel_code;
+
         if (empty($rooms)) {
-            return '<p class="dhr-hotel-rooms-error">' . sprintf(__('No rooms found for hotel %s.', 'dhr-hotel-management'), esc_html($hotel_details->hotel_name)) . '</p>';
+            return '<p class="dhr-hotel-rooms-error">' . sprintf(__('No rooms found for hotel %s.', 'dhr-hotel-management'), esc_html($hotel_name)) . '</p>';
         }
         
         // Prepare data for template
         $hotel_data = array(
-            'hotel_code' => $hotel_details->hotel_code,
-            'hotel_name' => $hotel_details->hotel_name,
+            'hotel_code' => $hotel_code,
+            'hotel_name' => $hotel_name,
             'rooms' => $rooms,
             'columns' => intval($atts['columns']),
             'show_images' => filter_var($atts['show_images'], FILTER_VALIDATE_BOOLEAN),

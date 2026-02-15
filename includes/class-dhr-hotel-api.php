@@ -647,6 +647,185 @@ class DHR_Hotel_API {
     }
 
     /**
+     * Fetch hotel rooms from SHR API: /hotelDetails/{hotelCode}/room?channelId=...
+     * Uses token with auto-regeneration on 401.
+     *
+     * @param string $hotel_code Hotel code (e.g. DRE013)
+     * @return array { success, rooms?, hotel_name?, error? }
+     */
+    public function get_shr_hotel_rooms($hotel_code) {
+        $hotel_code = trim($hotel_code);
+        if ($hotel_code === '') {
+            return array('success' => false, 'error' => __('Hotel code is required.', 'dhr-hotel-management'));
+        }
+
+        $token_result = $this->get_shr_access_token(false);
+        if (!$token_result['success']) {
+            return array('success' => false, 'error' => $token_result['error']);
+        }
+
+        $base_url   = $this->get_shr_shop_base_url();
+        $base_url   = rtrim($base_url, '/');
+        $channel_id = get_option('dhr_shr_channel_id', '1');
+        $url        = $base_url . '/hotelDetails/' . rawurlencode($hotel_code) . '/room';
+        $url        = add_query_arg('channelId', $channel_id, $url);
+
+        $result = $this->do_shr_hotel_details_request($url, $token_result['access_token']);
+
+        if (!empty($result['error'])) {
+            return array('success' => false, 'error' => $result['error']);
+        }
+
+        $status_code = $result['status_code'];
+        $body        = $result['body'];
+        $data        = $result['data'];
+
+        // On 401, regenerate token and retry once
+        if ($status_code === 401) {
+            $client_id     = $this->get_shr_client_id();
+            $client_secret = $this->get_shr_client_secret();
+            if (!empty($client_id) && !empty($client_secret)) {
+                $this->clear_shr_token_cache();
+                $token_result = $this->get_shr_access_token(true, true);
+                if ($token_result['success']) {
+                    $result = $this->do_shr_hotel_details_request($url, $token_result['access_token']);
+                    if (!empty($result['error'])) {
+                        return array('success' => false, 'error' => $result['error']);
+                    }
+                    $status_code = $result['status_code'];
+                    $body        = $result['body'];
+                    $data        = $result['data'];
+                }
+            }
+        }
+
+        if ($status_code !== 200) {
+            $err_msg = sprintf(__('SHR room API failed (status %d).', 'dhr-hotel-management'), $status_code);
+            $err_data = is_array(json_decode($body, true)) ? json_decode($body, true) : array();
+            if (!empty($err_data['error'])) $err_msg .= ' ' . $err_data['error'];
+            elseif (!empty($err_data['message'])) $err_msg .= ' ' . $err_data['message'];
+            return array('success' => false, 'error' => $err_msg);
+        }
+
+        if (!is_array($data)) {
+            return array('success' => false, 'error' => __('Invalid response format from SHR room API.', 'dhr-hotel-management'));
+        }
+
+        // Store last room API response for debugging / print (transient expires in 1 hour)
+        set_transient('dhr_last_shr_room_api_response', array(
+            'hotel_code' => $hotel_code,
+            'body'       => $body,
+            'data'       => $data,
+            'at'         => current_time('mysql'),
+        ), HOUR_IN_SECONDS);
+
+        $normalised = $this->normalise_shr_room_response($hotel_code, $data);
+        return array(
+            'success'     => true,
+            'rooms'       => $normalised['rooms'],
+            'hotel_name'  => $normalised['hotel_name'],
+        );
+    }
+
+    /**
+     * Normalise SHR room API response to format expected by hotel-rooms.php template.
+     * Handles productDetailList structure: code, name, totalOccupancy, roomAmenities (amenityName).
+     */
+    private function normalise_shr_room_response($hotel_code, $raw_data) {
+        $rooms      = array();
+        $hotel_name = '';
+
+        // SHR room API returns productDetailList (productType: roomtype)
+        $room_list = array();
+        if (!empty($raw_data['productDetailList']) && is_array($raw_data['productDetailList'])) {
+            foreach ($raw_data['productDetailList'] as $p) {
+                $p = is_array($p) ? $p : (array) $p;
+                if (isset($p['productType']) && $p['productType'] === 'roomtype') {
+                    $room_list[] = $p;
+                }
+            }
+        }
+        // Fallbacks for other possible structures
+        if (empty($room_list) && !empty($raw_data['rooms']) && is_array($raw_data['rooms'])) {
+            $room_list = $raw_data['rooms'];
+        } elseif (empty($room_list) && !empty($raw_data['room']) && is_array($raw_data['room'])) {
+            $room_list = $raw_data['room'];
+        } elseif (empty($room_list) && !empty($raw_data['roomTypes']) && is_array($raw_data['roomTypes'])) {
+            $room_list = $raw_data['roomTypes'];
+        }
+
+        foreach ($room_list as $item) {
+            $item = is_array($item) ? $item : (array) $item;
+            $room = new stdClass();
+            $room->room_type_code    = $this->pluck($item, array('code', 'roomTypeCode', 'room_type_code'));
+            $room->room_type_name    = $this->pluck($item, array('name', 'roomTypeName', 'room_type_name', 'roomName', 'description'));
+            $room->max_occupancy     = intval($this->pluck($item, array('totalOccupancy', 'adultOccupancy', 'maxOccupancy', 'max_occupancy', 'maxAdults')));
+            $room->standard_num_beds = intval($this->pluck($item, array('standardNumBeds', 'numBeds', 'beds')));
+
+            // Images (SHR room API productDetailList does not include images)
+            $imgs = $this->pluck($item, array('images', 'media', 'photos'));
+            if (is_array($imgs)) {
+                $urls = array();
+                foreach ($imgs as $img) {
+                    $i = is_array($img) ? $img : (array) $img;
+                    $u = $this->pluck($i, array('fileName', 'url', 'path', 'value'));
+                    if (!empty($u)) $urls[] = $u;
+                }
+                $room->images = $urls;
+            } else {
+                $room->images = array();
+            }
+
+            // Amenities from roomAmenities (objects with amenityName)
+            $am = $this->pluck($item, array('roomAmenities', 'amenities', 'features'));
+            if (is_array($am)) {
+                $room->amenities = array();
+                foreach ($am as $a) {
+                    if (is_string($a)) {
+                        $room->amenities[] = array('name' => $a);
+                    } elseif (is_array($a)) {
+                        $name = isset($a['amenityName']) ? $a['amenityName'] : (isset($a['name']) ? $a['name'] : (isset($a['description']) ? $a['description'] : reset($a)));
+                        if (!empty($name)) $room->amenities[] = array('name' => $name);
+                    }
+                }
+            } else {
+                $room->amenities = array();
+            }
+
+            if (empty($room->room_type_name)) {
+                $room->room_type_name = __('Room', 'dhr-hotel-management') . ' ' . ($room->room_type_code ?: count($rooms) + 1);
+            }
+            $rooms[] = $room;
+        }
+
+        if (empty($hotel_name) && !empty($raw_data['hotelName'])) {
+            $hotel_name = $raw_data['hotelName'];
+        }
+        if (empty($hotel_name)) {
+            $hotel_name = $hotel_code;
+        }
+
+        return array('rooms' => $rooms, 'hotel_name' => $hotel_name);
+    }
+
+    /**
+     * Get first non-empty value from array using given keys (case-insensitive).
+     */
+    private function pluck($arr, $keys) {
+        if (!is_array($arr)) return null;
+        foreach ($keys as $k) {
+            foreach (array_keys($arr) as $actual) {
+                if (strcasecmp($actual, $k) === 0 && isset($arr[$actual])) {
+                    $v = $arr[$actual];
+                    if ($v !== '' && $v !== null) return $v;
+                    break;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Call SHR /hotelDetails/{hotelCode} and return raw decoded data.
      * Uses cached token when valid; on 401 (Unauthorized) regenerates token and retries once.
      */
