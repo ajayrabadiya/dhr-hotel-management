@@ -293,26 +293,24 @@ class DHR_Hotel_Admin {
         $settings = array();
         
         // Selected hotel IDs for this map (multi-select) - always store as sequential integer array for JSON [1,2,3]
+        // Collect from both array and indexed keys so all checked hotels are saved (avoids truncation)
         $selected_ids = array();
         if (isset($_POST['setting_selected_hotels']) && is_array($_POST['setting_selected_hotels'])) {
-            $selected_ids = array_values(array_filter(array_map('intval', array_values($_POST['setting_selected_hotels']))));
-        } else {
-            // Fallback: collect from any setting_selected_hotels* keys (handles different PHP/server POST key formats)
-            foreach ($_POST as $key => $value) {
-                if ($key === 'setting_selected_hotels' && is_array($value)) {
-                    $selected_ids = array_values(array_filter(array_map('intval', array_values($value))));
-                    break;
-                }
-                if (strpos($key, 'setting_selected_hotels[') === 0 && is_numeric(str_replace(array('setting_selected_hotels[', ']'), '', $key))) {
-                    $selected_ids[] = intval($value);
-                }
+            $selected_ids = array_merge($selected_ids, array_values(array_filter(array_map('intval', array_values($_POST['setting_selected_hotels'])))));
+        }
+        foreach ($_POST as $key => $value) {
+            if ($key === 'setting_selected_hotels' && is_array($value)) {
+                $selected_ids = array_merge($selected_ids, array_values(array_filter(array_map('intval', array_values($value)))));
+                break;
             }
-            if (!empty($selected_ids)) {
-                $selected_ids = array_values(array_unique(array_filter($selected_ids)));
+            if (strpos($key, 'setting_selected_hotels[') === 0 && is_numeric(str_replace(array('setting_selected_hotels[', ']'), '', $key))) {
+                $selected_ids[] = intval($value);
             }
         }
+        $selected_ids = array_values(array_unique(array_filter($selected_ids)));
         $settings['selected_hotel_ids'] = $selected_ids;
 
+        
         // Get all POST data and build settings array
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'setting_') !== 0) {

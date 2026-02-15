@@ -6,10 +6,32 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+$hotels_js = array();
+if (!empty($hotels)) {
+    foreach ($hotels as $h) {
+        $hotels_js[] = array(
+            'id' => (int) $h->id,
+            'name' => isset($h->name) ? $h->name : '',
+            'description' => isset($h->description) ? $h->description : '',
+            'address' => isset($h->address) ? $h->address : '',
+            'city' => isset($h->city) ? $h->city : '',
+            'province' => isset($h->province) ? $h->province : '',
+            'country' => isset($h->country) ? $h->country : '',
+            'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0,
+            'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
+            'phone' => isset($h->phone) ? $h->phone : '',
+            'email' => isset($h->email) ? $h->email : '',
+            'website' => isset($h->website) ? $h->website : '',
+            'image_url' => isset($h->image_url) ? $h->image_url : '',
+            'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '',
+            'status' => isset($h->status) ? $h->status : 'active'
+        );
+    }
+}
 ?>
 
 <div class="all-maps hotel-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
-    <div id="hotel-map" class="hotel-map"></div>
+    <div id="hotel-map" class="hotel-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
     <div class="hotel-info-content">
         <?php
         $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : 'LOCATED IN THE WESTERN CAPE';
@@ -134,30 +156,6 @@ if (!defined('ABSPATH')) {
         </div>
     </div>
 </div>
-<?php
-$hotels_js = array();
-if (!empty($hotels)) {
-    foreach ($hotels as $h) {
-        $hotels_js[] = array(
-            'id' => (int) $h->id,
-            'name' => isset($h->name) ? $h->name : '',
-            'description' => isset($h->description) ? $h->description : '',
-            'address' => isset($h->address) ? $h->address : '',
-            'city' => isset($h->city) ? $h->city : '',
-            'province' => isset($h->province) ? $h->province : '',
-            'country' => isset($h->country) ? $h->country : '',
-            'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0,
-            'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
-            'phone' => isset($h->phone) ? $h->phone : '',
-            'email' => isset($h->email) ? $h->email : '',
-            'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '',
-            'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '',
-            'status' => isset($h->status) ? $h->status : 'active'
-        );
-    }
-}
-?>
 <script>
     var dhrHotelMapSettings = {
         book_now_text: '<?php echo esc_js($book_now_text); ?>'
@@ -337,13 +335,23 @@ if (!empty($hotels)) {
 
             var hotels = [];
             try {
-                if (typeof dhrHotelMapHotels !== 'undefined' && Array.isArray(dhrHotelMapHotels) && dhrHotelMapHotels.length > 0) {
+                var dataHotels = mapElement.getAttribute('data-hotels');
+                if (dataHotels) {
+                    var parsed = JSON.parse(dataHotels);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        hotels = parsed;
+                    }
+                }
+                if (hotels.length === 0 && typeof dhrHotelMapHotels !== 'undefined' && Array.isArray(dhrHotelMapHotels) && dhrHotelMapHotels.length > 0) {
                     hotels = dhrHotelMapHotels;
-                } else if (typeof dhrHotelsData !== 'undefined' && dhrHotelsData && Array.isArray(dhrHotelsData.hotels) && dhrHotelsData.hotels.length > 0) {
+                }
+                if (hotels.length === 0 && typeof dhrHotelsData !== 'undefined' && dhrHotelsData && Array.isArray(dhrHotelsData.hotels) && dhrHotelsData.hotels.length > 0) {
                     hotels = dhrHotelsData.hotels;
                 }
             } catch (e) {
-                if (typeof dhrHotelsData !== 'undefined' && dhrHotelsData && dhrHotelsData.hotels) {
+                if (typeof dhrHotelMapHotels !== 'undefined' && Array.isArray(dhrHotelMapHotels)) {
+                    hotels = dhrHotelMapHotels;
+                } else if (typeof dhrHotelsData !== 'undefined' && dhrHotelsData && dhrHotelsData.hotels) {
                     hotels = dhrHotelsData.hotels;
                 }
             }

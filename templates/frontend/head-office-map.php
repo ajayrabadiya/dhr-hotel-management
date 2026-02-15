@@ -7,6 +7,19 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+$hotels_js = array();
+if (!empty($hotels)) {
+    foreach ($hotels as $h) {
+        $hotels_js[] = array(
+            'id' => (int) $h->id, 'name' => isset($h->name) ? $h->name : '', 'description' => isset($h->description) ? $h->description : '',
+            'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
+            'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
+            'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+        );
+    }
+}
+
 $title = isset($settings['title']) ? $settings['title'] : 'Head Office';
 $address = isset($settings['address']) ? $settings['address'] : '310 Main Road, Bryanston 2021, Gauteng, South Africa';
 $phone1 = isset($settings['phone1']) ? $settings['phone1'] : '+27 (0) 11 267 8300';
@@ -20,7 +33,7 @@ $google_maps_url = isset($settings['google_maps_url']) ? $settings['google_maps_
 
 <div class="all-maps head-office-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
     <div class="head-office-map-area">
-        <div id="head-office-map" class="head-office-map"></div>
+        <div id="head-office-map" class="head-office-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
     </div>
 </div>
 
@@ -49,20 +62,6 @@ $google_maps_url = isset($settings['google_maps_url']) ? $settings['google_maps_
     </div>
 </div>
 
-<?php
-$hotels_js = array();
-if (!empty($hotels)) {
-    foreach ($hotels as $h) {
-        $hotels_js[] = array(
-            'id' => (int) $h->id, 'name' => isset($h->name) ? $h->name : '', 'description' => isset($h->description) ? $h->description : '',
-            'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
-            'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
-            'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
-        );
-    }
-}
-?>
 <script>
     var dhrHeadOfficeMapHotels = <?php echo wp_json_encode($hotels_js); ?>;
 </script>
@@ -237,7 +236,19 @@ if (!empty($hotels)) {
                 return;
             }
 
-            var hotels = (typeof dhrHeadOfficeMapHotels !== 'undefined' && dhrHeadOfficeMapHotels.length) ? dhrHeadOfficeMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
+            var hotels = [];
+            try {
+                var dataHotels = mapElement.getAttribute('data-hotels');
+                if (dataHotels) {
+                    var parsed = JSON.parse(dataHotels);
+                    if (Array.isArray(parsed) && parsed.length > 0) hotels = parsed;
+                }
+                if (hotels.length === 0 && typeof dhrHeadOfficeMapHotels !== 'undefined' && dhrHeadOfficeMapHotels.length) hotels = dhrHeadOfficeMapHotels;
+                if (hotels.length === 0 && dhrHotelsData && dhrHotelsData.hotels && dhrHotelsData.hotels.length) hotels = dhrHotelsData.hotels;
+            } catch (e) {
+                if (typeof dhrHeadOfficeMapHotels !== 'undefined' && dhrHeadOfficeMapHotels.length) hotels = dhrHeadOfficeMapHotels;
+                else if (dhrHotelsData && dhrHotelsData.hotels) hotels = dhrHotelsData.hotels;
+            }
             if (!hotels || hotels.length === 0) {
                 console.warn('No hotels data available');
                 return;

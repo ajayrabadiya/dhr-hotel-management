@@ -80,6 +80,11 @@ class DHR_Hotel_Frontend {
         
         try {
             $hotels = DHR_Hotel_Database::get_all_hotels('active');
+
+            // echo "<pre>";
+            // print_r($hotels);
+            // echo "</pre>";
+            // die();
             
             if (!empty($hotels) && is_array($hotels)) {
                 foreach ($hotels as $hotel) {
@@ -156,14 +161,16 @@ class DHR_Hotel_Frontend {
     }
 
     /**
-     * Filter hotels to only those selected for this map. If no selection is set, returns all.
+     * Filter hotels to only those selected for this map.
+     * When selected_hotel_ids is empty (not set, null, '', or []) = show ALL active hotels on the map.
+     * When selected_hotel_ids has IDs = show only those hotels.
      * Normalizes selected_hotel_ids from array, object, comma-separated string, or single value.
      */
     public static function filter_hotels_by_map_selection($hotels, $settings) {
-        $raw = isset($settings['selected_hotel_ids']) ? $settings['selected_hotel_ids'] : null;
-        if ($raw === null || $raw === '') {
-            return $hotels;
+        if (!isset($settings['selected_hotel_ids'])) {
+            return [];
         }
+        $raw = $settings['selected_hotel_ids'];
 
         $ids = array();
         if (is_array($raw)) {
@@ -171,6 +178,10 @@ class DHR_Hotel_Frontend {
         } elseif (is_object($raw)) {
             $ids = array_values(array_map('intval', (array) $raw));
         } elseif (is_string($raw)) {
+            $trimmed = trim($raw);
+            if ($trimmed === '' || $trimmed === '[]' || $trimmed === '{}') {
+                return $hotels;
+            }
             if (strpos($raw, ',') !== false) {
                 $ids = array_values(array_map('intval', array_map('trim', explode(',', $raw))));
             } else {
@@ -180,13 +191,28 @@ class DHR_Hotel_Frontend {
             $ids = array(intval($raw));
         }
         $ids = array_values(array_filter($ids));
+
+        // No IDs or all IDs filtered out = show all hotels (same as "no selection")
         if (empty($ids)) {
             return $hotels;
         }
-        $hotels = array_filter($hotels, function($h) use ($ids) {
-            return in_array((int) $h->id, $ids, true);
-        });
-        return array_values($hotels);
+        // Normalize to integers for reliable comparison (DB may return string ids)
+        $ids = array_map('intval', $ids);
+        $by_id = array();
+        foreach ($hotels as $h) {
+            $id = (int) $h->id;
+            if (in_array($id, $ids, true)) {
+                $by_id[$id] = $h;
+            }
+        }
+        // Preserve order of selection (checkbox order from admin)
+        $ordered = array();
+        foreach ($ids as $id) {
+            if (isset($by_id[$id])) {
+                $ordered[] = $by_id[$id];
+            }
+        }
+        return $ordered;
     }
 
     /**

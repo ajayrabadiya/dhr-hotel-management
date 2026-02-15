@@ -7,6 +7,19 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+$hotels_js = array();
+if (!empty($hotels)) {
+    foreach ($hotels as $h) {
+        $hotels_js[] = array(
+            'id' => (int) $h->id, 'name' => isset($h->name) ? $h->name : '', 'description' => isset($h->description) ? $h->description : '',
+            'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
+            'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
+            'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+        );
+    }
+}
+
 $overview_label = isset($settings['overview_label']) ? $settings['overview_label'] : 'Weddings';
 $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : 'Find A Dining Venue';
 $description = isset($settings['description']) ? $settings['description'] : 'Whether you\'re savoring fresh seafood with a view of Table Mountain or indulging in gourmet delights by the Indian Ocean, our dining experiences promise to delight every palate.';
@@ -17,7 +30,7 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
 ?>
 
 <div class="all-maps dining-venue-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
-    <div id="dining-venue-map" class="dining-venue-map"></div>
+    <div id="dining-venue-map" class="dining-venue-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
     <div class="dining-venue-info-content">
         <div class="mobile-hotel-select" id="dining-mobile-hotel-select">
             <select id="dining-hotel-dropdown" class="hotel-dropdown">
@@ -85,20 +98,6 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
     </div>
 </div>
 
-<?php
-$hotels_js = array();
-if (!empty($hotels)) {
-    foreach ($hotels as $h) {
-        $hotels_js[] = array(
-            'id' => (int) $h->id, 'name' => isset($h->name) ? $h->name : '', 'description' => isset($h->description) ? $h->description : '',
-            'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
-            'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
-            'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
-        );
-    }
-}
-?>
 <script>
     var dhrDiningVenueMapSettings = {
         book_now_text: '<?php echo esc_js($book_now_text); ?>'
@@ -276,7 +275,19 @@ if (!empty($hotels)) {
                 return;
             }
 
-            var hotels = (typeof dhrDiningVenueMapHotels !== 'undefined' && dhrDiningVenueMapHotels.length) ? dhrDiningVenueMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
+            var hotels = [];
+            try {
+                var dataHotels = mapElement.getAttribute('data-hotels');
+                if (dataHotels) {
+                    var parsed = JSON.parse(dataHotels);
+                    if (Array.isArray(parsed) && parsed.length > 0) hotels = parsed;
+                }
+                if (hotels.length === 0 && typeof dhrDiningVenueMapHotels !== 'undefined' && dhrDiningVenueMapHotels.length) hotels = dhrDiningVenueMapHotels;
+                if (hotels.length === 0 && dhrHotelsData && dhrHotelsData.hotels && dhrHotelsData.hotels.length) hotels = dhrHotelsData.hotels;
+            } catch (e) {
+                if (typeof dhrDiningVenueMapHotels !== 'undefined' && dhrDiningVenueMapHotels.length) hotels = dhrDiningVenueMapHotels;
+                else if (dhrHotelsData && dhrHotelsData.hotels) hotels = dhrHotelsData.hotels;
+            }
             if (!hotels || hotels.length === 0) {
                 console.warn('No hotels data available');
                 return;
