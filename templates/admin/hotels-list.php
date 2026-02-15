@@ -119,11 +119,16 @@ $messages = array(
 
     <?php
     $show_response = current_user_can('manage_options') && isset($_GET['dhr_show_response']) && $_GET['dhr_show_response'] === '1';
+    $show_room_response = current_user_can('manage_options') && isset($_GET['dhr_show_room_response']) && $_GET['dhr_show_room_response'] === '1';
     $last_response = $show_response ? get_transient('dhr_last_shr_api_response') : false;
+    $last_room_response = $show_room_response ? get_transient('dhr_last_shr_room_api_response') : false;
     ?>
     <p style="margin-top: 24px;">
         <a href="<?php echo esc_url(admin_url('admin.php?page=dhr-hotel-management&dhr_show_response=1')); ?>" class="button button-small">
-            <?php _e('View last API response', 'dhr-hotel-management'); ?>
+            <?php _e('View last hotel API response', 'dhr-hotel-management'); ?>
+        </a>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=dhr-hotel-management&dhr_show_room_response=1')); ?>" class="button button-small" style="margin-left: 8px;">
+            <?php _e('View last room API response', 'dhr-hotel-management'); ?>
         </a>
     </p>
     <?php if ($show_response && $last_response): ?>
@@ -141,6 +146,23 @@ $messages = array(
         </div>
     <?php elseif ($show_response && !$last_response): ?>
         <p style="margin-top: 16px; color: #646970;"><?php _e('No API response stored yet. Sync a hotel to capture the response.', 'dhr-hotel-management'); ?></p>
+    <?php endif; ?>
+
+    <?php if ($show_room_response && $last_room_response): ?>
+        <div class="dhr-api-response-box" style="margin-top: 16px; border: 1px solid #c3c4c7; background: #f6f7f7; padding: 12px; max-height: 70vh; overflow: auto;">
+            <h3 style="margin-top: 0;">
+                <?php
+                printf(
+                    __('Last SHR room API response (hotel: %s, at %s)', 'dhr-hotel-management'),
+                    esc_html($last_room_response['hotel_code']),
+                    esc_html($last_room_response['at'])
+                );
+                ?>
+            </h3>
+            <pre style="white-space: pre-wrap; word-break: break-all; margin: 0; font-size: 12px;"><?php echo esc_html(json_encode($last_room_response['data'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?></pre>
+        </div>
+    <?php elseif ($show_room_response && !$last_room_response): ?>
+        <p style="margin-top: 16px; color: #646970;"><?php _e('No room API response stored yet. Load a page with [hotel_rooms hotel_code="DRE013"] to capture the response.', 'dhr-hotel-management'); ?></p>
     <?php endif; ?>
 </div>
 
