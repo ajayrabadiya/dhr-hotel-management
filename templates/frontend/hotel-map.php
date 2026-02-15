@@ -713,3 +713,4 @@ if (!empty($hotels)) {
 
     })();
 </script>
+  
