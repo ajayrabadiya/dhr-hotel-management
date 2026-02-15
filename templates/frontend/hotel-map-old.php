@@ -1,20 +1,47 @@
-<?php
-/**
- * Frontend hotel map template
- */
-
-if (!defined('ABSPATH')) {
-    exit;
+@ -8,110 +8,44 @@ if (!defined('ABSPATH')) {
 }
 ?>
 
+<style>
+.dhr-marker-pulse {
+    position: absolute;
+    pointer-events: none;
+    transform-origin: center center;
+    z-index: 0;
+    overflow: visible;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+.dhr-marker-pulse svg {
+    display: block;
+    overflow: visible;
+    border: none !important;
+    outline: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.dhr-marker-pulse .pulse-outer-circle {
+    transform-origin: center;
+    animation: pulse-outer 2s ease-in-out infinite;
+}
+
+.dhr-marker-pulse .pulse-middle-circle {
+    transform-origin: center;
+    animation: pulse-middle 2s ease-in-out infinite;
+}
 <div class="all-maps hotel-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
     <div id="hotel-map" class="hotel-map"></div>
     <div class="hotel-info-content">
         <?php
-        $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : 'LOCATED IN THE WESTERN CAPE';
-        $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : 'Find Us';
-        $description_text = isset($settings['description_text']) ? $settings['description_text'] : 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.';
+        $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : get_option('dhr_hotel_location_heading', 'LOCATED IN THE WESTERN CAPE');
+        $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : get_option('dhr_hotel_main_heading', 'Find Us');
+        $description_text = isset($settings['description_text']) ? $settings['description_text'] : get_option('dhr_hotel_description_text', 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.');
         $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] : 'Book Now';
         $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
         ?>
@@ -30,37 +57,118 @@ if (!defined('ABSPATH')) {
             </p>
         <?php endif; ?>
 
+.dhr-marker-pulse.dhr-marker-pulse-active .pulse-outer-circle {
+    animation: pulse-outer-active 2s ease-in-out infinite;
+}
         <?php
         // Get View On Google Maps link and text from settings or options
-        $view_on_google_maps_link = isset($settings['view_on_google_maps_link']) ? $settings['view_on_google_maps_link'] : '';
+        $view_on_google_maps_link = isset($settings['view_on_google_maps_link']) ? $settings['view_on_google_maps_link'] : get_option('dhr_hotel_view_on_google_maps_link', '');
         $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
 
+.dhr-marker-pulse.dhr-marker-pulse-active .pulse-middle-circle {
+    animation: pulse-middle-active 2s ease-in-out infinite;
+}
+
+@keyframes pulse-outer {
+    0%   { transform: scale(1);   opacity: 0.15; }
+    50%  { transform: scale(1.7); opacity: 0.35; }
+    100% { transform: scale(1);   opacity: 0.15; }
+}
+
+@keyframes pulse-middle {
+    0%   { transform: scale(1);    opacity: 0.35; }
+    50%  { transform: scale(1.45); opacity: 0.55; }
+    100% { transform: scale(1);    opacity: 0.35; }
+}
+
+@keyframes pulse-outer-active {
+    0%   { transform: scale(1);   opacity: 0.20; }
+    50%  { transform: scale(1.55); opacity: 0.40; }
+    100% { transform: scale(1);   opacity: 0.20; }
+}
         // If no link is set, use first hotel's Google Maps URL as fallback
         if (empty($view_on_google_maps_link) && !empty($hotels) && isset($hotels[0]) && !empty($hotels[0]->google_maps_url)) {
             $view_on_google_maps_link = $hotels[0]->google_maps_url;
         }
 
+@keyframes pulse-middle-active {
+    0%   { transform: scale(1);    opacity: 0.45; }
+    50%  { transform: scale(1.35); opacity: 0.75; }
+    100% { transform: scale(1);    opacity: 0.45; }
+}
+</style>
+<div class="dhr-hotel-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
+    <div class="dhr-hotel-info-panel">
+        <div class="dhr-hotel-info-content">
+            <?php
+            // Get dynamic settings from map config or fallback to options
+            $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : get_option('dhr_hotel_location_heading', 'LOCATED IN THE WESTERN CAPE');
+            $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : get_option('dhr_hotel_main_heading', 'Find Us');
+            $description_text = isset($settings['description_text']) ? $settings['description_text'] : get_option('dhr_hotel_description_text', 'Discover our hotel locations across the Western Cape. Click on any marker to view hotel details and make a reservation.');
+            $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] : 'Book Now';
+            $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
+            ?>
+            <?php if (!empty($location_heading)): ?>
+                <h2 class="dhr-location-heading"><?php echo esc_html($location_heading); ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($main_heading)): ?>
+                <h3 class="dhr-main-heading"><?php echo esc_html($main_heading); ?></h3>
+            <?php endif; ?>
+            <?php if (!empty($description_text)): ?>
+                <p class="dhr-description">
+                    <?php echo esc_html($description_text); ?>
+                </p>
+            <?php endif; ?>
+
+            <?php
+            // Get View On Google Maps link and text from settings or options
+            $view_on_google_maps_link = isset($settings['view_on_google_maps_link']) ? $settings['view_on_google_maps_link'] : get_option('dhr_hotel_view_on_google_maps_link', '');
+            $view_on_google_maps_text = isset($settings['view_on_google_maps_text']) ? $settings['view_on_google_maps_text'] : 'View On Google Maps';
+            
+            // If no link is set, use first hotel's Google Maps URL as fallback
+            if (empty($view_on_google_maps_link) && !empty($hotels) && isset($hotels[0]) && !empty($hotels[0]->google_maps_url)) {
+                $view_on_google_maps_link = $hotels[0]->google_maps_url;
+            }
+            
+            // Only show button if we have a link
+            if (!empty($view_on_google_maps_link)):
         // Only show button if we have a link
         if (!empty($view_on_google_maps_link)):
             ?>
             <div class="map-btn">
+                <a href="<?php echo esc_url($view_on_google_maps_link); ?>" target="_blank" rel="noopener noreferrer" class="map-btn__link">
                 <a href="<?php echo esc_url($view_on_google_maps_link); ?>" target="_blank" rel="noopener noreferrer"
                     class="map-btn__link">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g clip-path="url(#clip0_4637_2271)">
                             <path
-                                d="M23.4059 10.1507L23.2848 9.63696H12.1184V14.363H18.7902C18.0975 17.6523 14.8832 19.3837 12.2577 19.3837C10.3473 19.3837 8.33357 18.5802 7.00071 17.2886C6.2975 16.5962 5.73774 15.772 5.3535 14.863C4.96925 13.9541 4.76805 12.9782 4.76143 11.9914C4.76143 10.0007 5.65607 8.00946 6.95786 6.69964C8.25964 5.38982 10.2257 4.65696 12.1805 4.65696C14.4193 4.65696 16.0237 5.84571 16.6237 6.38786L19.9821 3.04714C18.997 2.18143 16.2905 0 12.0723 0C8.81786 0 5.69732 1.24661 3.41625 3.52018C1.16518 5.75893 0 8.99625 0 12C0 15.0038 1.1025 18.0793 3.28393 20.3357C5.61482 22.7421 8.91589 24 12.315 24C15.4077 24 18.3391 22.7882 20.4284 20.5896C22.4823 18.4254 23.5446 15.4307 23.5446 12.2914C23.5446 10.9698 23.4118 10.185 23.4059 10.1507Z"
-                                fill="currentColor" />
-                        </g>
-                        <defs>
-                            <clipPath id="clip0_4637_2271">
-                                <rect width="24" height="24" fill="white" />
-                            </clipPath>
-                        </defs>
-                    </svg>
+@ -127,77 +61,73 @@ if (!defined('ABSPATH')) {
                     <?php echo esc_html($view_on_google_maps_text); ?>
                 </a>
             </div>
+            <?php endif; ?>
+
+            <?php //if (!empty($hotels)): ?>
+            <!-- <div class="dhr-hotels-list"> -->
+            <?php //foreach ($hotels as $hotel): ?>
+            <!-- <div class="dhr-hotel-item" data-hotel-id="<?php echo esc_attr($hotel->id); ?>">
+                            <h4><?php echo esc_html($hotel->name); ?></h4>
+                            <p><?php echo esc_html($hotel->city . ', ' . $hotel->province); ?></p>
+                        </div> -->
+            <?php //endforeach; ?>
+            <!-- </div> -->
+            <?php //endif; ?>
+
+            <?php
+            // Get reservation settings from map config or options
+            $reservation_label = isset($settings['reservation_label']) ? $settings['reservation_label'] : get_option('dhr_hotel_reservation_label', 'RESERVATION BY PHONE');
+            $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservation_phone'] : get_option('dhr_hotel_reservation_phone', '');
+
+            // Use setting phone if available, otherwise fall back to first hotel's phone
+            $display_phone = !empty($reservation_phone) ? $reservation_phone : '';
+            if (empty($display_phone) && !empty($hotels) && isset($hotels[0])) {
+                $display_phone = $hotels[0]->phone;
+            }
         <?php endif; ?>
 
         <?php //if (!empty($hotels)): ?>
@@ -74,10 +182,28 @@ if (!defined('ABSPATH')) {
         <!-- </div> -->
         <?php //endif; ?>
 
+            // Only show reservation section if we have a phone number
+            if (!empty($display_phone)):
+                ?>
+                <div class="dhr-reservation-info">
+                    <div class="dhr-phone-section">
+                        <span class="dhr-phone-icon">
+                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M10.8203 3.75C10.166 3.75 9.52149 3.98438 8.98438 4.41406L8.90626 4.45312L8.86719 4.49219L4.96094 8.51562L5.00001 8.55469C3.79395 9.66797 3.42286 11.333 3.94532 12.7734C3.9502 12.7832 3.94044 12.8027 3.94532 12.8125C5.00489 15.8447 7.71485 21.6992 13.0078 26.9922C18.3203 32.3047 24.2529 34.9072 27.1875 36.0547H27.2266C28.7451 36.5625 30.3906 36.2012 31.5625 35.1953L35.5078 31.25C36.543 30.2148 36.543 28.418 35.5078 27.3828L30.4297 22.3047L30.3906 22.2266C29.3555 21.1914 27.5195 21.1914 26.4844 22.2266L23.9844 24.7266C23.0811 24.292 20.9277 23.1787 18.8672 21.2109C16.8213 19.2578 15.7764 17.0117 15.3906 16.1328L17.8906 13.6328C18.9404 12.583 18.96 10.835 17.8516 9.80469L17.8906 9.76562L17.7734 9.64844L12.7734 4.49219L12.7344 4.45312L12.6563 4.41406C12.1191 3.98438 11.4746 3.75 10.8203 3.75ZM10.8203 6.25C10.9131 6.25 11.0059 6.29395 11.0938 6.36719L16.0938 11.4844L16.2109 11.6016C16.2012 11.5918 16.2842 11.7236 16.1328 11.875L13.0078 15L12.4219 15.5469L12.6953 16.3281C12.6953 16.3281 14.1309 20.1709 17.1484 23.0469L17.4219 23.2812C20.3272 25.9326 23.75 27.3828 23.75 27.3828L24.5313 27.7344L28.2422 24.0234C28.457 23.8086 28.418 23.8086 28.6328 24.0234L33.75 29.1406C33.9648 29.3555 33.9648 29.2773 33.75 29.4922L29.9219 33.3203C29.3457 33.8135 28.7354 33.916 28.0078 33.6719C25.1758 32.5586 19.6729 30.1416 14.7656 25.2344C9.81934 20.2881 7.23634 14.6777 6.28907 11.9531C6.09864 11.4453 6.23536 10.6934 6.67969 10.3125L6.75782 10.2344L10.5469 6.36719C10.6348 6.29395 10.7275 6.25 10.8203 6.25Z"
+                                    fill="#462801" />
+                            </svg>
+                        </span>
+                        <div>
+                            <?php if (!empty($reservation_label)): ?>
+                                <p class="dhr-reservation-label"><?php echo esc_html($reservation_label); ?></p>
+                            <?php endif; ?>
+                            <p class="dhr-phone-number"><?php echo esc_html($display_phone); ?></p>
+                        </div>
         <?php
         // Get reservation settings from map config or options
-        $reservation_label = isset($settings['reservation_label']) ? $settings['reservation_label'] : 'RESERVATION BY PHONE';
-        $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservation_phone'] : '';
+        $reservation_label = isset($settings['reservation_label']) ? $settings['reservation_label'] : get_option('dhr_hotel_reservation_label', 'RESERVATION BY PHONE');
+        $reservation_phone = isset($settings['reservation_phone']) ? $settings['reservation_phone'] : get_option('dhr_hotel_reservation_phone', '');
 
         // Use setting phone if available, otherwise fall back to first hotel's phone
         $display_phone = !empty($reservation_phone) ? $reservation_phone : '';
@@ -105,17 +231,31 @@ if (!defined('ABSPATH')) {
                             target="_blank"><?php echo esc_html($display_phone); ?></a>
                     </div>
                 </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="dhr-hotel-map-panel">
+        <div id="dhr-hotel-map" class="dhr-hotel-map"></div>
             </div>
         <?php endif; ?>
     </div>
 </div>
 
+<div id="dhr-hotel-info-window-template" style="display: none;">
+    <div class="dhr-info-window">
+        <div class="dhr-info-window-image">
 <div id="hotel-info-window-template" style="display: none;">
     <div class="info-window">
         <div class="info-window-image">
             <img src="{image_url}" alt="{name}"
                 onerror="this.onerror=null; this.src='{pluginUrl}assets/images/default-hotel.jpg';">
         </div>
+        <div class="dhr-info-window-content">
+            <h3 class="dhr-info-window-title">{name}</h3>
+            <p class="dhr-info-window-location">{city} | {province}</p>
+            <div class="dhr-info-window-actions">
+                <a href="{google_maps_url}" target="_blank" class="dhr-btn-info">
         <div class="info-window-content">
             <h3 class="info-window-title">{name}</h3>
             <p class="info-window-location">{city} | {province}</p>
@@ -127,42 +267,21 @@ if (!defined('ABSPATH')) {
                             fill="#0B5991" />
                     </svg>
                 </a>
+                <a href="tel:{phone}" class="dhr-btn-book">
                 <a href="tel:{phone}" class="btn-book">
                     {book_now_text}
                 </a>
             </div>
-        </div>
+@ -205,7 +135,527 @@ if (!defined('ABSPATH')) {
     </div>
 </div>
-<?php
-$hotels_js = array();
-if (!empty($hotels)) {
-    foreach ($hotels as $h) {
-        $hotels_js[] = array(
-            'id' => (int) $h->id,
-            'name' => isset($h->name) ? $h->name : '',
-            'description' => isset($h->description) ? $h->description : '',
-            'address' => isset($h->address) ? $h->address : '',
-            'city' => isset($h->city) ? $h->city : '',
-            'province' => isset($h->province) ? $h->province : '',
-            'country' => isset($h->country) ? $h->country : '',
-            'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0,
-            'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
-            'phone' => isset($h->phone) ? $h->phone : '',
-            'email' => isset($h->email) ? $h->email : '',
-            'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '',
-            'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '',
-            'status' => isset($h->status) ? $h->status : 'active'
-        );
-    }
-}
-?>
 <script>
+var dhrHotelMapSettings = {
+    book_now_text: '<?php echo esc_js($book_now_text); ?>'
+};
     var dhrHotelMapSettings = {
         book_now_text: '<?php echo esc_js($book_now_text); ?>'
     };
-    var dhrHotelMapHotels = <?php echo wp_json_encode($hotels_js); ?>;
 </script>
 
 <script>
@@ -335,57 +454,28 @@ if (!empty($hotels)) {
                 return;
             }
 
-            var hotels = [];
-            try {
-                if (typeof dhrHotelMapHotels !== 'undefined' && Array.isArray(dhrHotelMapHotels) && dhrHotelMapHotels.length > 0) {
-                    hotels = dhrHotelMapHotels;
-                } else if (typeof dhrHotelsData !== 'undefined' && dhrHotelsData && Array.isArray(dhrHotelsData.hotels) && dhrHotelsData.hotels.length > 0) {
-                    hotels = dhrHotelsData.hotels;
-                }
-            } catch (e) {
-                if (typeof dhrHotelsData !== 'undefined' && dhrHotelsData && dhrHotelsData.hotels) {
-                    hotels = dhrHotelsData.hotels;
-                }
-            }
-            if (!hotels || hotels.length === 0) {
-                console.warn('DHR Hotel Map: No hotels data available');
+            if (!dhrHotelsData || !dhrHotelsData.hotels || dhrHotelsData.hotels.length === 0) {
+                console.warn('No hotels data available');
                 return;
             }
 
-            // Filter to hotels with valid latitude/longitude so one bad entry does not break the map
-            function isValidCoord(val) {
-                var n = parseFloat(val);
-                return isFinite(n) && n >= -90 && n <= 90;
-            }
-            function isValidLng(val) {
-                var n = parseFloat(val);
-                return isFinite(n) && n >= -180 && n <= 180;
-            }
-            var validHotels = hotels.filter(function (hotel) {
-                return isValidCoord(hotel.latitude) && isValidLng(hotel.longitude);
-            });
-            if (validHotels.length === 0) {
-                console.warn('No hotels with valid coordinates; showing default center');
-            }
+            var hotels = dhrHotelsData.hotels;
 
-            // Use valid hotels only for center and bounds so map shows all markers correctly
+            // Calculate center of all hotels
             var bounds = new google.maps.LatLngBounds();
-            var centerLat = -33.9249;
-            var centerLng = 18.4241;
-            var count = validHotels.length;
-            if (count > 0) {
-                centerLat = 0;
-                centerLng = 0;
-                validHotels.forEach(function (hotel) {
-                    var lat = parseFloat(hotel.latitude);
-                    var lng = parseFloat(hotel.longitude);
-                    centerLat += lat;
-                    centerLng += lng;
-                    bounds.extend(new google.maps.LatLng(lat, lng));
-                });
-                centerLat = centerLat / count;
-                centerLng = centerLng / count;
-            }
+            var centerLat = 0;
+            var centerLng = 0;
+
+            hotels.forEach(function (hotel) {
+                var lat = parseFloat(hotel.latitude);
+                var lng = parseFloat(hotel.longitude);
+                centerLat += lat;
+                centerLng += lng;
+                bounds.extend(new google.maps.LatLng(lat, lng));
+            });
+
+            centerLat = centerLat / hotels.length;
+            centerLng = centerLng / hotels.length;
 
             // Adjust center to position map at the bottom (downward)
             var ne = bounds.getNorthEast();
@@ -417,7 +507,7 @@ if (!empty($hotels)) {
             map = new google.maps.Map(document.getElementById('hotel-map'), {
                 zoom: mapZoom,
                 center: { lat: adjustedCenterLat, lng: adjustedCenterLng },
-                maxZoom: 5,
+                maxZoom: 10,
                 styles: [
                     {
                         featureType: 'all',
@@ -437,8 +527,8 @@ if (!empty($hotels)) {
                 ]
             });
 
-            // Create markers for each valid hotel
-            validHotels.forEach(function (hotel, index) {
+            // Create markers for each hotel
+            hotels.forEach(function (hotel, index) {
                 createMarker(hotel, index);
             });
         }

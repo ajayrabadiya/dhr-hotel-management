@@ -23,6 +23,17 @@ $title = $is_edit ? __('Edit Hotel', 'dhr-hotel-management') : __('Add New Hotel
         
         <table class="form-table">
             <tr>
+                <th><label for="hotel_code"><?php _e('Hotel Code', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="text" id="hotel_code" name="hotel_code" class="regular-text"
+                           value="<?php echo $is_edit ? esc_attr($hotel->hotel_code) : ''; ?>"
+                           placeholder="<?php esc_attr_e('e.g. DRE013', 'dhr-hotel-management'); ?>">
+                    <p class="description">
+                        <?php _e('Optional code from the external CRS (e.g. SHR). This can be used for API-based sync.', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
                 <th><label for="name"><?php _e('Hotel Name', 'dhr-hotel-management'); ?> <span class="required">*</span></label></th>
                 <td>
                     <input type="text" id="name" name="name" class="regular-text" 

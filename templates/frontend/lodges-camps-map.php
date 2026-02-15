@@ -48,6 +48,23 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
     <?php endif; ?>
 </div>
 
+<?php
+$hotels_js = array();
+if (!empty($hotels)) {
+    foreach ($hotels as $h) {
+        $hotels_js[] = array(
+            'id' => (int) $h->id, 'name' => isset($h->name) ? $h->name : '', 'description' => isset($h->description) ? $h->description : '',
+            'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
+            'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
+            'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+        );
+    }
+}
+?>
+<script>
+    var dhrLodgesCampsMapHotels = <?php echo json_encode($hotels_js); ?>;
+</script>
 <script>
     (function () {
         'use strict';
@@ -223,56 +240,57 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
                 return;
             }
 
-            if (!dhrHotelsData || !dhrHotelsData.hotels || dhrHotelsData.hotels.length === 0) {
+            var hotels = (typeof dhrLodgesCampsMapHotels !== 'undefined' && dhrLodgesCampsMapHotels.length) ? dhrLodgesCampsMapHotels : (dhrHotelsData && dhrHotelsData.hotels) ? dhrHotelsData.hotels : [];
+            if (!hotels || hotels.length === 0) {
                 console.warn('No hotels data available');
                 return;
             }
 
-            var hotels = dhrHotelsData.hotels;
-
-            // Calculate center of all hotels
-            var bounds = new google.maps.LatLngBounds();
-            var centerLat = 0;
-            var centerLng = 0;
-
-            hotels.forEach(function (hotel) {
-                centerLat += parseFloat(hotel.latitude);
-                centerLng += parseFloat(hotel.longitude);
-                bounds.extend(new google.maps.LatLng(
-                    parseFloat(hotel.latitude),
-                    parseFloat(hotel.longitude)
-                ));
+            // Filter to hotels with valid latitude/longitude so one bad entry does not break the map
+            function isValidCoord(val) {
+                var n = parseFloat(val);
+                return isFinite(n) && n >= -90 && n <= 90;
+            }
+            function isValidLng(val) {
+                var n = parseFloat(val);
+                return isFinite(n) && n >= -180 && n <= 180;
+            }
+            var validHotels = hotels.filter(function (hotel) {
+                return isValidCoord(hotel.latitude) && isValidLng(hotel.longitude);
             });
-
-            centerLat = centerLat / hotels.length;
-            centerLng = centerLng / hotels.length;
-
-            // Adjust center to position map based on device type
-            var ne = bounds.getNorthEast();
-            var sw = bounds.getSouthWest();
-            var latSpan = ne.lat() - sw.lat();
-            var lngSpan = ne.lng() - sw.lng();
-
-            // Apply different adjustments based on device type
-            var deviceType = getDeviceType();
-            var latMultiplier, lngMultiplier;
-
-            if (deviceType === 'mobile') {
-                latMultiplier = 8;
-                lngMultiplier = 0.5;
-            } else if (deviceType === 'tablet') {
-                latMultiplier = 3.5;
-                lngMultiplier = 0.5;
-            } else {
-                latMultiplier = 3;
-                lngMultiplier = 0.8;
+            if (validHotels.length === 0) {
+                console.warn('No hotels with valid coordinates; showing default center');
             }
 
-            var adjustedCenterLat = centerLat + (latSpan * latMultiplier);
-            var adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
-
-            // Set zoom based on device type
+            var bounds = new google.maps.LatLngBounds();
+            var deviceType = getDeviceType();
             var mapZoom = (deviceType === 'mobile') ? 5.6 : 6.9;
+            var adjustedCenterLat, adjustedCenterLng;
+
+            if (validHotels.length > 0) {
+                var centerLat = 0;
+                var centerLng = 0;
+                validHotels.forEach(function (hotel) {
+                    var lat = parseFloat(hotel.latitude);
+                    var lng = parseFloat(hotel.longitude);
+                    centerLat += lat;
+                    centerLng += lng;
+                    bounds.extend(new google.maps.LatLng(lat, lng));
+                });
+                centerLat = centerLat / validHotels.length;
+                centerLng = centerLng / validHotels.length;
+                var ne = bounds.getNorthEast();
+                var sw = bounds.getSouthWest();
+                var latSpan = ne.lat() - sw.lat();
+                var lngSpan = ne.lng() - sw.lng();
+                var latMultiplier = (deviceType === 'mobile') ? 8 : (deviceType === 'tablet') ? 3.5 : 3;
+                var lngMultiplier = (deviceType === 'mobile') ? 0.5 : (deviceType === 'tablet') ? 0.5 : 0.8;
+                adjustedCenterLat = centerLat + (latSpan * latMultiplier);
+                adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
+            } else {
+                adjustedCenterLat = -33.9249;
+                adjustedCenterLng = 18.4241;
+            }
 
             // Initialize map
             map = new google.maps.Map(mapElement, {
@@ -294,8 +312,8 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
                 ]
             });
 
-            // Create markers for each hotel
-            hotels.forEach(function (hotel, index) {
+            // Create markers for each valid hotel
+            validHotels.forEach(function (hotel, index) {
                 createMarker(hotel, index);
             });
 

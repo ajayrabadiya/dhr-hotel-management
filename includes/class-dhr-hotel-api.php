@@ -416,4 +416,715 @@ class DHR_Hotel_API {
             'hotel_details_id' => $hotel_details_id
         );
     }
+
+    /**
+     * ==============================
+     * SHR WS Shop API (REST) helpers
+     * ==============================
+     */
+
+    /**
+     * Get SHR client ID from settings
+     */
+    private function get_shr_client_id() {
+        return get_option('dhr_shr_client_id', '');
+    }
+
+    /**
+     * Get SHR client secret from settings (decrypted)
+     */
+    private function get_shr_client_secret() {
+        $encrypted = get_option('dhr_shr_client_secret', '');
+        return !empty($encrypted) ? base64_decode($encrypted) : '';
+    }
+
+    /**
+     * Get SHR scope
+     */
+    private function get_shr_scope() {
+        $scope = get_option('dhr_shr_scope', 'wsapi.hoteldetails.read');
+        return trim($scope) !== '' ? $scope : 'wsapi.hoteldetails.read';
+    }
+
+    /**
+     * Get SHR token URL
+     */
+    private function get_shr_token_url() {
+        $url = get_option('dhr_shr_token_url', 'https://id.shrglobal.com/connect/token');
+        return rtrim($url, '/');
+    }
+
+    /**
+     * Get SHR Shop API base URL
+     */
+    private function get_shr_shop_base_url() {
+        $url = get_option('dhr_shr_shop_base_url', 'https://api.shrglobal.com/shop');
+        return rtrim($url, '/');
+    }
+
+    /**
+     * Clear cached SHR access token (so next call will request a new one).
+     * Used when API returns 401 to force token refresh.
+     */
+    private function clear_shr_token_cache() {
+        delete_option('dhr_shr_access_token');
+        delete_option('dhr_shr_access_token_expires_at');
+    }
+
+    /**
+     * Request a new SHR access token from id.shrglobal.com/connect/token.
+     * Uses client_credentials grant; no Bearer on this request.
+     */
+    private function request_shr_token_from_api() {
+        $client_id     = $this->get_shr_client_id();
+        $client_secret = $this->get_shr_client_secret();
+        $scope         = $this->get_shr_scope();
+        $token_url     = $this->get_shr_token_url();
+
+        if (empty($client_id) || empty($client_secret)) {
+            return array(
+                'success' => false,
+                'error'   => __('SHR client ID and secret are required to generate a token.', 'dhr-hotel-management'),
+            );
+        }
+
+        $response = wp_remote_post(
+            $token_url,
+            array(
+                'headers' => array(
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ),
+                'body'    => array(
+                    'client_id'     => $client_id,
+                    'client_secret' => $client_secret,
+                    'grant_type'    => 'client_credentials',
+                    'scope'         => $scope,
+                ),
+                'timeout' => 30,
+            )
+        );
+
+        if (is_wp_error($response)) {
+            return array(
+                'success' => false,
+                'error'   => $response->get_error_message(),
+            );
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body        = wp_remote_retrieve_body($response);
+        $data        = json_decode($body, true);
+
+        if ($status_code !== 200 || !is_array($data) || empty($data['access_token'])) {
+            return array(
+                'success' => false,
+                'error'   => sprintf(
+                    /* translators: 1: HTTP status code */
+                    __('SHR token request failed (status %d).', 'dhr-hotel-management'),
+                    $status_code
+                ),
+                'details' => $body,
+            );
+        }
+
+        $access_token = $data['access_token'];
+        $expires_in   = isset($data['expires_in']) ? intval($data['expires_in']) : 3600;
+
+        update_option('dhr_shr_access_token', $access_token);
+        update_option('dhr_shr_access_token_expires_at', time() + $expires_in);
+
+        return array(
+            'success'      => true,
+            'access_token' => $access_token,
+        );
+    }
+
+    /**
+     * Get SHR access token: use manual token if set, else cached token if still valid, else request new one.
+     * Does not generate a token on every request; reuses cache until expiry (with 60s buffer).
+     *
+     * @param bool $force_refresh If true, ignore cache and request a new token (used after 401).
+     * @param bool $force_from_api If true, skip manual and cache and get a fresh token from token API (for 401 retry).
+     * @return array { success, access_token?, manual?, error? }
+     */
+    public function get_shr_access_token($force_refresh = false, $force_from_api = false) {
+        // After 401 we want a fresh token from API only (ignore manual and cache)
+        if ($force_from_api) {
+            $result = $this->request_shr_token_from_api();
+            if (!$result['success']) {
+                return array(
+                    'success' => false,
+                    'error'   => isset($result['error']) ? $result['error'] : __('Failed to get SHR token.', 'dhr-hotel-management'),
+                );
+            }
+            return array(
+                'success'      => true,
+                'access_token' => $result['access_token'],
+                'from_cache'   => false,
+                'manual'       => false,
+            );
+        }
+
+        // Manual token is always used as-is (no expiry, no refresh)
+        $manual_token = get_option('dhr_shr_manual_access_token', '');
+        if (!empty($manual_token)) {
+            return array(
+                'success'      => true,
+                'access_token' => trim($manual_token),
+                'from_cache'   => false,
+                'manual'       => true,
+            );
+        }
+
+        // When 401 occurred, cache was cleared; force_refresh means "get new token"
+        if (!$force_refresh) {
+            $cached_token = get_option('dhr_shr_access_token', '');
+            $expires_at   = intval(get_option('dhr_shr_access_token_expires_at', 0));
+            if (!empty($cached_token) && $expires_at > (time() + 60)) {
+                return array(
+                    'success'      => true,
+                    'access_token' => trim($cached_token),
+                    'from_cache'   => true,
+                    'manual'       => false,
+                );
+            }
+        }
+
+        $result = $this->request_shr_token_from_api();
+        if (!$result['success']) {
+            return array(
+                'success' => false,
+                'error'   => isset($result['error']) ? $result['error'] : __('Failed to get SHR token.', 'dhr-hotel-management'),
+            );
+        }
+
+        return array(
+            'success'      => true,
+            'access_token' => trim($result['access_token']),
+            'from_cache'   => false,
+            'manual'       => false,
+        );
+    }
+
+    /**
+     * Perform one SHR hotelDetails GET request (used for initial call and retry after 401).
+     */
+    private function do_shr_hotel_details_request($url, $access_token) {
+        $token = trim($access_token);
+        if (stripos($token, 'Bearer ') === 0) {
+            $token = trim(substr($token, 7));
+        }
+        $response = wp_remote_get(
+            $url,
+            array(
+                'headers' => array(
+                    'Authorization' => 'Bearer ' . $token,
+                    'Accept'        => 'application/json',
+                    'Content-Type'  => 'application/json',
+                ),
+                'timeout' => 30,
+            )
+        );
+
+        if (is_wp_error($response)) {
+            return array(
+                'status_code' => 0,
+                'body'        => '',
+                'data'        => null,
+                'error'       => $response->get_error_message(),
+            );
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body        = wp_remote_retrieve_body($response);
+        $data        = json_decode($body, true);
+
+        return array(
+            'status_code' => $status_code,
+            'body'        => $body,
+            'data'        => is_array($data) ? $data : null,
+        );
+    }
+
+    /**
+     * Call SHR /hotelDetails/{hotelCode} and return raw decoded data.
+     * Uses cached token when valid; on 401 (Unauthorized) regenerates token and retries once.
+     */
+    private function call_shr_hotel_details($hotel_code) {
+        $token_result = $this->get_shr_access_token(false);
+        if (!$token_result['success']) {
+            return $token_result;
+        }
+
+        $access_token = $token_result['access_token'];
+        $is_manual    = !empty($token_result['manual']);
+        $base_url    = $this->get_shr_shop_base_url();
+        $base_url    = rtrim($base_url, '/');
+        $url         = $base_url . '/hotelDetails/' . rawurlencode($hotel_code);
+
+        $hotel_id    = get_option('dhr_shr_hotel_id', '');
+        $language_id = get_option('dhr_shr_language_id', '4416');
+        $channel_id  = get_option('dhr_shr_channel_id', '30');
+
+        $params = array(
+            'channelId'        => $channel_id,
+            'requiredDetails'  => 'all',
+        );
+        if (!empty($hotel_id)) {
+            $params['hotelID'] = $hotel_id;
+        }
+        if (!empty($language_id)) {
+            $params['languageId'] = $language_id;
+        }
+
+        $params = apply_filters('dhr_shr_hotel_details_query_args', $params, $hotel_code);
+        if (!empty($params)) {
+            $url = add_query_arg($params, $url);
+        }
+
+        $result = $this->do_shr_hotel_details_request($url, $access_token);
+
+        if (!empty($result['error'])) {
+            return array(
+                'success' => false,
+                'error'   => $result['error'],
+            );
+        }
+
+        $status_code = $result['status_code'];
+        $body        = $result['body'];
+        $data        = $result['data'];
+
+        // 401 invalid_token: get fresh token from API and retry once (when client credentials are configured)
+        if ($status_code === 401) {
+            $client_id     = $this->get_shr_client_id();
+            $client_secret = $this->get_shr_client_secret();
+            if (!empty($client_id) && !empty($client_secret)) {
+                $this->clear_shr_token_cache();
+                $token_result = $this->get_shr_access_token(true, true);
+                if ($token_result['success']) {
+                    $result = $this->do_shr_hotel_details_request($url, $token_result['access_token']);
+                    if (!empty($result['error'])) {
+                        return array('success' => false, 'error' => $result['error']);
+                    }
+                    $status_code = $result['status_code'];
+                    $body        = $result['body'];
+                    $data        = $result['data'];
+                }
+            }
+        }
+
+        if ($status_code !== 200) {
+            $error_message = sprintf(
+                __('SHR hotelDetails request failed (status %d).', 'dhr-hotel-management'),
+                $status_code
+            );
+            if (!empty($body)) {
+                $error_data = json_decode($body, true);
+                if (is_array($error_data)) {
+                    if (isset($error_data['error'])) {
+                        $error_message .= ' ' . $error_data['error'];
+                    } elseif (isset($error_data['message'])) {
+                        $error_message .= ' ' . $error_data['message'];
+                    } elseif (isset($error_data['error_description'])) {
+                        $error_message .= ' ' . $error_data['error_description'];
+                    }
+                } else {
+                    $error_message .= ' Response: ' . substr(strip_tags($body), 0, 200);
+                }
+            }
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('DHR SHR API Error - URL: ' . $url);
+                error_log('DHR SHR API Error - Status: ' . $status_code);
+                error_log('DHR SHR API Error - Response: ' . $body);
+            }
+            return array(
+                'success' => false,
+                'error'   => $error_message,
+                'details' => $body,
+                'url'     => $url,
+            );
+        }
+
+        if (!is_array($data)) {
+            return array(
+                'success' => false,
+                'error'   => __('Invalid response format from SHR API.', 'dhr-hotel-management'),
+                'details' => $body,
+            );
+        }
+
+        // Store last API response for debugging / print (transient expires in 1 hour)
+        set_transient('dhr_last_shr_api_response', array(
+            'hotel_code' => $hotel_code,
+            'body'       => $body,
+            'data'       => $data,
+            'at'         => current_time('mysql'),
+        ), HOUR_IN_SECONDS);
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('DHR SHR API Response [' . $hotel_code . ']: ' . substr($body, 0, 5000) . (strlen($body) > 5000 ? '...' : ''));
+        }
+
+        return array(
+            'success' => true,
+            'data'    => $data,
+        );
+    }
+
+    /**
+     * Normalise SHR hotel details data into the fields we need
+     */
+    private function normalise_shr_hotel_data($hotel_code, $raw_data) {
+        // SHR responses wrap data inside "hotelDetailInfo"
+        $info = isset($raw_data['hotelDetailInfo']) && is_array($raw_data['hotelDetailInfo'])
+            ? $raw_data['hotelDetailInfo']
+            : $raw_data;
+
+        // Hotel name
+        $name = isset($info['hotelName']) ? $info['hotelName'] : $hotel_code;
+
+        // Description - prefer longDescription, fallback to sellingPoints
+        $description = '';
+        if (!empty($info['longDescription'])) {
+            // Strip HTML tags for plain text, but keep line breaks
+            $description = wp_strip_all_tags($info['longDescription']);
+        } elseif (!empty($info['sellingPoints'])) {
+            $description = $info['sellingPoints'];
+        } elseif (!empty($info['generalPolicy'])) {
+            $description = wp_strip_all_tags($info['generalPolicy']);
+        }
+
+        // Address from contactInfo.address, or locationDesc when no contactInfo
+        $address   = '';
+        $city      = '';
+        $province  = '';
+        $country   = 'South Africa';
+        $postal_code = '';
+
+        if (!empty($info['contactInfo']['address'])) {
+            $addr = $info['contactInfo']['address'];
+            if (!empty($addr['addressLine']) && is_array($addr['addressLine'])) {
+                $address = implode(', ', array_filter($addr['addressLine']));
+            }
+            $city      = isset($addr['cityName']) ? $addr['cityName'] : '';
+            $province  = isset($addr['stateProv']['state']) ? $addr['stateProv']['state'] : '';
+            $postal_code = isset($addr['postalCode']) ? $addr['postalCode'] : '';
+            if (!empty($addr['countryName']['code'])) {
+                $country_map = array('ZA' => 'South Africa', 'US' => 'United States', 'GB' => 'United Kingdom');
+                $country = isset($country_map[$addr['countryName']['code']]) ? $country_map[$addr['countryName']['code']] : $addr['countryName']['code'];
+            }
+        }
+        if (empty($address) && !empty($info['locationDesc'])) {
+            $address = wp_trim_words(wp_strip_all_tags($info['locationDesc']), 50);
+            if (strlen($address) > 500) {
+                $address = substr($address, 0, 497) . '...';
+            }
+        }
+
+        // Coordinates (directly on hotelDetailInfo root)
+        $latitude = isset($info['latitude']) ? floatval($info['latitude']) : 0;
+        $longitude = isset($info['longitude']) ? floatval($info['longitude']) : 0;
+
+        // Phone: contactInfo.phones first, then resPhone (API response format without contactInfo)
+        $phone = '';
+        if (!empty($info['contactInfo']['phones']) && is_array($info['contactInfo']['phones'])) {
+            foreach ($info['contactInfo']['phones'] as $phone_obj) {
+                if (isset($phone_obj['phoneTechType']) && $phone_obj['phoneTechType'] === 'voice'
+                    && isset($phone_obj['primary']) && $phone_obj['primary'] === true) {
+                    $country_code = isset($phone_obj['countryAccessCode']) ? $phone_obj['countryAccessCode'] : '';
+                    $area_code    = isset($phone_obj['areaCityCode']) ? $phone_obj['areaCityCode'] : '';
+                    $number       = isset($phone_obj['phoneNumber']) ? $phone_obj['phoneNumber'] : '';
+                    if ($country_code && $area_code && $number) {
+                        $phone = '+' . $country_code . '-' . $area_code . '-' . $number;
+                    } elseif ($number) {
+                        $phone = $number;
+                    }
+                    break;
+                }
+            }
+        }
+        if (empty($phone) && !empty($info['resPhone'])) {
+            $phone = is_string($info['resPhone']) ? trim($info['resPhone']) : '';
+        }
+
+        // Email: contactInfo.emails first, then resEmail (API response format without contactInfo)
+        $email = '';
+        if (!empty($info['contactInfo']['emails']) && is_array($info['contactInfo']['emails'])) {
+            $email_str = isset($info['contactInfo']['emails'][0]['value']) ? $info['contactInfo']['emails'][0]['value'] : '';
+            if (strpos($email_str, ';') !== false) {
+                $emails = explode(';', $email_str);
+                $email = trim($emails[0]);
+            } else {
+                $email = trim($email_str);
+            }
+        }
+        if (empty($email) && !empty($info['resEmail'])) {
+            $email_str = is_string($info['resEmail']) ? $info['resEmail'] : '';
+            if (strpos($email_str, ';') !== false) {
+                $emails = explode(';', $email_str);
+                $email = trim($emails[0]);
+            } else {
+                $email = trim($email_str);
+            }
+        }
+
+        // Website from contactInfo.urLs array (prefer Property type)
+        $website = '';
+        if (!empty($info['contactInfo']['urLs']) && is_array($info['contactInfo']['urLs'])) {
+            foreach ($info['contactInfo']['urLs'] as $url_obj) {
+                if (isset($url_obj['type']) && $url_obj['type'] === 'Property') {
+                    $url_value = isset($url_obj['value']) ? $url_obj['value'] : '';
+                    if (!empty($url_value)) {
+                        // Add https:// if missing
+                        $website = (strpos($url_value, 'http') === 0) ? $url_value : 'https://' . $url_value;
+                    }
+                    break;
+                }
+            }
+            // Fallback: use Reservation URL or urlHotel
+            if (empty($website)) {
+                foreach ($info['contactInfo']['urLs'] as $url_obj) {
+                    if (isset($url_obj['type']) && $url_obj['type'] === 'Reservation') {
+                        $url_value = isset($url_obj['value']) ? $url_obj['value'] : '';
+                        if (!empty($url_value)) {
+                            $website = (strpos($url_value, 'http') === 0) ? $url_value : 'https://' . $url_value;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        // Fallback: use urlHotel then resUrlBase (API response format)
+        if (empty($website) && !empty($info['urlHotel'])) {
+            $url_value = $info['urlHotel'];
+            $website   = (strpos($url_value, 'http') === 0) ? $url_value : 'https://' . $url_value;
+        }
+        if (empty($website) && !empty($info['resUrlBase'])) {
+            $url_value = $info['resUrlBase'];
+            $website   = (strpos($url_value, 'http') === 0) ? $url_value : 'https://' . $url_value;
+        }
+
+        // Image URL: first propertyImage_Stardard, then propertyLogo, then first image with fileName
+        $image_url = '';
+        if (!empty($info['images']) && is_array($info['images'])) {
+            foreach ($info['images'] as $img) {
+                if (isset($img['mediaType']) && $img['mediaType'] === 'propertyImage_Stardard' && !empty($img['fileName'])) {
+                    $image_url = $img['fileName'];
+                    break;
+                }
+            }
+            if (empty($image_url)) {
+                foreach ($info['images'] as $img) {
+                    if (isset($img['mediaType']) && $img['mediaType'] === 'propertyLogo' && !empty($img['fileName'])) {
+                        $image_url = $img['fileName'];
+                        break;
+                    }
+                }
+            }
+            if (empty($image_url) && !empty($info['images'][0]['fileName'])) {
+                $image_url = $info['images'][0]['fileName'];
+            }
+        }
+
+        // Google Maps URL - build from coordinates
+        $google_maps_url = '';
+        if ($latitude != 0 && $longitude != 0) {
+            $google_maps_url = 'https://www.google.com/maps?q=' . $latitude . ',' . $longitude;
+        }
+
+        return array(
+            'hotel_code'      => $hotel_code,
+            'name'            => $name,
+            'description'     => $description,
+            'address'         => $address,
+            'city'            => $city,
+            'province'        => $province,
+            'country'         => $country,
+            'postal_code'     => $postal_code,
+            'latitude'        => $latitude,
+            'longitude'       => $longitude,
+            'phone'           => $phone,
+            'email'           => $email,
+            'website'         => $website,
+            'image_url'       => $image_url,
+            'google_maps_url' => $google_maps_url,
+            'raw'             => $raw_data,
+        );
+    }
+
+    /**
+     * Fetch hotel details from SHR and create/update local hotel + details
+     */
+    public function fetch_shr_and_save_hotel($hotel_code) {
+        $hotel_code = trim($hotel_code);
+        if ($hotel_code === '') {
+            return array(
+                'success' => false,
+                'error'   => __('Hotel code is required.', 'dhr-hotel-management'),
+            );
+        }
+
+        $api_result = $this->call_shr_hotel_details($hotel_code);
+        if (!$api_result['success']) {
+            return $api_result;
+        }
+
+        $normalised = $this->normalise_shr_hotel_data($hotel_code, $api_result['data']);
+
+        $hotel_data = array(
+            'hotel_code'      => $normalised['hotel_code'],
+            'name'            => $normalised['name'] ?? '',
+            'description'     => $normalised['description'] ?? '',
+            'address'         => $normalised['address'] ?? '',
+            'city'            => $normalised['city'] ?? '',
+            'province'        => $normalised['province'] ?? '',
+            'country'         => $normalised['country'] ?? 'South Africa',
+            'latitude'        => isset($normalised['latitude']) ? floatval($normalised['latitude']) : 0,
+            'longitude'       => isset($normalised['longitude']) ? floatval($normalised['longitude']) : 0,
+            'phone'           => $normalised['phone'] ?? '',
+            'email'           => $normalised['email'] ?? '',
+            'website'         => $normalised['website'] ?? '',
+            'image_url'       => $normalised['image_url'] ?? '',
+            'google_maps_url' => $normalised['google_maps_url'] ?? '',
+            'status'          => 'active',
+        );
+
+        $existing = DHR_Hotel_Database::get_hotel_by_code($hotel_code);
+
+        if ($existing) {
+            $hotel_id = $existing->id;
+            $updated  = DHR_Hotel_Database::update_hotel($hotel_id, $hotel_data);
+            if (!$updated) {
+                global $wpdb;
+                $db_error = $wpdb->last_error ? ' ' . $wpdb->last_error : '';
+                return array(
+                    'success' => false,
+                    'error'   => __('Failed to update existing hotel record.', 'dhr-hotel-management') . $db_error,
+                );
+            }
+        } else {
+            $hotel_id = DHR_Hotel_Database::insert_hotel($hotel_data);
+            if ($hotel_id === false) {
+                global $wpdb;
+                $db_error = $wpdb->last_error ? ' ' . $wpdb->last_error : '';
+                return array(
+                    'success' => false,
+                    'error'   => __('Failed to insert new hotel record.', 'dhr-hotel-management') . $db_error,
+                );
+            }
+        }
+
+        // Store detailed SHR data in the hotel details table
+        $info = isset($normalised['raw']['hotelDetailInfo']) 
+            ? $normalised['raw']['hotelDetailInfo'] 
+            : (isset($normalised['raw']) ? $normalised['raw'] : array());
+
+        // Extract check-in/out times from policies
+        $check_in_time = '';
+        $check_out_time = '';
+        if (!empty($info['policies']['policyInfo'])) {
+            $policy_info = $info['policies']['policyInfo'];
+            $check_in_time = isset($policy_info['checkInTime']) ? $policy_info['checkInTime'] : '';
+            $check_out_time = isset($policy_info['checkOutTime']) ? $policy_info['checkOutTime'] : '';
+        }
+
+        // Extract cancellation policy
+        $cancellation_policy = '';
+        if (!empty($info['policies']['cancelPolicy']['cancelPenalty']) 
+            && is_array($info['policies']['cancelPolicy']['cancelPenalty'])) {
+            $penalties = array();
+            foreach ($info['policies']['cancelPolicy']['cancelPenalty'] as $penalty) {
+                if (!empty($penalty['penaltyDescription'])) {
+                    $penalties[] = $penalty['penaltyDescription'];
+                }
+            }
+            $cancellation_policy = implode("\n\n", $penalties);
+        }
+
+        // Extract guarantee policy
+        $guarantee_policy = '';
+        if (!empty($info['policies']['guaranteePaymentPolicy']['guaranteePayment']) 
+            && is_array($info['policies']['guaranteePaymentPolicy']['guaranteePayment'])) {
+            $guarantees = array();
+            foreach ($info['policies']['guaranteePaymentPolicy']['guaranteePayment'] as $guarantee) {
+                if (!empty($guarantee['description'])) {
+                    $guarantees[] = $guarantee['description'];
+                }
+            }
+            $guarantee_policy = implode("\n\n", $guarantees);
+        }
+
+        // Extract pets policy
+        $pets_allowed = '';
+        if (!empty($info['policies']['petsPolicy'])) {
+            $pets_policy = $info['policies']['petsPolicy'];
+            $pets_allowed = isset($pets_policy['petsAllowed']) && $pets_policy['petsAllowed'] === true ? 'Yes' : 'No';
+            if (!empty($pets_policy['description'])) {
+                $pets_allowed .= ' - ' . $pets_policy['description'];
+            }
+        }
+
+        // Extract commission percent
+        $commission_percent = null;
+        if (!empty($info['policies']['commissionPolicy']['percent'])) {
+            $commission_percent = floatval($info['policies']['commissionPolicy']['percent']);
+        }
+
+        // Chain info
+        $chain_code = isset($info['chainCode']) ? $info['chainCode'] : '';
+        $chain_name = isset($info['chainCode']) ? $info['chainCode'] : ''; // Can be extended if chain name is available
+
+        // Currency
+        $currency_code = '';
+        if (!empty($info['currencies']) && is_array($info['currencies'])) {
+            foreach ($info['currencies'] as $curr) {
+                if (isset($curr['default']) && $curr['default'] === true) {
+                    $currency_code = isset($curr['code']) ? $curr['code'] : '';
+                    break;
+                }
+            }
+        }
+
+        // Language
+        $language_code = '';
+        if (!empty($info['languageCodes']) && is_array($info['languageCodes'])) {
+            $language_code = $info['languageCodes'][0];
+        }
+
+        // Time zone
+        $time_zone = '';
+        if (!empty($info['timeZone'])) {
+            $time_zone = $info['timeZone'];
+        }
+
+        $details = array(
+            'hotel_code'          => $normalised['hotel_code'],
+            'hotel_name'          => $normalised['name'],
+            'chain_code'          => $chain_code,
+            'chain_name'          => $chain_name,
+            'currency_code'       => $currency_code,
+            'language_code'       => $language_code,
+            'time_zone'           => $time_zone,
+            'description'         => $normalised['description'],
+            'latitude'            => $normalised['latitude'],
+            'longitude'           => $normalised['longitude'],
+            'check_in_time'       => $check_in_time,
+            'check_out_time'      => $check_out_time,
+            'cancellation_policy' => $cancellation_policy,
+            'guarantee_policy'    => $guarantee_policy,
+            'pets_allowed'        => $pets_allowed,
+            'commission_percent'  => $commission_percent,
+            'raw_xml_data'        => wp_json_encode($normalised['raw']),
+        );
+
+        DHR_Hotel_Database::save_hotel_details($details);
+
+        return array(
+            'success'    => true,
+            'hotel_id'   => $hotel_id,
+            'hotel_code' => $normalised['hotel_code'],
+            'hotel_name' => $normalised['name'],
+        );
+    }
 }
