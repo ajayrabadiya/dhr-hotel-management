@@ -64,7 +64,7 @@ if (!empty($hotels)) {
 }
 ?>
 <script>
-    var dhrHeadOfficeMapHotels = <?php echo json_encode($hotels_js); ?>;
+    var dhrHeadOfficeMapHotels = <?php echo wp_json_encode($hotels_js); ?>;
 </script>
 <script>
     (function () {

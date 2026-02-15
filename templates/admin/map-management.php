@@ -150,7 +150,8 @@ foreach ($all_hotels as $h) {
         </div>
         
         <div class="dhr-map-settings-panel" id="dhr-map-settings-panel" style="display: none;">
-            <h2><?php _e('Map Settings', 'dhr-hotel-management'); ?></h2>
+            <h2><?php _e('Map Settings', 'dhr-hotel-management'); ?> <span id="dhr-editing-map-name" class="dhr-editing-map-badge"></span></h2>
+            <p class="description dhr-map-wise-note"><?php _e('Each map has its own hotel selection. The shortcode (e.g. [dhr_hotel_map] or [dhr_head_office_map]) will display only the hotels you select below for that map.', 'dhr-hotel-management'); ?></p>
             <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" id="dhr-map-settings-form">
                 <?php wp_nonce_field('dhr_map_config_nonce'); ?>
                 <input type="hidden" name="action" value="dhr_save_map_config">
@@ -174,18 +175,23 @@ jQuery(document).ready(function($) {
     var mapConfigs = <?php echo json_encode($map_configs); ?>;
     var dhrAllHotels = <?php echo json_encode($all_hotels_for_js); ?>;
     
-    // Copy shortcode functionality
+    // Copy shortcode functionality (use data-shortcode so it works for both card and table)
     $('.dhr-copy-btn').on('click', function() {
         var $btn = $(this);
-        var shortcode = $btn.data('shortcode');
-        var $input = $btn.siblings('.dhr-shortcode-input');
-        
-        $input.select();
-        document.execCommand('copy');
-        
+        var shortcode = $btn.data('shortcode') || '';
+        var $input = $btn.siblings('.dhr-shortcode-input').length ? $btn.siblings('.dhr-shortcode-input') : $btn.siblings('.dhr-shortcode-input-full');
+        if ($input.length) {
+            $input.val(shortcode).select();
+        }
+        if (shortcode && navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shortcode).catch(function() {
+                if ($input.length) document.execCommand('copy');
+            });
+        } else if ($input.length) {
+            document.execCommand('copy');
+        }
         $btn.find('.dhr-copy-text').hide();
         $btn.find('.dhr-copied-text').show();
-        
         setTimeout(function() {
             $btn.find('.dhr-copy-text').show();
             $btn.find('.dhr-copied-text').hide();
@@ -212,6 +218,7 @@ jQuery(document).ready(function($) {
     function loadMapSettings(map) {
         var settings = JSON.parse(map.settings || '{}');
         var selectedIds = Array.isArray(settings.selected_hotel_ids) ? settings.selected_hotel_ids : [];
+        $('#dhr-editing-map-name').text(map.map_name + ' → [' + (map.shortcode || '') + ']');
         var html = '<input type="hidden" name="map_name" value="' + escapeHtml(map.map_name) + '">';
         html += '<table class="form-table">';
         
@@ -244,7 +251,7 @@ jQuery(document).ready(function($) {
         // Selected Hotels (multi-select for this map)
         html += '<tr>';
         html += '<th scope="row"><label>' + escapeHtml('<?php echo esc_js(__("Hotels on this map", "dhr-hotel-management")); ?>') + '</label></th>';
-        html += '<td><p class="description" style="margin-bottom: 10px;">' + escapeHtml('<?php echo esc_js(__("Select which hotels appear on this map. Leave all unchecked to show all active hotels.", "dhr-hotel-management")); ?>') + '</p>';
+        html += '<td><p class="description" style="margin-bottom: 10px;">' + escapeHtml('<?php echo esc_js(__("Select which hotels appear on this map only. Example: [dhr_hotel_map] can show 2 hotels and [dhr_head_office_map] can show 3 different hotels. Leave all unchecked to show all active hotels.", "dhr-hotel-management")); ?>') + '</p>';
         html += '<div class="dhr-map-hotels-checkboxes" style="max-height: 220px; overflow-y: auto; border: 1px solid #8c8f94; padding: 10px; background: #fff;">';
         if (dhrAllHotels && dhrAllHotels.length) {
             dhrAllHotels.forEach(function(hotel) {
@@ -419,6 +426,19 @@ jQuery(document).ready(function($) {
     background: #fff;
     border: 1px solid #ccd0d4;
     box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.dhr-editing-map-badge {
+    font-weight: normal;
+    font-size: 14px;
+    color: #1d2327;
+}
+
+.dhr-map-wise-note {
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: #f0f6fc;
+    border-left: 4px solid #2271b1;
 }
 
 .dhr-maps-list {
