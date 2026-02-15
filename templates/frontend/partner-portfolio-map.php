@@ -280,21 +280,11 @@ var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
                 return;
             }
 
-            // Filter to hotels with valid latitude/longitude so one bad entry does not break the map
-            function isValidCoord(val) {
-                var n = parseFloat(val);
-                return isFinite(n) && n >= -90 && n <= 90;
-            }
-            function isValidLng(val) {
-                var n = parseFloat(val);
-                return isFinite(n) && n >= -180 && n <= 180;
-            }
             var validHotels = hotels.filter(function (hotel) {
-                return isValidCoord(hotel.latitude) && isValidLng(hotel.longitude);
+                var lat = parseFloat(hotel.latitude);
+                var lng = parseFloat(hotel.longitude);
+                return isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180;
             });
-            if (validHotels.length === 0) {
-                console.warn('No hotels with valid coordinates; showing default center');
-            }
 
             var bounds = new google.maps.LatLngBounds();
             var deviceType = getDeviceType();
@@ -322,8 +312,9 @@ var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
                 adjustedCenterLat = centerLat + (latSpan * latMultiplier);
                 adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
             } else {
-                adjustedCenterLat = -33.9249;
-                adjustedCenterLng = 18.4241;
+                adjustedCenterLat = -29.0;
+                adjustedCenterLng = 24.0;
+                mapZoom = 5;
             }
 
             map = new google.maps.Map(document.getElementById('partner-portfolio-map'), {
