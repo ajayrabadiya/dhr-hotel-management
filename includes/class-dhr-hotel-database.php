@@ -150,6 +150,44 @@ class DHR_Hotel_Database {
         ) $charset_collate;";
         
         dbDelta($sql_services);
+
+        // Create categories table
+        $categories_table = $wpdb->prefix . 'dhr_categories';
+        $sql_categories = "CREATE TABLE IF NOT EXISTS $categories_table (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            title varchar(255) NOT NULL,
+            description text,
+            image_url varchar(500) DEFAULT NULL,
+            icon_url varchar(500) DEFAULT NULL,
+            is_active tinyint(1) NOT NULL DEFAULT 1,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            created_by bigint(20) DEFAULT NULL,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_by bigint(20) DEFAULT NULL,
+            PRIMARY KEY (id)
+        ) $charset_collate;";
+        dbDelta($sql_categories);
+
+        // Create packages table
+        $packages_table = $wpdb->prefix . 'dhr_packages';
+        $sql_packages = "CREATE TABLE IF NOT EXISTS $packages_table (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            package_code varchar(100) NOT NULL,
+            hotel_code varchar(50) NOT NULL,
+            category_id int(11) NOT NULL,
+            valid_from datetime NOT NULL,
+            valid_to datetime NOT NULL,
+            is_active tinyint(1) NOT NULL DEFAULT 1,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            created_by bigint(20) DEFAULT NULL,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_by bigint(20) DEFAULT NULL,
+            PRIMARY KEY (id),
+            KEY hotel_code (hotel_code),
+            KEY category_id (category_id),
+            KEY valid_dates (valid_from, valid_to)
+        ) $charset_collate;";
+        dbDelta($sql_packages);
         
         // Insert default map configurations if they don't exist
         self::create_default_map_configs();
@@ -726,6 +764,140 @@ class DHR_Hotel_Database {
             "SELECT * FROM $table_name WHERE hotel_code = %s ORDER BY id ASC",
             $hotel_code
         ));
+    }
+
+    // ─── Categories ─────────────────────────────────────────────────────────
+    public static function get_all_categories() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_categories';
+        return $wpdb->get_results("SELECT * FROM $table ORDER BY title ASC");
+    }
+
+    public static function get_active_categories() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_categories';
+        return $wpdb->get_results($wpdb->prepare("SELECT * FROM $table WHERE is_active = %d ORDER BY title ASC", 1));
+    }
+
+    public static function get_category($id) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_categories';
+        return $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %d", $id));
+    }
+
+    public static function insert_category($data) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_categories';
+        $user_id = get_current_user_id();
+        $row = array(
+            'title'       => sanitize_text_field($data['title']),
+            'description' => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
+            'image_url'   => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
+            'icon_url'    => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
+            'is_active'   => isset($data['is_active']) ? (int) $data['is_active'] : 1,
+            'created_by'  => $user_id ? $user_id : null,
+            'updated_by'  => $user_id ? $user_id : null,
+        );
+        $result = $wpdb->insert($table, $row, array('%s', '%s', '%s', '%s', '%d', '%d', '%d'));
+        return $result !== false ? $wpdb->insert_id : false;
+    }
+
+    public static function update_category($id, $data) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_categories';
+        $user_id = get_current_user_id();
+        $row = array(
+            'title'       => sanitize_text_field($data['title']),
+            'description' => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
+            'image_url'   => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
+            'icon_url'    => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
+            'is_active'   => isset($data['is_active']) ? (int) $data['is_active'] : 1,
+            'updated_by'  => $user_id ? $user_id : null,
+        );
+        return $wpdb->update($table, $row, array('id' => (int) $id), array('%s', '%s', '%s', '%s', '%d', '%d'), array('%d')) !== false;
+    }
+
+    public static function delete_category($id) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_categories';
+        return $wpdb->delete($table, array('id' => (int) $id), array('%d')) !== false;
+    }
+
+    // ─── Packages ─────────────────────────────────────────────────────────
+    public static function get_all_packages() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_packages';
+        $cat_table = $wpdb->prefix . 'dhr_categories';
+        return $wpdb->get_results(
+            "SELECT p.*, c.title AS category_title FROM $table p " .
+            "LEFT JOIN $cat_table c ON c.id = p.category_id ORDER BY p.created_at DESC"
+        );
+    }
+
+    public static function get_package($id) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_packages';
+        $cat_table = $wpdb->prefix . 'dhr_categories';
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT p.*, c.title AS category_title FROM $table p " .
+            "LEFT JOIN $cat_table c ON c.id = p.category_id WHERE p.id = %d",
+            $id
+        ));
+    }
+
+    /** Packages that are active and within valid date range (for frontend / mapping) */
+    public static function get_available_packages() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_packages';
+        $cat_table = $wpdb->prefix . 'dhr_categories';
+        $now = current_time('mysql');
+        return $wpdb->get_results($wpdb->prepare(
+            "SELECT p.*, c.title AS category_title FROM $table p " .
+            "LEFT JOIN $cat_table c ON c.id = p.category_id AND c.is_active = 1 " .
+            "WHERE p.is_active = 1 AND p.valid_from <= %s AND p.valid_to >= %s ORDER BY p.valid_from DESC",
+            $now,
+            $now
+        ));
+    }
+
+    public static function insert_package($data) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_packages';
+        $user_id = get_current_user_id();
+        $row = array(
+            'package_code' => sanitize_text_field($data['package_code']),
+            'hotel_code'   => sanitize_text_field($data['hotel_code']),
+            'category_id'  => (int) $data['category_id'],
+            'valid_from'   => sanitize_text_field($data['valid_from']),
+            'valid_to'     => sanitize_text_field($data['valid_to']),
+            'is_active'    => isset($data['is_active']) ? (int) $data['is_active'] : 1,
+            'created_by'   => $user_id ? $user_id : null,
+            'updated_by'   => $user_id ? $user_id : null,
+        );
+        $result = $wpdb->insert($table, $row, array('%s', '%s', '%d', '%s', '%s', '%d', '%d', '%d'));
+        return $result !== false ? $wpdb->insert_id : false;
+    }
+
+    public static function update_package($id, $data) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_packages';
+        $user_id = get_current_user_id();
+        $row = array(
+            'package_code' => sanitize_text_field($data['package_code']),
+            'hotel_code'   => sanitize_text_field($data['hotel_code']),
+            'category_id'  => (int) $data['category_id'],
+            'valid_from'   => sanitize_text_field($data['valid_from']),
+            'valid_to'     => sanitize_text_field($data['valid_to']),
+            'is_active'    => isset($data['is_active']) ? (int) $data['is_active'] : 1,
+            'updated_by'   => $user_id ? $user_id : null,
+        );
+        return $wpdb->update($table, $row, array('id' => (int) $id), array('%s', '%s', '%d', '%s', '%s', '%d', '%d'), array('%d')) !== false;
+    }
+
+    public static function delete_package($id) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_packages';
+        return $wpdb->delete($table, array('id' => (int) $id), array('%d')) !== false;
     }
 }
 

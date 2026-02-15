@@ -17,6 +17,10 @@ class DHR_Hotel_Admin {
         add_action('admin_post_dhr_save_settings', array($this, 'save_settings'));
         add_action('admin_post_dhr_save_map_config', array($this, 'save_map_config'));
         add_action('admin_post_dhr_create_default_maps', array($this, 'create_default_maps'));
+        add_action('admin_post_dhr_save_category', array($this, 'save_category'));
+        add_action('admin_post_dhr_delete_category', array($this, 'delete_category'));
+        add_action('admin_post_dhr_save_package', array($this, 'save_package'));
+        add_action('admin_post_dhr_delete_package', array($this, 'delete_package'));
 
         // SHR WS Shop API (REST) sync actions
         add_action('admin_post_dhr_sync_shr_hotel', array($this, 'sync_shr_hotel'));
@@ -62,6 +66,22 @@ class DHR_Hotel_Admin {
             'manage_options',
             'dhr-hotel-map-management',
             array($this, 'display_map_management')
+        );
+        add_submenu_page(
+            'dhr-hotel-management',
+            __('Category List', 'dhr-hotel-management'),
+            __('Category List', 'dhr-hotel-management'),
+            'manage_options',
+            'dhr-hotel-categories',
+            array($this, 'display_category_list')
+        );
+        add_submenu_page(
+            'dhr-hotel-management',
+            __('Package List', 'dhr-hotel-management'),
+            __('Package List', 'dhr-hotel-management'),
+            'manage_options',
+            'dhr-hotel-packages',
+            array($this, 'display_package_list')
         );
     }
     
@@ -363,6 +383,143 @@ class DHR_Hotel_Admin {
         DHR_Hotel_Database::create_default_map_configs();
         
         wp_redirect(admin_url('admin.php?page=dhr-hotel-map-management&message=maps_created'));
+        exit;
+    }
+
+    /**
+     * Category list and form
+     */
+    public function display_category_list() {
+        $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
+        $category_id = isset($_GET['category_id']) ? intval($_GET['category_id']) : 0;
+        if ($action === 'edit' && $category_id > 0) {
+            $category = DHR_Hotel_Database::get_category($category_id);
+            if (!$category) {
+                wp_safe_redirect(admin_url('admin.php?page=dhr-hotel-categories&message=error'));
+                exit;
+            }
+            include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/category-form.php';
+            return;
+        }
+        if ($action === 'add') {
+            $category = null;
+            include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/category-form.php';
+            return;
+        }
+        $categories = DHR_Hotel_Database::get_all_categories();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/category-list.php';
+    }
+
+    public function save_category() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        check_admin_referer('dhr_category_nonce');
+        $id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
+        $data = array(
+            'title'      => isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '',
+            'description' => isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '',
+            'image_url'  => isset($_POST['image_url']) ? esc_url_raw($_POST['image_url']) : '',
+            'icon_url'   => isset($_POST['icon_url']) ? esc_url_raw($_POST['icon_url']) : '',
+            'is_active'  => isset($_POST['is_active']) ? 1 : 0,
+        );
+        if ($id > 0) {
+            $result = DHR_Hotel_Database::update_category($id, $data);
+            $message = $result ? 'updated' : 'error';
+        } else {
+            $result = DHR_Hotel_Database::insert_category($data);
+            $message = $result ? 'added' : 'error';
+        }
+        wp_redirect(admin_url('admin.php?page=dhr-hotel-categories&message=' . $message));
+        exit;
+    }
+
+    public function delete_category() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        check_admin_referer('dhr_delete_category_nonce');
+        $id = isset($_GET['category_id']) ? intval($_GET['category_id']) : 0;
+        if ($id > 0) {
+            DHR_Hotel_Database::delete_category($id);
+        }
+        wp_redirect(admin_url('admin.php?page=dhr-hotel-categories&message=deleted'));
+        exit;
+    }
+
+    /**
+     * Package list and form
+     */
+    public function display_package_list() {
+        $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
+        $package_id = isset($_GET['package_id']) ? intval($_GET['package_id']) : 0;
+        if ($action === 'edit' && $package_id > 0) {
+            $package = DHR_Hotel_Database::get_package($package_id);
+            if (!$package) {
+                wp_safe_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=error'));
+                exit;
+            }
+            include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/package-form.php';
+            return;
+        }
+        if ($action === 'add') {
+            $package = null;
+            include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/package-form.php';
+            return;
+        }
+        $packages = DHR_Hotel_Database::get_all_packages();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/package-list.php';
+    }
+
+    public function save_package() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        check_admin_referer('dhr_package_nonce');
+        $id = isset($_POST['package_id']) ? intval($_POST['package_id']) : 0;
+        $valid_from = isset($_POST['valid_from']) ? sanitize_text_field($_POST['valid_from']) : '';
+        $valid_to   = isset($_POST['valid_to']) ? sanitize_text_field($_POST['valid_to']) : '';
+        if ($valid_from && strpos($valid_from, 'T') !== false) {
+            $valid_from = str_replace('T', ' ', $valid_from);
+            if (substr_count($valid_from, ':') === 1) {
+                $valid_from .= ':00';
+            }
+        }
+        if ($valid_to && strpos($valid_to, 'T') !== false) {
+            $valid_to = str_replace('T', ' ', $valid_to);
+            if (substr_count($valid_to, ':') === 1) {
+                $valid_to .= ':00';
+            }
+        }
+        $data = array(
+            'package_code' => isset($_POST['package_code']) ? sanitize_text_field($_POST['package_code']) : '',
+            'hotel_code'   => isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '',
+            'category_id'  => isset($_POST['category_id']) ? intval($_POST['category_id']) : 0,
+            'valid_from'   => $valid_from,
+            'valid_to'     => $valid_to,
+            'is_active'    => isset($_POST['is_active']) ? 1 : 0,
+        );
+        if ($id > 0) {
+            $result = DHR_Hotel_Database::update_package($id, $data);
+            $message = $result ? 'updated' : 'error';
+        } else {
+            $result = DHR_Hotel_Database::insert_package($data);
+            $message = $result ? 'added' : 'error';
+        }
+        wp_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=' . $message));
+        exit;
+    }
+
+    public function delete_package() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        check_admin_referer('dhr_delete_package_nonce');
+        $id = isset($_GET['package_id']) ? intval($_GET['package_id']) : 0;
+        if ($id > 0) {
+            DHR_Hotel_Database::delete_package($id);
+        }
+        wp_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=deleted'));
         exit;
     }
     

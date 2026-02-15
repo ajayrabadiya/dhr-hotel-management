@@ -74,12 +74,17 @@ class DHR_Hotel_Management {
     
     /**
      * Run hotels table schema upgrade (add missing columns like hotel_code) for existing installs.
+     * Also ensure categories and packages tables exist (for existing installs that didn't run activation).
      */
     public function maybe_upgrade_hotels_table() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'dhr_hotels';
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name)) === $table_name) {
             DHR_Hotel_Database::maybe_upgrade_dhr_hotels_table($table_name);
+        }
+        $categories_table = $wpdb->prefix . 'dhr_categories';
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $categories_table)) !== $categories_table) {
+            DHR_Hotel_Database::create_tables();
         }
     }
 
