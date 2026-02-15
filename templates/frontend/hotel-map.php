@@ -376,10 +376,11 @@ if (!empty($hotels)) {
                 console.warn('No hotels with valid coordinates; showing default center');
             }
 
-            // Use valid hotels only for center and bounds so map shows all markers correctly
+            // Default: South Africa map center (country-level)
+            var southAfricaCenter = { lat: -30.5595, lng: 22.9375 };
             var bounds = new google.maps.LatLngBounds();
-            var centerLat = -33.9249;
-            var centerLng = 18.4241;
+            var centerLat = southAfricaCenter.lat;
+            var centerLng = southAfricaCenter.lng;
             var count = validHotels.length;
             if (count > 0) {
                 centerLat = 0;
@@ -393,39 +394,25 @@ if (!empty($hotels)) {
                 });
                 centerLat = centerLat / count;
                 centerLng = centerLng / count;
-            }
-
-            // Adjust center to position map at the bottom (downward)
-            var ne = bounds.getNorthEast();
-            var sw = bounds.getSouthWest();
-            var latSpan = ne.lat() - sw.lat();
-            var lngSpan = ne.lng() - sw.lng();
-            
-            // Apply different adjustments based on device type
-            var deviceType = getDeviceType();
-            var latMultiplier, lngMultiplier;
-
-            if (deviceType === 'mobile') {
-                latMultiplier = 0;
-                lngMultiplier = 0;
-            } else if (deviceType === 'tablet') {
-                latMultiplier = 0;
-                lngMultiplier = -0.2;
             } else {
-                latMultiplier = 0;
-                lngMultiplier = -0.24;
+                // No hotels: ensure bounds include South Africa so map displays
+                bounds.extend(new google.maps.LatLng(southAfricaCenter.lat, southAfricaCenter.lng));
             }
 
-            var adjustedCenterLat = centerLat + (latSpan * latMultiplier);
-            var adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
-
-            // Set zoom based on device type
-            var mapZoom = (deviceType === 'mobile') ? 8.7 : 9.7;
+            var deviceType = getDeviceType();
+            // Padding (px) when fitting bounds so markers aren't at the edge
+            var fitPadding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
+            // Zoom limits: allow zoom in/out without breaking initial view
+            var minZoom = 4;
+            var maxZoom = 18;
+            // Default zoom when no hotels (South Africa country view)
+            var defaultZoom = 5;
 
             map = new google.maps.Map(document.getElementById('hotel-map'), {
-                zoom: mapZoom,
-                center: { lat: adjustedCenterLat, lng: adjustedCenterLng },
-                maxZoom: 5,
+                zoom: count > 0 ? 7 : defaultZoom,
+                center: count > 0 ? { lat: centerLat, lng: centerLng } : southAfricaCenter,
+                minZoom: minZoom,
+                maxZoom: maxZoom,
                 styles: [
                     {
                         featureType: 'all',
@@ -445,9 +432,21 @@ if (!empty($hotels)) {
                 ]
             });
 
-            // Create markers for each valid hotel
+            // When we have hotels, fit map to show all markers with padding (proper view)
+            if (count > 0) {
+                map.fitBounds(bounds, fitPadding);
+            }
+            fitMapBounds = function () {
+                if (map && count > 0 && bounds && !bounds.isEmpty()) {
+                    map.fitBounds(bounds, fitPadding);
+                }
+            };
+
+            // Create markers with staggered drop animation (pin arrive dynamic)
             validHotels.forEach(function (hotel, index) {
-                createMarker(hotel, index);
+                setTimeout(function () {
+                    createMarker(hotel, index);
+                }, index * 120);
             });
         }
 
@@ -460,12 +459,13 @@ if (!empty($hotels)) {
             // Create normal marker icon
             var normalIcon = createNormalMarkerIcon();
 
-            // Create marker
+            // Create marker with drop animation (dynamic pin arrive)
             var marker = new google.maps.Marker({
                 position: position,
                 map: map,
                 title: hotel.name,
-                icon: normalIcon
+                icon: normalIcon,
+                animation: google.maps.Animation.DROP
             });
 
             // Create info window content

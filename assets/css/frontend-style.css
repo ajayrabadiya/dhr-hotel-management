@@ -364,6 +364,7 @@ div:focus-visible {
     font-weight: 400;
     line-height: 120%;
     margin: 0;
+    text-decoration: none;
 }
 
 .all-maps .hotel-phone-number:hover {
@@ -581,6 +582,7 @@ div:focus-visible {
     padding: 10px 20px;
     transition: all .25s ease-in-out;
     border-radius: 4px;
+    text-decoration: none;
 }
 
 @media (max-width:480px) {
