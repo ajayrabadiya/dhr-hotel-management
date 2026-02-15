@@ -395,8 +395,9 @@ if (!empty($hotels)) {
                 centerLat = centerLat / count;
                 centerLng = centerLng / count;
             } else {
-                // No hotels: ensure bounds include South Africa so map displays
-                bounds.extend(new google.maps.LatLng(southAfricaCenter.lat, southAfricaCenter.lng));
+                // No hotels: bounds = South Africa extent so zoom is dynamic for country view
+                bounds.extend(new google.maps.LatLng(-22.0, 16.0));
+                bounds.extend(new google.maps.LatLng(-35.0, 33.0));
             }
 
             var deviceType = getDeviceType();
@@ -405,11 +406,11 @@ if (!empty($hotels)) {
             // Zoom limits: allow zoom in/out without breaking initial view
             var minZoom = 4;
             var maxZoom = 18;
-            // Default zoom when no hotels (South Africa country view)
-            var defaultZoom = 5;
+            // Initial zoom only until fitBounds runs (zoom set dynamically from view)
+            var initialZoom = 8;
 
             map = new google.maps.Map(document.getElementById('hotel-map'), {
-                zoom: count > 0 ? 7 : defaultZoom,
+                zoom: initialZoom,
                 center: count > 0 ? { lat: centerLat, lng: centerLng } : southAfricaCenter,
                 minZoom: minZoom,
                 maxZoom: maxZoom,
@@ -432,13 +433,31 @@ if (!empty($hotels)) {
                 ]
             });
 
-            // When we have hotels, fit map to show all markers with padding (proper view)
-            if (count > 0) {
-                map.fitBounds(bounds, fitPadding);
+            // 10% more zoom in: shrink bounds to 90% of span so view is slightly zoomed in
+            var zoomInPercent = 0.10;
+            var boundsScale = 1 - zoomInPercent;
+
+            function fitBoundsWithZoomIn(boundsToFit, padding) {
+                map.fitBounds(boundsToFit, padding);
+                var currentBounds = map.getBounds();
+                if (!currentBounds) return;
+                var ne = currentBounds.getNorthEast();
+                var sw = currentBounds.getSouthWest();
+                var cLat = (ne.lat() + sw.lat()) / 2;
+                var cLng = (ne.lng() + sw.lng()) / 2;
+                var latSpan = (ne.lat() - sw.lat()) * boundsScale;
+                var lngSpan = (ne.lng() - sw.lng()) * boundsScale;
+                var tighter = new google.maps.LatLngBounds(
+                    new google.maps.LatLng(cLat - latSpan / 2, cLng - lngSpan / 2),
+                    new google.maps.LatLng(cLat + latSpan / 2, cLng + lngSpan / 2)
+                );
+                map.fitBounds(tighter, padding);
             }
+
+            fitBoundsWithZoomIn(bounds, fitPadding);
             fitMapBounds = function () {
-                if (map && count > 0 && bounds && !bounds.isEmpty()) {
-                    map.fitBounds(bounds, fitPadding);
+                if (map && bounds && !bounds.isEmpty()) {
+                    fitBoundsWithZoomIn(bounds, fitPadding);
                 }
             };
 
