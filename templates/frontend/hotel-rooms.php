@@ -194,7 +194,7 @@ function format_room_description($room)
 <?php $plugin_url = plugin_dir_url(dirname(__FILE__, 2)); ?>
 
 <!-- Package Experience Design -->
-<div class="bys-packages">
+<div class="bys-packages" style="display: none;">
 
     <!-- First Package Design -->
     <div class="bys-packages-grid first-packages__design">
