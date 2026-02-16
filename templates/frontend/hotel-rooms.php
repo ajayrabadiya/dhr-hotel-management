@@ -694,6 +694,44 @@ function format_room_description($room)
                 </div>
             </div>
         </div>
+        <div class="bys-hotel-room-card">
+            <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>
+            <div class="bys-hotel__content">
+                <div class="card__top-badge">
+                    <p class="package-overlay__tag">
+                        From R2,500/Night
+                    </p>
+                </div>
+                <div class="bys-hotel-overlay__content">
+                    <div class="bys-hotel-overlay__content__inner">
+                        <h3 class="bys-hotel-overlay__main-title">Classic Room</h3>
+                    </div>
+                    <div class="bys-hotel-btn-grp">
+                        <a href="#" class="bys-hotel-btn button-light">Book Now</a>
+                        <a href="#" class="bys-hotel-btn button-dark">View Room</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bys-hotel-room-card">
+            <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>
+            <div class="bys-hotel__content">
+                <div class="card__top-badge">
+                    <p class="package-overlay__tag">
+                        From R2,500/Night
+                    </p>
+                </div>
+                <div class="bys-hotel-overlay__content">
+                    <div class="bys-hotel-overlay__content__inner">
+                        <h3 class="bys-hotel-overlay__main-title">Classic Room</h3>
+                    </div>
+                    <div class="bys-hotel-btn-grp">
+                        <a href="#" class="bys-hotel-btn button-light">Book Now</a>
+                        <a href="#" class="bys-hotel-btn button-dark">View Room</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
