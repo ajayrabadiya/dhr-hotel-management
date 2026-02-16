@@ -79,10 +79,8 @@ $is_active = $is_edit ? (int) $category->is_active : 1;
 </div>
 <script>
 jQuery(function($) {
-    var frame;
     function openMedia(targetId, previewId) {
-        if (frame) frame.destroy();
-        frame = wp.media({
+        var frame = wp.media({
             title: '<?php echo esc_js(__('Select or Upload', 'dhr-hotel-management')); ?>',
             library: { type: 'image' },
             multiple: false,
@@ -91,9 +89,9 @@ jQuery(function($) {
         frame.on('select', function() {
             var att = frame.state().get('selection').first().toJSON();
             $('#' + targetId).val(att.url);
-            var $preview = $('#' + previewId);
-            $preview.html('<img src="' + att.url + '" alt="" style="max-width: 200px; max-height: 150px; border: 1px solid #ccc;">');
-            $('.dhr-clear-image, .dhr-clear-icon').removeClass('hidden');
+            var imgStyle = (previewId === 'icon_preview') ? 'max-width: 64px; max-height: 64px; border: 1px solid #ccc;' : 'max-width: 200px; max-height: 150px; border: 1px solid #ccc;';
+            $('#' + previewId).html('<img src="' + att.url + '" alt="" style="' + imgStyle + '">');
+            $('button[data-preview="' + previewId + '"]').removeClass('hidden');
         });
         frame.open();
     }
