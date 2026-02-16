@@ -2446,4 +2446,167 @@ div:focus-visible {
 }
 
 /* ________________________________________________________ */
+
+/* Hotel Room Second */
+
+.bys-hotel-rooms-second .bys-hotel-room-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 1140px;
+    margin: 0 auto;
+}
+
+.bys-hotel-rooms-second .bys-hotel-room-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: transparent;
+    box-shadow: none;
+    transition: all .25s ease-in-out;
+    height: 450px;
+    width: 100%;
+    padding: 40px;
+}
+
+.bys-hotel-rooms-second .bys-hotel-room-card__frature-img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    transition: transform 0.8s;
+    z-index: -1;
+}
+
+.bys-hotel-rooms-second .bys-hotel-room-card:hover .bys-hotel-room-card__frature-img {
+    transform: scale(1.1);
+}
+
+.bys-hotel-rooms-second .bys-hotel__content {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    position: relative;
+}
+
+.bys-hotel-rooms-second .bys-hotel__content::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid #B99D75;
+    border-radius: 2px;
+    transform: scale(1);
+    transform-origin: center;
+    opacity: 0;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    pointer-events: none;
+}
+
+/* Option 2: If .bys-hotel__content is anywhere inside .bys-hotel-room-card */
+.bys-hotel-rooms-second .bys-hotel-room-card:hover .bys-hotel__content::before {
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+.bys-hotel-overlay__content .bys-hotel-overlay__content__inner h3 {
+    font-size: 27px;
+    font-weight: 500;
+    color: #fff;
+    transform: translateY(45px);
+    transition: all 0.4s ease;
+    line-height: 0;
+}
+
+/* Hover effect */
+.bys-hotel-rooms-second .bys-hotel-room-card:hover 
+.bys-hotel-overlay__content__inner h3 {
+    transform: translateY(-5px);
+    opacity: 1;
+}
+
+.bys-hotel-rooms-second .bys-hotel-room-card .bys-hotel__content .bys-hotel-btn-grp {
+    opacity: 0;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.bys-hotel-rooms-second .bys-hotel-room-card:hover .bys-hotel__content .bys-hotel-btn-grp {
+    opacity: 1;
+}
+
+.bys-hotel-rooms-second .bys-hotel-room-card:hover .bys-hotel__content .bys-hotel-btn-grp {
+    height: auto;
+}
+
+.bys-hotel-rooms-second .card__top-badge {
+    padding: 4px 10px;
+    background-color: #FFFFFF;
+    width: fit-content;
+}
+
+.bys-hotel-rooms-second .card__top-badge p {
+    margin: 0;
+    font-size: 12px;
+}
+
+.bys-hotel-btn-grp {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.bys-hotel-btn {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 400;
+    padding: 6px 20px;
+    line-height: 24px;
+    color: #fff;
+    text-decoration: unset;
+    border-radius: 4px;
+    transition: all .25s ease-in-out;
+    width: 100%;
+    text-align: center;
+}
+
+.bys-hotel-btn-grp .button-dark {
+    background-color: #062943 !important;
+    color: #ffffff;
+}
+
+.bys-hotel-btn-grp .button-light {
+    background-color: #D3AA74 !important;
+    color: #ffffff;
+}
+
+.bys-hotel-btn-grp .button-light:hover {
+    color: #062943;
+}
+
+.bys-hotel-btn-grp .button-dark:hover {
+    color: #D3AA74;
+}
+
+@media (max-width: 767px) {
+    .bys-hotel-rooms-second .bys-hotel-room-card {
+        padding: 20px;
+    }
+    .bys-hotel-rooms-second .bys-hotel-room-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+@media (max-width: 1024px) {
+    .bys-hotel-rooms-second .bys-hotel-room-card {
+        padding: 30px;
+    }
+    .bys-hotel-rooms-second .bys-hotel-room-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
