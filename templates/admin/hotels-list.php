@@ -65,6 +65,8 @@ $messages = array(
                 <th><?php _e('Name', 'dhr-hotel-management'); ?></th>
                 <th><?php _e('City', 'dhr-hotel-management'); ?></th>
                 <th><?php _e('Province', 'dhr-hotel-management'); ?></th>
+                <th><?php _e('Latitude', 'dhr-hotel-management'); ?></th>
+                <th><?php _e('Longitude', 'dhr-hotel-management'); ?></th>
                 <th><?php _e('Phone', 'dhr-hotel-management'); ?></th>
                 <th><?php _e('Status', 'dhr-hotel-management'); ?></th>
                 <th><?php _e('Actions', 'dhr-hotel-management'); ?></th>
@@ -73,7 +75,7 @@ $messages = array(
         <tbody>
             <?php if (empty($hotels)): ?>
                 <tr>
-                    <td colspan="9" style="text-align: center;">
+                    <td colspan="11" style="text-align: center;">
                         <?php _e('No hotels found. Add your first hotel!', 'dhr-hotel-management'); ?>
                     </td>
                 </tr>
@@ -94,6 +96,8 @@ $messages = array(
                         <td><strong><?php echo esc_html($hotel->name); ?></strong></td>
                         <td><?php echo esc_html($hotel->city); ?></td>
                         <td><?php echo esc_html($hotel->province); ?></td>
+                        <td><?php echo isset($hotel->latitude) ? esc_html($hotel->latitude) : '&ndash;'; ?></td>
+                        <td><?php echo isset($hotel->longitude) ? esc_html($hotel->longitude) : '&ndash;'; ?></td>
                         <td><?php echo esc_html($hotel->phone); ?></td>
                         <td>
                             <span class="status-badge status-<?php echo esc_attr($hotel->status); ?>">
@@ -101,6 +105,11 @@ $messages = array(
                             </span>
                         </td>
                         <td>
+                            <?php if ( !empty($hotel->hotel_code) ) : ?>
+                            <button type="button" class="button button-small dhr-row-sync-btn" data-hotel-code="<?php echo esc_attr($hotel->hotel_code); ?>" title="<?php esc_attr_e('Re-sync from SHR', 'dhr-hotel-management'); ?>">
+                                <span class="dashicons dashicons-update" style="vertical-align: middle;"></span> <?php _e('Sync', 'dhr-hotel-management'); ?>
+                            </button>
+                            <?php endif; ?>
                             <a href="<?php echo admin_url('admin.php?page=dhr-hotel-management&action=edit&hotel_id=' . $hotel->id); ?>" 
                                class="button button-small">
                                 <?php _e('Edit', 'dhr-hotel-management'); ?>
