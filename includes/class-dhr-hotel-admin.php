@@ -492,6 +492,18 @@ class DHR_Hotel_Admin {
                 $valid_to .= ':00';
             }
         }
+        // When form omits dates (add/edit form no longer has valid_from/valid_to), use defaults or keep existing
+        if (empty($valid_from) || empty($valid_to)) {
+            if ($id > 0) {
+                $existing = DHR_Hotel_Database::get_package($id);
+                if ($existing) {
+                    if (empty($valid_from)) $valid_from = $existing->valid_from;
+                    if (empty($valid_to))   $valid_to   = $existing->valid_to;
+                }
+            }
+            if (empty($valid_from)) $valid_from = current_time('mysql');
+            if (empty($valid_to))   $valid_to   = date('Y-m-d H:i:s', strtotime('+10 years'));
+        }
         $data = array(
             'package_code' => isset($_POST['package_code']) ? sanitize_text_field($_POST['package_code']) : '',
             'hotel_code'   => isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '',
