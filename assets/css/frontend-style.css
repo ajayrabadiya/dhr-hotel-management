@@ -1867,10 +1867,12 @@ div:focus-visible {
         display: none;
     }
 }
+
 @media (max-width: 1023px) {
     .second-packages__design .desktop-view-package {
         display: none;
     }
+
     .mobile-view-package-button {
         margin-top: 20px;
     }
@@ -2301,9 +2303,11 @@ div:focus-visible {
     .bird-packages__content__title__tag {
         cursor: pointer;
     }
+
     .bird-packages__content__description {
         padding-bottom: 20px;
     }
+
     .bird-packages-grid__card__info {
         padding-bottom: 0 !important;
     }
@@ -2315,15 +2319,15 @@ div:focus-visible {
 }
 
 .bird-packages__content__title__tag svg {
-            transition: transform 0.3s ease;
-            flex-shrink: 0;
-            margin-left: 16px;
-            transform: rotate(-180deg);
-        }
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+    margin-left: 16px;
+    transform: rotate(-180deg);
+}
 
-        .bird-packages__content__title__tag.active svg {
-            transform: rotate(0deg);
-        }
+.bird-packages__content__title__tag.active svg {
+    transform: rotate(0deg);
+}
 
 .bird-packages__content__title {
     font-size: 40px;
@@ -2339,7 +2343,7 @@ div:focus-visible {
     color: #676B6D;
     max-width: 1112px;
     margin: 0 auto;
-    
+
 }
 
 .bird-packages__tags {
@@ -2448,6 +2452,10 @@ div:focus-visible {
 /* ________________________________________________________ */
 
 /* Hotel Room Second */
+.bys-hotel-rooms-second {
+    background-color: #F5F8F9;
+    padding: 0 20px;
+}
 
 .bys-hotel-rooms-second .bys-hotel-room-grid {
     display: grid;
@@ -2461,7 +2469,7 @@ div:focus-visible {
     position: relative;
     display: flex;
     flex-direction: column;
-    border-radius: 4px;
+    border-radius: 6px;
     overflow: hidden;
     background-color: transparent;
     box-shadow: none;
@@ -2523,12 +2531,12 @@ div:focus-visible {
     transform: translateY(45px);
     transition: all 0.4s ease;
     line-height: 0;
+    font-family: "Playfair", Sans-serif;
 }
 
 /* Hover effect */
-.bys-hotel-rooms-second .bys-hotel-room-card:hover 
-.bys-hotel-overlay__content__inner h3 {
-    transform: translateY(-5px);
+.bys-hotel-rooms-second .bys-hotel-room-card:hover .bys-hotel-overlay__content__inner h3 {
+    transform: translateY(-15px);
     opacity: 1;
 }
 
@@ -2564,9 +2572,9 @@ div:focus-visible {
 
 .bys-hotel-btn {
     display: inline-block;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 400;
-    padding: 6px 20px;
+    padding: 8px 20px;
     line-height: 24px;
     color: #fff;
     text-decoration: unset;
@@ -2594,19 +2602,16 @@ div:focus-visible {
     color: #D3AA74;
 }
 
-@media (max-width: 767px) {
-    .bys-hotel-rooms-second .bys-hotel-room-card {
-        padding: 20px;
-    }
-    .bys-hotel-rooms-second .bys-hotel-room-grid {
-        grid-template-columns: repeat(1, 1fr);
-    }
-}
 @media (max-width: 1024px) {
-    .bys-hotel-rooms-second .bys-hotel-room-card {
-        padding: 30px;
-    }
+
     .bys-hotel-rooms-second .bys-hotel-room-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+
+    .bys-hotel-rooms-second .bys-hotel-room-grid {
+        grid-template-columns: repeat(1, 1fr);
     }
 }
