@@ -27,10 +27,15 @@ $title = $is_edit ? __('Edit Hotel', 'dhr-hotel-management') : __('Add New Hotel
                 <td>
                     <input type="text" id="hotel_code" name="hotel_code" class="regular-text"
                            value="<?php echo $is_edit ? esc_attr($hotel->hotel_code) : ''; ?>"
-                           placeholder="<?php esc_attr_e('e.g. DRE013', 'dhr-hotel-management'); ?>">
+                           placeholder="<?php esc_attr_e('e.g. DRE013', 'dhr-hotel-management'); ?>"
+                           <?php echo $is_edit ? ' readonly' : ''; ?>>
+                    <?php if ($is_edit): ?>
+                    <p class="description"><?php _e('Hotel code cannot be changed when editing. Re-sync from the hotel list to update data from SHR.', 'dhr-hotel-management'); ?></p>
+                    <?php else: ?>
                     <p class="description">
                         <?php _e('Optional code from the external CRS (e.g. SHR). This can be used for API-based sync.', 'dhr-hotel-management'); ?>
                     </p>
+                    <?php endif; ?>
                 </td>
             </tr>
             <tr>

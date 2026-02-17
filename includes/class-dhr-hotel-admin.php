@@ -108,9 +108,10 @@ class DHR_Hotel_Admin {
             true
         );
         
-        // Localize script for AJAX
+        // Localize script for AJAX and redirect URLs (for WordPress-style notices)
         wp_localize_script('dhr-hotel-admin-script', 'dhrHotelAdmin', array(
-            'ajaxurl' => admin_url('admin-ajax.php'),
+            'ajaxurl'   => admin_url('admin-ajax.php'),
+            'listUrl'   => admin_url('admin.php?page=dhr-hotel-management'),
             'shrSyncNonce' => wp_create_nonce('dhr_sync_shr_hotel_ajax_nonce')
         ));
         
@@ -491,6 +492,18 @@ class DHR_Hotel_Admin {
                 $valid_to .= ':00';
             }
         }
+        // When form omits dates (add/edit form no longer has valid_from/valid_to), use defaults or keep existing
+        if (empty($valid_from) || empty($valid_to)) {
+            if ($id > 0) {
+                $existing = DHR_Hotel_Database::get_package($id);
+                if ($existing) {
+                    if (empty($valid_from)) $valid_from = $existing->valid_from;
+                    if (empty($valid_to))   $valid_to   = $existing->valid_to;
+                }
+            }
+            if (empty($valid_from)) $valid_from = current_time('mysql');
+            if (empty($valid_to))   $valid_to   = date('Y-m-d H:i:s', strtotime('+10 years'));
+        }
         $data = array(
             'package_code' => isset($_POST['package_code']) ? sanitize_text_field($_POST['package_code']) : '',
             'hotel_code'   => isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '',
@@ -524,7 +537,8 @@ class DHR_Hotel_Admin {
     }
     
     /**
-     * Sync a hotel from SHR WS Shop API (non-AJAX, from list form)
+     * Sync a hotel from SHR WS Shop API (non-AJAX, from list form).
+     * Only adds new hotels; if hotel code already exists, redirects with error.
      */
     public function sync_shr_hotel() {
         if (!current_user_can('manage_options')) {
@@ -537,6 +551,13 @@ class DHR_Hotel_Admin {
 
         if (empty($hotel_code)) {
             wp_redirect(admin_url('admin.php?page=dhr-hotel-management&message=error'));
+            exit;
+        }
+
+        $existing = DHR_Hotel_Database::get_hotel_by_code($hotel_code);
+        if ($existing) {
+            $error_param = urlencode(__('A hotel with this code already exists. Use the Sync button on that row to update from SHR.', 'dhr-hotel-management'));
+            wp_redirect(admin_url('admin.php?page=dhr-hotel-management&message=error&error=' . $error_param));
             exit;
         }
 
@@ -553,7 +574,9 @@ class DHR_Hotel_Admin {
     }
 
     /**
-     * Sync a hotel from SHR WS Shop API via AJAX (can be used from forms)
+     * Sync a hotel from SHR WS Shop API via AJAX.
+     * When update_existing=1 (row sync): re-sync that hotel from SHR.
+     * Otherwise (top form "Sync & Add"): only allow if hotel code does not already exist.
      */
     public function sync_shr_hotel_ajax() {
         if (!current_user_can('manage_options')) {
@@ -563,10 +586,17 @@ class DHR_Hotel_Admin {
 
         check_ajax_referer('dhr_sync_shr_hotel_ajax_nonce', 'nonce');
 
-        $hotel_code = isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '';
+        $hotel_code     = isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '';
+        $update_existing = isset($_POST['update_existing']) && $_POST['update_existing'] === '1';
 
         if (empty($hotel_code)) {
             wp_send_json_error(array('message' => __('Hotel code is required.', 'dhr-hotel-management')));
+            return;
+        }
+
+        $existing = DHR_Hotel_Database::get_hotel_by_code($hotel_code);
+        if (!$update_existing && $existing) {
+            wp_send_json_error(array('message' => __('A hotel with this code already exists. Use the Sync button on that row to update from SHR.', 'dhr-hotel-management')));
             return;
         }
 

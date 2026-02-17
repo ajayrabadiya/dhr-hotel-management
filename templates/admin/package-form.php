@@ -10,8 +10,6 @@ $page_title = $is_edit ? __('Edit Package', 'dhr-hotel-management') : __('Add Ne
 $package_code = $is_edit ? $package->package_code : '';
 $hotel_code   = $is_edit ? $package->hotel_code : '';
 $category_id  = $is_edit ? (int) $package->category_id : 0;
-$valid_from   = $is_edit ? $package->valid_from : '';
-$valid_to     = $is_edit ? $package->valid_to : '';
 $is_active    = $is_edit ? (int) $package->is_active : 1;
 $hotels = DHR_Hotel_Database::get_all_hotels('active');
 $categories = DHR_Hotel_Database::get_active_categories();
@@ -67,20 +65,6 @@ if (empty($categories)) {
                     <?php if (empty($categories)): ?>
                         <p class="description"><?php _e('No categories found. Add categories first from Category List.', 'dhr-hotel-management'); ?></p>
                     <?php endif; ?>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="valid_from"><?php _e('Valid From', 'dhr-hotel-management'); ?> <span class="required">*</span></label></th>
-                <td>
-                    <input type="datetime-local" id="valid_from" name="valid_from" value="<?php echo esc_attr($valid_from ? date('Y-m-d\TH:i', strtotime($valid_from)) : ''); ?>" required>
-                    <p class="description"><?php _e('Package is available from this date/time.', 'dhr-hotel-management'); ?></p>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="valid_to"><?php _e('Valid To', 'dhr-hotel-management'); ?> <span class="required">*</span></label></th>
-                <td>
-                    <input type="datetime-local" id="valid_to" name="valid_to" value="<?php echo esc_attr($valid_to ? date('Y-m-d\TH:i', strtotime($valid_to)) : ''); ?>" required>
-                    <p class="description"><?php _e('Package is available until this date/time.', 'dhr-hotel-management'); ?></p>
                 </td>
             </tr>
             <tr>

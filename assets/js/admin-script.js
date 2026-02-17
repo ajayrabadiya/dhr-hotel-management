@@ -74,7 +74,7 @@
             }
         });
 
-        // SHR hotel sync from list page (AJAX helper)
+        // SHR hotel sync from list page (AJAX) - add new hotel only; server checks if code exists
         $('#dhr-shr-sync-hotel-list-form').on('submit', function(e) {
             var $form = $(this);
             var $btn  = $('#dhr-shr-sync-hotel-list-btn');
@@ -87,12 +87,10 @@
             }
 
             if (typeof dhrHotelAdmin === 'undefined') {
-                // Fallback to normal form submit if AJAX config not present
                 return true;
             }
 
             e.preventDefault();
-
             $btn.prop('disabled', true);
 
             $.post(
@@ -100,18 +98,73 @@
                 {
                     action: 'dhr_sync_shr_hotel_ajax',
                     nonce: dhrHotelAdmin.shrSyncNonce || dhrHotelAdmin.nonce,
-                    hotel_code: code
+                    hotel_code: code,
+                    update_existing: '0'
                 }
             ).done(function(response) {
                 if (response && response.success) {
-                    alert(response.data.message);
-                    window.location.reload();
+                    if (dhrHotelAdmin.listUrl) {
+                        window.location.href = dhrHotelAdmin.listUrl + '&message=added';
+                    } else {
+                        window.location.reload();
+                    }
                 } else {
                     var msg = response && response.data && response.data.message ? response.data.message : 'Unknown error.';
-                    alert('Sync failed: ' + msg);
+                    if (dhrHotelAdmin.listUrl) {
+                        window.location.href = dhrHotelAdmin.listUrl + '&message=error&error=' + encodeURIComponent(msg);
+                    } else {
+                        alert('Sync failed: ' + msg);
+                    }
                 }
             }).fail(function() {
-                alert('An error occurred while syncing the hotel. Please try again.');
+                var msg = 'An error occurred while syncing the hotel. Please try again.';
+                if (dhrHotelAdmin.listUrl) {
+                    window.location.href = dhrHotelAdmin.listUrl + '&message=error&error=' + encodeURIComponent(msg);
+                } else {
+                    alert(msg);
+                }
+            }).always(function() {
+                $btn.prop('disabled', false);
+            });
+        });
+
+        // Per-row Sync button: re-sync existing hotel from SHR
+        $(document).on('click', '.dhr-row-sync-btn', function() {
+            var $btn = $(this);
+            var code = $btn.data('hotel-code');
+            if (!code || typeof dhrHotelAdmin === 'undefined') return;
+
+            $btn.prop('disabled', true);
+            $.post(
+                dhrHotelAdmin.ajaxurl,
+                {
+                    action: 'dhr_sync_shr_hotel_ajax',
+                    nonce: dhrHotelAdmin.shrSyncNonce || dhrHotelAdmin.nonce,
+                    hotel_code: code,
+                    update_existing: '1'
+                }
+            ).done(function(response) {
+                if (response && response.success) {
+                    if (dhrHotelAdmin.listUrl) {
+                        window.location.href = dhrHotelAdmin.listUrl + '&message=updated';
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    var msg = response && response.data && response.data.message ? response.data.message : 'Unknown error.';
+                    if (dhrHotelAdmin.listUrl) {
+                        window.location.href = dhrHotelAdmin.listUrl + '&message=error&error=' + encodeURIComponent(msg);
+                    } else {
+                        alert('Sync failed: ' + msg);
+                    }
+                }
+            }).fail(function() {
+                var msg = 'An error occurred while syncing the hotel. Please try again.';
+                if (dhrHotelAdmin.listUrl) {
+                    window.location.href = dhrHotelAdmin.listUrl + '&message=error&error=' + encodeURIComponent(msg);
+                } else {
+                    alert(msg);
+                }
             }).always(function() {
                 $btn.prop('disabled', false);
             });
