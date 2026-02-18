@@ -311,37 +311,21 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
 
             var bounds = new google.maps.LatLngBounds();
             var deviceType = getDeviceType();
-            var mapZoom = (deviceType === 'mobile') ? 4.8 : 6.1;
-            var adjustedCenterLat, adjustedCenterLng;
+            // South Africa default center and zoom (map set to South Africa)
+            var southAfricaCenter = { lat: -26.2, lng: 28.5 };
+            var southAfricaZoom = 5;
 
             if (validHotels.length > 0) {
-                var centerLat = 0;
-                var centerLng = 0;
                 validHotels.forEach(function (hotel) {
                     var lat = parseFloat(hotel.latitude);
                     var lng = parseFloat(hotel.longitude);
-                    centerLat += lat;
-                    centerLng += lng;
                     bounds.extend(new google.maps.LatLng(lat, lng));
                 });
-                centerLat = centerLat / validHotels.length;
-                centerLng = centerLng / validHotels.length;
-                var ne = bounds.getNorthEast();
-                var sw = bounds.getSouthWest();
-                var latSpan = ne.lat() - sw.lat();
-                var lngSpan = ne.lng() - sw.lng();
-                var latMultiplier = (deviceType === 'mobile') ? 12 : (deviceType === 'tablet') ? 4 : 5.2;
-                var lngMultiplier = (deviceType === 'mobile') ? 1 : (deviceType === 'tablet') ? 0 : -0.1;
-                adjustedCenterLat = centerLat + (latSpan * latMultiplier);
-                adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
-            } else {
-                adjustedCenterLat = -33.9249;
-                adjustedCenterLng = 18.4241;
             }
 
             map = new google.maps.Map(document.getElementById('dining-venue-map'), {
-                zoom: mapZoom,
-                center: { lat: adjustedCenterLat, lng: adjustedCenterLng },
+                zoom: southAfricaZoom,
+                center: southAfricaCenter,
                 minZoom: 3,
                 maxZoom: 10,
                 styles: [
@@ -356,6 +340,34 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
                         stylers: [{ color: '#b1c2a8' }]
                     }
                 ]
+            });
+
+            // After map loads, fit to markers with zoom-in and shift to right-bottom (same as partner-portfolio map)
+            google.maps.event.addListenerOnce(map, 'idle', function () {
+                if (validHotels.length > 0 && !bounds.isEmpty()) {
+                    var padding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
+                    // Zoom in: use expand factor < 1 so map is slightly zoomed in
+                    var ne = bounds.getNorthEast();
+                    var sw = bounds.getSouthWest();
+                    var center = bounds.getCenter();
+                    var latSpan = ne.lat() - sw.lat();
+                    var lngSpan = ne.lng() - sw.lng();
+                    var expandFactor = 0.98;
+                    var expandedBounds = new google.maps.LatLngBounds(
+                        new google.maps.LatLng(center.lat() - (latSpan * expandFactor) / 2, center.lng() - (lngSpan * expandFactor) / 2),
+                        new google.maps.LatLng(center.lat() + (latSpan * expandFactor) / 2, center.lng() + (lngSpan * expandFactor) / 2)
+                    );
+                    map.fitBounds(expandedBounds, padding);
+                    // Pan so content sits toward right-bottom (after fitBounds animation)
+                    setTimeout(function () {
+                        var mapDiv = document.getElementById('dining-venue-map');
+                        if (mapDiv) {
+                            var w = mapDiv.offsetWidth;
+                            var h = mapDiv.offsetHeight;
+                            map.panBy(-Math.round(w * 0.14), -Math.round(h * 0.00));
+                        }
+                    }, 400);
+                }
             });
 
             // Create markers for each valid hotel

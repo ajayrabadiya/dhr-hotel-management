@@ -238,9 +238,11 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
                 if (typeof dhrPropertyPortfolioMapHotels !== 'undefined' && dhrPropertyPortfolioMapHotels.length) hotels = dhrPropertyPortfolioMapHotels;
                 else if (dhrHotelsData && dhrHotelsData.hotels) hotels = dhrHotelsData.hotels;
             }
-            if (!hotels || hotels.length === 0) {
-                console.warn('No hotels data available');
-                return;
+            if (!hotels) {
+                hotels = [];
+            }
+            if (hotels.length === 0) {
+                console.warn('No hotels data available; showing South Africa map');
             }
 
             // Filter to hotels with valid latitude/longitude so one bad entry does not break the map
@@ -261,38 +263,22 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
 
             var bounds = new google.maps.LatLngBounds();
             var deviceType = getDeviceType();
-            var mapZoom = (deviceType === 'mobile') ? 5.7 : 6.1;
-            var adjustedCenterLat, adjustedCenterLng;
+            // South Africa default center and zoom (map set to South Africa)
+            var southAfricaCenter = { lat: -26.2, lng: 28.5 };
+            var southAfricaZoom = 5;
 
             if (validHotels.length > 0) {
-                var centerLat = 0;
-                var centerLng = 0;
                 validHotels.forEach(function (hotel) {
                     var lat = parseFloat(hotel.latitude);
                     var lng = parseFloat(hotel.longitude);
-                    centerLat += lat;
-                    centerLng += lng;
                     bounds.extend(new google.maps.LatLng(lat, lng));
                 });
-                centerLat = centerLat / validHotels.length;
-                centerLng = centerLng / validHotels.length;
-                var ne = bounds.getNorthEast();
-                var sw = bounds.getSouthWest();
-                var latSpan = ne.lat() - sw.lat();
-                var lngSpan = ne.lng() - sw.lng();
-                var latMultiplier = (deviceType === 'mobile') ? 8 : 5.2;
-                var lngMultiplier = (deviceType === 'mobile') ? 0.5 : (deviceType === 'tablet') ? 2 : 1;
-                adjustedCenterLat = centerLat + (latSpan * latMultiplier);
-                adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
-            } else {
-                adjustedCenterLat = -33.9249;
-                adjustedCenterLng = 18.4241;
             }
 
             // Initialize map
             map = new google.maps.Map(document.getElementById('property-map'), {
-                zoom: mapZoom,
-                center: { lat: adjustedCenterLat, lng: adjustedCenterLng },
+                zoom: southAfricaZoom,
+                center: southAfricaCenter,
                 minZoom: 3,
                 maxZoom: 10,
                 styles: [
@@ -312,6 +298,33 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
                         stylers: [{ color: '#A0B6CB' }]
                     },
                 ]
+            });
+
+            // After map loads, fit to markers with 2% zoom-in and shift to left-bottom (same zoom as other maps, content starts left and bottom)
+            google.maps.event.addListenerOnce(map, 'idle', function () {
+                if (validHotels.length > 0 && !bounds.isEmpty()) {
+                    var padding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
+                    var ne = bounds.getNorthEast();
+                    var sw = bounds.getSouthWest();
+                    var center = bounds.getCenter();
+                    var latSpan = ne.lat() - sw.lat();
+                    var lngSpan = ne.lng() - sw.lng();
+                    var expandFactor = 0.98;
+                    var expandedBounds = new google.maps.LatLngBounds(
+                        new google.maps.LatLng(center.lat() - (latSpan * expandFactor) / 2, center.lng() - (lngSpan * expandFactor) / 2),
+                        new google.maps.LatLng(center.lat() + (latSpan * expandFactor) / 2, center.lng() + (lngSpan * expandFactor) / 2)
+                    );
+                    map.fitBounds(expandedBounds, padding);
+                    setTimeout(function () {
+                        var mapDiv = document.getElementById('property-map');
+                        if (mapDiv) {
+                            var w = mapDiv.offsetWidth;
+                            var h = mapDiv.offsetHeight;
+                            // Pan so content sits toward left and bottom (opposite of right-bottom: pan right + up)
+                            map.panBy(Math.round(w * 0.12), -Math.round(h * 0.12));
+                        }
+                    }, 400);
+                }
             });
 
             // Create markers for each valid hotel
@@ -569,14 +582,14 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
         }
 
         function escapeHtml(text) {
-            var map = {
+            var entityMap = {
                 '&': '&amp;',
                 '<': '&lt;',
                 '>': '&gt;',
                 '"': '&quot;',
                 "'": '&#039;'
             };
-            return (text || '').replace(/[&<>"']/g, function (m) { return map[m]; });
+            return (text || '').replace(/[&<>"']/g, function (m) { return entityMap[m]; });
         }
 
 

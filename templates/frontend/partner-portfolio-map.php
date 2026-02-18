@@ -287,7 +287,7 @@ var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
             });
 
             var southAfricaCenter = { lat: -36.0, lng: 24.0 };
-            var southAfricaZoom = 5;
+            var southAfricaZoom = 4.5;
             var bounds = new google.maps.LatLngBounds();
             var deviceType = getDeviceType();
 
@@ -319,11 +319,31 @@ var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
                 ]
             });
 
-            // After map loads, fit to markers if we have valid hotels
+            // After map loads, fit to markers with 10% zoom out and shift to right-bottom
             google.maps.event.addListenerOnce(map, 'idle', function () {
                 if (validHotels.length > 0 && !bounds.isEmpty()) {
                     var padding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
-                    map.fitBounds(bounds, padding);
+                    // Zoom out 10%: expand bounds by 10% then fit (avoids setZoom timing issues)
+                    var ne = bounds.getNorthEast();
+                    var sw = bounds.getSouthWest();
+                    var center = bounds.getCenter();
+                    var latSpan = ne.lat() - sw.lat();
+                    var lngSpan = ne.lng() - sw.lng();
+                    var expandFactor = 1.07;
+                    var expandedBounds = new google.maps.LatLngBounds(
+                        new google.maps.LatLng(center.lat() - (latSpan * expandFactor) / 2, center.lng() - (lngSpan * expandFactor) / 2),
+                        new google.maps.LatLng(center.lat() + (latSpan * expandFactor) / 2, center.lng() + (lngSpan * expandFactor) / 2)
+                    );
+                    map.fitBounds(expandedBounds, padding);
+                    // Pan so content sits toward right-bottom (after fitBounds animation)
+                    setTimeout(function () {
+                        var mapDiv = document.getElementById('partner-portfolio-map');
+                        if (mapDiv) {
+                            var w = mapDiv.offsetWidth;
+                            var h = mapDiv.offsetHeight;
+                            map.panBy(-Math.round(w * 0.22), -Math.round(h * 0.22));
+                        }
+                    }, 400);
                 }
             });
 
