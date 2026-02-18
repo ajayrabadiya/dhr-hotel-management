@@ -286,40 +286,23 @@ var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
                 return isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180;
             });
 
+            var southAfricaCenter = { lat: -29.0, lng: 24.0 };
+            var southAfricaZoom = 5;
             var bounds = new google.maps.LatLngBounds();
             var deviceType = getDeviceType();
-            var mapZoom = (deviceType === 'mobile') ? 5 : 5.504;
-            var adjustedCenterLat, adjustedCenterLng;
 
             if (validHotels.length > 0) {
-                var centerLat = 0;
-                var centerLng = 0;
                 validHotels.forEach(function (hotel) {
                     var lat = parseFloat(hotel.latitude);
                     var lng = parseFloat(hotel.longitude);
-                    centerLat += lat;
-                    centerLng += lng;
                     bounds.extend(new google.maps.LatLng(lat, lng));
                 });
-                centerLat = centerLat / validHotels.length;
-                centerLng = centerLng / validHotels.length;
-                var ne = bounds.getNorthEast();
-                var sw = bounds.getSouthWest();
-                var latSpan = ne.lat() - sw.lat();
-                var lngSpan = ne.lng() - sw.lng();
-                var latMultiplier = (deviceType === 'mobile') ? 13 : (deviceType === 'tablet') ? 8 : 14;
-                var lngMultiplier = (deviceType === 'mobile') ? 1 : (deviceType === 'tablet') ? 0 : -1.2;
-                adjustedCenterLat = centerLat + (latSpan * latMultiplier);
-                adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
-            } else {
-                adjustedCenterLat = -29.0;
-                adjustedCenterLng = 24.0;
-                mapZoom = 5;
             }
 
+            // Start with South Africa by default; fit to markers after load
             map = new google.maps.Map(document.getElementById('partner-portfolio-map'), {
-                zoom: mapZoom,
-                center: { lat: adjustedCenterLat, lng: adjustedCenterLng },
+                zoom: southAfricaZoom,
+                center: southAfricaCenter,
                 minZoom: 2,
                 maxZoom: 10,
                 styles: [
@@ -334,6 +317,14 @@ var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
                         stylers: [{ color: '#E2EFF7' }]
                     }
                 ]
+            });
+
+            // After map loads, fit to markers if we have valid hotels
+            google.maps.event.addListenerOnce(map, 'idle', function () {
+                if (validHotels.length > 0 && !bounds.isEmpty()) {
+                    var padding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
+                    map.fitBounds(bounds, padding);
+                }
             });
 
             // Create markers for each valid hotel

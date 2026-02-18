@@ -433,9 +433,11 @@ if (!empty($hotels)) {
                 ]
             });
 
-            // 10% more zoom in: shrink bounds to 90% of span so view is slightly zoomed in
-            var zoomInPercent = 0.10;
-            var boundsScale = 1 - zoomInPercent;
+            // Zoom out by default: expand bounds so view is slightly zoomed out
+            var zoomOutPercent = 0.10;
+            var boundsScale = 1 + zoomOutPercent;
+
+            var panRightPercent = 0.40;
 
             function fitBoundsWithZoomIn(boundsToFit, padding) {
                 map.fitBounds(boundsToFit, padding);
@@ -447,11 +449,20 @@ if (!empty($hotels)) {
                 var cLng = (ne.lng() + sw.lng()) / 2;
                 var latSpan = (ne.lat() - sw.lat()) * boundsScale;
                 var lngSpan = (ne.lng() - sw.lng()) * boundsScale;
-                var tighter = new google.maps.LatLngBounds(
+                var wider = new google.maps.LatLngBounds(
                     new google.maps.LatLng(cLat - latSpan / 2, cLng - lngSpan / 2),
                     new google.maps.LatLng(cLat + latSpan / 2, cLng + lngSpan / 2)
                 );
-                map.fitBounds(tighter, padding);
+                map.fitBounds(wider, padding);
+                // Pan map 10% to the right (east) by lat/lng
+                var c = map.getCenter();
+                if (c) {
+                    var b = map.getBounds();
+                    if (b) {
+                        var lngSpanView = b.getNorthEast().lng() - b.getSouthWest().lng();
+                        map.panTo({ lat: c.lat(), lng: c.lng() + lngSpanView * panRightPercent });
+                    }
+                }
             }
 
             fitBoundsWithZoomIn(bounds, fitPadding);
