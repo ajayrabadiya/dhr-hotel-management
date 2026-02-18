@@ -286,7 +286,7 @@ var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
                 return isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180;
             });
 
-            var southAfricaCenter = { lat: -29.0, lng: 24.0 };
+            var southAfricaCenter = { lat: -36.0, lng: 24.0 };
             var southAfricaZoom = 5;
             var bounds = new google.maps.LatLngBounds();
             var deviceType = getDeviceType();
