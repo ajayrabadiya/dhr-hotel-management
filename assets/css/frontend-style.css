@@ -2253,9 +2253,23 @@ div:focus-visible {
     margin-bottom: 20px;
 }
 
+.bird-packages__content__title__tag .bird-packages__content__title {
+    font-family: inherit;
+    font-size: 40px;
+    font-weight: 300;
+    line-height: 110%;
+    color: #062943;
+    max-width: 580px;
+}
+
 @media (max-width: 1023px) {
     .bird-packages__content__label {
         margin-bottom: 10px;
+    }
+
+    .bird-packages__content__title__tag .bird-packages__content__title {
+        font-size: 30px;
+        line-height: 120%;
     }
 }
 
@@ -2368,7 +2382,9 @@ div:focus-visible {
     max-width: 580px;
 }
 
-.bird-packages__content__description {
+.bird-packages__content__description,
+.bird-packages__content__description>p {
+    font-size: 16px;
     font-weight: 400;
     line-height: 140%;
     color: #676B6D;
@@ -2566,7 +2582,7 @@ div:focus-visible {
     background-position: center center;
     background-repeat: no-repeat;
     transition: transform 0.8s;
-    z-index: -1;
+    /* z-index: -1; */
 }
 
 .bys-hotel-rooms-second .bys-hotel-room-card:hover .bys-hotel-room-card__frature-img {
