@@ -220,48 +220,52 @@ function dhr_format_room_price($amount) {
 <?php if ($layout === 'cards'): ?>
     <div class="bys-hotel-rooms-second">
         <div class="bys-hotel-room-design swiper hotel-rooms-swiper">
-            <?php foreach ($rooms as $room):
-                $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
-                $first_image = !empty($room_images) ? $room_images[0] : $plugin_url . 'assets/images/package/2.png';
-                $room_price = isset($room->from_price) ? (int) $room->from_price : 0;
-            ?>
-                <div class="bys-hotel-room-card">
-                    <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($first_image); ?>')"></div>
-                    <div class="bys-hotel__content">
-                        <div class="card__top-badge">
-                            <p class="package-overlay__tag">
-                                <?php echo esc_html(sprintf(__('From R%s/Night', 'dhr-hotel-management'), dhr_format_room_price($room_price))); ?>
-                            </p>
-                        </div>
-                        <div class="bys-hotel-overlay__content">
-                            <div class="bys-hotel-overlay__content__inner">
-                                <h3 class="bys-hotel-overlay__main-title"><?php echo esc_html($room->room_type_name); ?></h3>
+            <div class="swiper-wrapper">
+                <?php foreach ($rooms as $room):
+                    $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
+                    $first_image = !empty($room_images) ? $room_images[0] : $plugin_url . 'assets/images/package/2.png';
+                    $room_price = isset($room->from_price) ? (int) $room->from_price : 0;
+                ?>
+                <div class="swiper-slide">
+                    <div class="bys-hotel-room-card">
+                        <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($first_image); ?>')"></div>
+                        <div class="bys-hotel__content">
+                            <div class="card__top-badge">
+                                <p class="package-overlay__tag">
+                                    <?php echo esc_html(sprintf(__('From R%s/Night', 'dhr-hotel-management'), dhr_format_room_price($room_price))); ?>
+                                </p>
                             </div>
-                            <div class="bys-hotel-btn-grp">
-                                <a href="#" class="bys-hotel-btn button-light bys-book-now-link"
-                                    data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
-                                    data-hotel-code="<?php echo esc_attr($hotel_code); ?>"
-                                    data-channel-id="<?php echo esc_attr($channel_id); ?>"
-                                    data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
-                                    data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
-                                    data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>"
-                                    data-children="0"
-                                    data-rooms="1"><?php _e('Book Now', 'dhr-hotel-management'); ?></a>
-                                <a href="#" class="bys-hotel-btn button-dark"><?php _e('View Room', 'dhr-hotel-management'); ?></a>
+                            <div class="bys-hotel-overlay__content">
+                                <div class="bys-hotel-overlay__content__inner">
+                                    <h3 class="bys-hotel-overlay__main-title"><?php echo esc_html($room->room_type_name); ?></h3>
+                                </div>
+                                <div class="bys-hotel-btn-grp">
+                                    <a href="#" class="bys-hotel-btn button-light bys-book-now-link"
+                                        data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
+                                        data-hotel-code="<?php echo esc_attr($hotel_code); ?>"
+                                        data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                                        data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
+                                        data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
+                                        data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>"
+                                        data-children="0"
+                                        data-rooms="1"><?php _e('Book Now', 'dhr-hotel-management'); ?></a>
+                                    <a href="#" class="bys-hotel-btn button-dark"><?php _e('View Room', 'dhr-hotel-management'); ?></a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
     </div>
 <?php endif; ?>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var packageSwiper = new Swiper('.package-swiper', {
+        var packageSwiper = new Swiper('.hotel-rooms-swiper', {
             slidesPerView: 1,
-            spaceBetween: 15,
+            spaceBetween: 10,
             loop: false,
             navigation: false,
             autoplay: {
@@ -279,17 +283,17 @@ function dhr_format_room_price($amount) {
             breakpoints: {
                 768: {
                     slidesPerView: 2,
-                    spaceBetween: 20,
+                    spaceBetween: 10,
                     pagination: false
                 },
                 1024: {
                     slidesPerView: 3,
-                    spaceBetween: 25,
+                    spaceBetween: 10,
                     pagination: false
                 },
                 1280: {
                     slidesPerView: 3,
-                    spaceBetween: 32,
+                    spaceBetween: 10,
                     pagination: false
                 }
             }
