@@ -214,7 +214,7 @@ function dhr_format_room_price($amount) {
 
 <?php if ($layout === 'cards'): ?>
     <div class="bys-hotel-rooms-second">
-        <div class="bys-hotel-room-grid">
+        <div class="bys-hotel-room-design swiper hotel-rooms-swiper">
             <?php foreach ($rooms as $room):
                 $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
                 $first_image = !empty($room_images) ? $room_images[0] : $plugin_url . 'assets/images/package/2.png';
@@ -251,3 +251,43 @@ function dhr_format_room_price($amount) {
         </div>
     </div>
 <?php endif; ?>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var packageSwiper = new Swiper('.package-swiper', {
+            slidesPerView: 1,
+            spaceBetween: 15,
+            loop: false,
+            navigation: false,
+            autoplay: {
+                delay: 3000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+            },
+            speed: 1500,
+            pagination: {
+                el: '.package-swiper-pagination',
+                clickable: true,
+                bulletClass: 'package-swiper-pagination-bullet',
+                bulletActiveClass: 'package-swiper-pagination-bullet-active',
+            },
+            breakpoints: {
+                768: {
+                    slidesPerView: 2,
+                    spaceBetween: 20,
+                    pagination: false
+                },
+                1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 25,
+                    pagination: false
+                },
+                1280: {
+                    slidesPerView: 3,
+                    spaceBetween: 32,
+                    pagination: false
+                }
+            }
+        });
+    });
+</script>
