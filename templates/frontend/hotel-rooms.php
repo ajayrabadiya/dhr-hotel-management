@@ -114,7 +114,7 @@ function format_room_description($room)
                 $room_amenities = !empty($room->amenities) && is_array($room->amenities) ? $room->amenities : array();
                 $first_image = !empty($room_images) ? $room_images[0] : 'https://dummyimage.com/1024x682/ccc/000';
                 $has_images = $show_images && !empty($room_images);
-                $room_price = 0; // Can be extended to get from pricing API
+                $room_price = isset($room->from_price) ? (int) $room->from_price : 0;
             ?>
                 <div class="bys-room-card">
                     <span class="bys-room-price"></span>
@@ -209,7 +209,7 @@ function format_room_description($room)
             <?php foreach ($rooms as $room):
                 $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
                 $first_image = !empty($room_images) ? $room_images[0] : $plugin_url . 'assets/images/package/2.png';
-                $room_price = 0; // Can be extended from pricing API
+                $room_price = isset($room->from_price) ? (int) $room->from_price : 0;
             ?>
                 <div class="bys-hotel-room-card">
                     <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($first_image); ?>')"></div>

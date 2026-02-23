@@ -784,6 +784,7 @@ class DHR_Hotel_API {
             $item = is_array($item) ? $item : (array) $item;
             $room = new stdClass();
             $room->room_type_code    = $this->pluck($item, array('code', 'roomTypeCode', 'room_type_code'));
+            $room->room_type_id      = intval($this->pluck($item, array('id', 'roomTypeID', 'roomTypeId', 'room_type_id')));
             $room->room_type_name    = $this->pluck($item, array('name', 'roomTypeName', 'room_type_name', 'roomName', 'description'));
             $room->description       = $this->pluck($item, array('shortDescription', 'longDescription', 'description'));
             $room->max_occupancy     = intval($this->pluck($item, array('totalOccupancy', 'adultOccupancy', 'maxOccupancy', 'max_occupancy', 'maxAdults')));
@@ -837,6 +838,95 @@ class DHR_Hotel_API {
         }
 
         return array('rooms' => $rooms, 'hotel_name' => $hotel_name);
+    }
+
+    /**
+     * Get SHR rate calendar base URL (api.shrglobal.com, not /shop).
+     */
+    private function get_shr_rate_calendar_base_url() {
+        $shop = $this->get_shr_shop_base_url();
+        $base = preg_replace('#/shop$#i', '', $shop);
+        if ($base === $shop) {
+            $base = 'https://api.shrglobal.com';
+        }
+        return rtrim($base, '/');
+    }
+
+    /**
+     * Fetch room-wise rates from SHR rateCalendar API.
+     * GET {{baseUrl}}/rateCalendar/:hotelCode?channelID=30&year=...&month=...&roomTypeID=...&checkInDate=...&minDate=...&maxDate=...
+     * Requires SHR scope: wsapi.shop.ratecalendar (add to DHR Hotel Settings → SHR scope if needed).
+     *
+     * @param string $hotel_code   Hotel code (e.g. DRE002)
+     * @param int    $room_type_id Room type ID (e.g. 99883)
+     * @param array  $opts         Optional: year, month, checkInDate, minDate, maxDate (defaults: current month range)
+     * @return array { success, from_price?, rates?, error? }  from_price = minimum valid amount from rates
+     */
+    public function get_shr_rate_calendar($hotel_code, $room_type_id, $opts = array()) {
+        $hotel_code   = trim($hotel_code);
+        $room_type_id = (int) $room_type_id;
+        if ($hotel_code === '' || $room_type_id <= 0) {
+            return array('success' => false, 'error' => __('Hotel code and room type ID are required.', 'dhr-hotel-management'));
+        }
+
+        $token_result = $this->get_shr_access_token(false);
+        if (!$token_result['success']) {
+            return array('success' => false, 'error' => $token_result['error']);
+        }
+
+        $today = current_time('Y-m-d');
+        $year  = isset($opts['year']) ? (int) $opts['year'] : (int) date('Y');
+        $month = isset($opts['month']) ? (int) $opts['month'] : (int) date('n');
+        $check_in = isset($opts['checkInDate']) ? $opts['checkInDate'] : $today;
+        $min_date = isset($opts['minDate']) ? $opts['minDate'] : $today;
+        $max_date = isset($opts['maxDate']) ? $opts['maxDate'] : date('Y-m-d', strtotime($today . ' +1 month'));
+
+        $base_url  = $this->get_shr_rate_calendar_base_url();
+        $channel_id = get_option('dhr_shr_channel_id', '30');
+        $url = $base_url . '/rateCalendar/' . rawurlencode($hotel_code);
+        $url = add_query_arg(array(
+            'channelID'   => $channel_id,
+            'year'        => $year,
+            'month'       => $month,
+            'roomTypeID'  => $room_type_id,
+            'checkInDate' => $check_in,
+            'minDate'     => $min_date,
+            'maxDate'     => $max_date,
+        ), $url);
+
+        $result = $this->do_shr_hotel_details_request($url, $token_result['access_token']);
+
+        if (!empty($result['error'])) {
+            return array('success' => false, 'error' => $result['error']);
+        }
+        if ($result['status_code'] !== 200) {
+            return array(
+                'success' => false,
+                'error'   => sprintf(__('Rate calendar API returned status %d.', 'dhr-hotel-management'), $result['status_code']),
+            );
+        }
+
+        $data = $result['data'];
+        if (!is_array($data) || !isset($data['rates']) || !is_array($data['rates'])) {
+            return array('success' => true, 'from_price' => 0, 'rates' => array());
+        }
+
+        $rates = $data['rates'];
+        $from_price = 0;
+        foreach ($rates as $r) {
+            $amount = isset($r['amount']) ? (int) $r['amount'] : -999;
+            if ($amount > 0) {
+                if ($from_price === 0 || $amount < $from_price) {
+                    $from_price = $amount;
+                }
+            }
+        }
+
+        return array(
+            'success'    => true,
+            'from_price' => $from_price,
+            'rates'      => $rates,
+        );
     }
 
     /**

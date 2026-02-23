@@ -413,6 +413,25 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
             return '<p class="dhr-hotel-rooms-error">' . sprintf(__('No rooms found for hotel %s.', 'dhr-hotel-management'), esc_html($hotel_name)) . '</p>';
         }
 
+        // Fetch room-wise rates from rateCalendar API for each room that has room_type_id
+        $today = current_time('Y-m-d');
+        $max_date = date('Y-m-d', strtotime($today . ' +1 month'));
+        foreach ($rooms as $room) {
+            $room->from_price = 0;
+            if (!empty($room->room_type_id)) {
+                $rate_result = $api->get_shr_rate_calendar($hotel_code, $room->room_type_id, array(
+                    'year'        => (int) date('Y'),
+                    'month'       => (int) date('n'),
+                    'checkInDate' => $today,
+                    'minDate'     => $today,
+                    'maxDate'     => $max_date,
+                ));
+                if (!empty($rate_result['success']) && isset($rate_result['from_price'])) {
+                    $room->from_price = (int) $rate_result['from_price'];
+                }
+            }
+        }
+
         $hotel_data = array(
             'layout' => $layout,
             'hotel_code' => $hotel_code,
