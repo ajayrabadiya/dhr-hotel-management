@@ -19,8 +19,9 @@ class DHR_Hotel_Frontend {
         add_shortcode('dhr_property_portfolio_map', array($this, 'display_property_portfolio_map'));
         add_shortcode('dhr_lodges_camps_map', array($this, 'display_lodges_camps_map'));
         
-        // Register hotel rooms shortcode
+        // Register hotel rooms shortcodes: [hotel_rooms] = grid, [hotel_rooms_cards] = cards
         add_shortcode('hotel_rooms', array($this, 'display_hotel_rooms'));
+        add_shortcode('hotel_rooms_cards', array($this, 'display_hotel_rooms_cards'));
         
         // Register package design shortcodes
         add_shortcode('dhr_package_first_design', array($this, 'display_package_first_design'));
@@ -360,10 +361,23 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
     }
     
     /**
-     * Display hotel rooms shortcode.
-     * Hotel code is taken from Book Your Stay Settings (Hotel Code / pcode). Use shortcode: [hotel_rooms]
+     * [hotel_rooms] – grid layout (specs, amenities, description). No code change, only shortcode.
      */
     public function display_hotel_rooms($atts) {
+        return $this->render_hotel_rooms($atts, 'grid');
+    }
+
+    /**
+     * [hotel_rooms_cards] – card overlay layout. No code change, only shortcode.
+     */
+    public function display_hotel_rooms_cards($atts) {
+        return $this->render_hotel_rooms($atts, 'cards');
+    }
+
+    /**
+     * Shared renderer: fetches rooms and passes layout so template shows one design only.
+     */
+    private function render_hotel_rooms($atts, $layout) {
         $atts = shortcode_atts(array(
             'columns' => '2',
             'show_images' => 'true',
@@ -371,36 +385,36 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
             'show_description' => 'true'
         ), $atts);
 
-        // Get hotel code from Book Your Stay Settings page
         $hotel_code = get_option('bys_hotel_code', '');
         $hotel_code = is_string($hotel_code) ? trim($hotel_code) : '';
 
         if (empty($hotel_code)) {
             $settings_url = admin_url('admin.php?page=book-your-stay');
+            $sc = $layout === 'cards' ? '[hotel_rooms_cards]' : '[hotel_rooms]';
             $message = sprintf(
-                __('Hotel code is required. Please set it in %s (Book Your Stay → Settings). Use shortcode: [hotel_rooms]', 'dhr-hotel-management'),
-                '<a href="' . esc_url($settings_url) . '">' . __('Book Your Stay Settings', 'dhr-hotel-management') . '</a>'
+                __('Hotel code is required. Set it in %s. Use shortcode: %s', 'dhr-hotel-management'),
+                '<a href="' . esc_url($settings_url) . '">' . __('Book Your Stay Settings', 'dhr-hotel-management') . '</a>',
+                $sc
             );
             return '<p class="dhr-hotel-rooms-error">' . $message . '</p>';
         }
 
-        // Fetch rooms from SHR API (with token auto-regeneration on expiry)
-        $api   = new DHR_Hotel_API();
+        $api = new DHR_Hotel_API();
         $result = $api->get_shr_hotel_rooms($hotel_code);
 
         if (!$result['success']) {
             return '<p class="dhr-hotel-rooms-error">' . esc_html($result['error']) . '</p>';
         }
 
-        $rooms       = isset($result['rooms']) ? $result['rooms'] : array();
-        $hotel_name  = isset($result['hotel_name']) ? $result['hotel_name'] : $hotel_code;
+        $rooms = isset($result['rooms']) ? $result['rooms'] : array();
+        $hotel_name = isset($result['hotel_name']) ? $result['hotel_name'] : $hotel_code;
 
         if (empty($rooms)) {
             return '<p class="dhr-hotel-rooms-error">' . sprintf(__('No rooms found for hotel %s.', 'dhr-hotel-management'), esc_html($hotel_name)) . '</p>';
         }
-        
-        // Prepare data for template
+
         $hotel_data = array(
+            'layout' => $layout,
             'hotel_code' => $hotel_code,
             'hotel_name' => $hotel_name,
             'rooms' => $rooms,
@@ -409,7 +423,7 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
             'show_amenities' => filter_var($atts['show_amenities'], FILTER_VALIDATE_BOOLEAN),
             'show_description' => filter_var($atts['show_description'], FILTER_VALIDATE_BOOLEAN)
         );
-        
+
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/hotel-rooms.php';
         return ob_get_clean();
