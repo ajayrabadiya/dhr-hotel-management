@@ -2554,13 +2554,24 @@ div:focus-visible {
 /* Hotel Room Second */
 .bys-hotel-rooms-second {
     background-color: #F5F8F9;
-    padding: 0 20px;
+    padding: 0 50px;
+}
+
+@media (max-width: 767px) {
+    .bys-hotel-rooms-second {
+        padding: 0;
+    }
 }
 
 .bys-hotel-rooms-second .bys-hotel-room-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
+    max-width: 1140px;
+    margin: 0 auto;
+}
+
+.bys-hotel-rooms-second .bys-hotel-room-design {
     max-width: 1140px;
     margin: 0 auto;
 }
@@ -2577,6 +2588,17 @@ div:focus-visible {
     height: 450px;
     width: 100%;
     padding: 40px;
+}
+
+.bys-hotel-rooms-second .bys-hotel-room-card:after {
+    content: '';
+    position: absolute;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 56.29%, rgba(0, 0, 0, 0.5) 100%);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
 }
 
 .bys-hotel-rooms-second .bys-hotel-room-card__frature-img {
@@ -2603,6 +2625,7 @@ div:focus-visible {
     justify-content: space-between;
     flex-direction: column;
     position: relative;
+    z-index: 1;
 }
 
 .bys-hotel-rooms-second .bys-hotel__content::before {
@@ -2626,12 +2649,27 @@ div:focus-visible {
 
 .bys-hotel-overlay__content .bys-hotel-overlay__content__inner h3 {
     font-size: 27px;
-    font-weight: 500;
+    font-weight: 300;
     color: #fff;
     transform: translateY(45px);
     transition: all 0.4s ease;
-    line-height: 0;
+    line-height: 33px;
     font-family: "Playfair", Sans-serif;
+    margin: 0;
+}
+
+@media (max-width: 1024px) {
+    .bys-hotel-overlay__content .bys-hotel-overlay__content__inner h3 {
+        font-size: 23px;
+        line-height: 26px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .bys-hotel-overlay__content .bys-hotel-overlay__content__inner h3 {
+        font-size: 23px;
+        line-height: 26px;
+    }
 }
 
 /* Hover effect */
@@ -2703,7 +2741,6 @@ div:focus-visible {
 }
 
 @media (max-width: 1024px) {
-
     .bys-hotel-rooms-second .bys-hotel-room-grid {
         grid-template-columns: repeat(2, 1fr);
     }
