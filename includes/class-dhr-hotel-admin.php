@@ -83,6 +83,14 @@ class DHR_Hotel_Admin {
             'dhr-hotel-packages',
             array($this, 'display_package_list')
         );
+        add_submenu_page(
+            'dhr-hotel-management',
+            __('Room Settings', 'dhr-hotel-management'),
+            __('Room Settings', 'dhr-hotel-management'),
+            'manage_options',
+            'dhr-hotel-room-settings',
+            array($this, 'display_room_settings')
+        );
     }
     
     /**
@@ -219,6 +227,13 @@ class DHR_Hotel_Admin {
     public function display_settings() {
         $api_key = get_option('dhr_hotel_google_maps_api_key', '');
         include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/settings.php';
+    }
+
+    /**
+     * Display Room Settings – shortcodes with copy
+     */
+    public function display_room_settings() {
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/room-settings.php';
     }
     
     /**

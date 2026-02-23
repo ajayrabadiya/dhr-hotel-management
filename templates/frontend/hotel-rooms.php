@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+$layout = isset($hotel_data['layout']) ? $hotel_data['layout'] : 'grid';
 $hotel_code = $hotel_data['hotel_code'];
 $hotel_name = $hotel_data['hotel_name'];
 $rooms = $hotel_data['rooms'];
@@ -16,6 +17,7 @@ $columns = $hotel_data['columns'];
 $show_images = $hotel_data['show_images'];
 $show_amenities = $hotel_data['show_amenities'];
 $show_description = $hotel_data['show_description'];
+$plugin_url = plugin_dir_url(dirname(__FILE__, 2));
 
 /**
  * Get amenity icon SVG
@@ -101,235 +103,139 @@ function format_room_description($room)
     href='https://dhr.4shaw-development.co/le-franschhoek-hotel-spa/wp-content/uploads/elementor/custom-icons/facilitiesandactivityicons/css/facilitiesandactivityicons.css?ver=1743154111'
     media='all' />
 
-<div class="bys-hotel-rooms">
-    <div class="bys-rooms-grid" data-columns="<?php echo esc_attr($columns); ?>">
-        <?php foreach ($rooms as $room):
-            $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
-            $room_amenities = !empty($room->amenities) && is_array($room->amenities) ? $room->amenities : array();
-            $first_image = !empty($room_images) ? $room_images[0] : 'https://dummyimage.com/1024x682/ccc/000';
-            $has_images = $show_images && !empty($room_images);
-            $room_price = 0; // Can be extended to get from pricing API
-        ?>
-            <div class="bys-room-card">
-                <span class="bys-room-price"></span>
+<?php if ($layout === 'grid'): ?>
+    <div class="bys-hotel-rooms">
+        <div class="bys-rooms-grid" data-columns="<?php echo esc_attr($columns); ?>">
+            <?php foreach ($rooms as $room):
+                $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
+                $room_amenities = !empty($room->amenities) && is_array($room->amenities) ? $room->amenities : array();
+                $first_image = !empty($room_images) ? $room_images[0] : 'https://dummyimage.com/1024x682/ccc/000';
+                $has_images = $show_images && !empty($room_images);
+                $room_price = 0; // Can be extended to get from pricing API
+            ?>
+                <div class="bys-room-card">
+                    <span class="bys-room-price"></span>
 
-                <?php if ($has_images): ?>
-                    <div class="bys-room-image">
-                        <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>"
-                            loading="lazy">
-                        <div class="bys-room-price-badge">
-                            <span class="bys-price-label">FROM</span>
-                            <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
-                            <span class="bys-price-period">/ NIGHT</span>
+                    <?php if ($has_images): ?>
+                        <div class="bys-room-image">
+                            <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>"
+                                loading="lazy">
+                            <div class="bys-room-price-badge">
+                                <span class="bys-price-label">FROM</span>
+                                <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
+                                <span class="bys-price-period">/ NIGHT</span>
+                            </div>
                         </div>
-                    </div>
-                <?php else: ?>
-                    <div class="bys-room-image bys-room-image-placeholder">
-                        <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>"
-                            loading="lazy">
-                        <div class="bys-room-price-badge">
-                            <span class="bys-price-label">FROM</span>
-                            <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
-                            <span class="bys-price-period">/ NIGHT</span>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <div class="bys-room-content">
-                    <h3 class="bys-room-title"><?php echo esc_html($room->room_type_name); ?></h3>
-
-                    <?php if ($room->max_occupancy): ?>
-                        <div class="bys-room-specs">
-                            <span class="bys-room-specs-line"><?php echo esc_html($room->max_occupancy); ?>
-                                <?php echo $room->max_occupancy == 1 ? __('Guest', 'dhr-hotel-management') : __('Guests', 'dhr-hotel-management'); ?></span>
+                    <?php else: ?>
+                        <div class="bys-room-image bys-room-image-placeholder">
+                            <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>"
+                                loading="lazy">
+                            <div class="bys-room-price-badge">
+                                <span class="bys-price-label">FROM</span>
+                                <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
+                                <span class="bys-price-period">/ NIGHT</span>
+                            </div>
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($show_amenities && !empty($room_amenities)): ?>
-                        <ul class="bys-room-amenities">
-                            <?php foreach ($room_amenities as $amenity):
-                                $amenity_name = isset($amenity['name']) ? $amenity['name'] : (is_string($amenity) ? $amenity : '');
-                                if (empty($amenity_name))
-                                    continue;
-                            ?>
-                                <li class="bys-room-amenity-item">
-                                    <span class="bys-amenity-icon">
-                                        <?php echo get_amenity_icon($amenity_name); ?>
-                                    </span>
-                                    <span class="bys-amenity-text"><?php echo esc_html($amenity_name); ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php endif; ?>
+                    <div class="bys-room-content">
+                        <h3 class="bys-room-title"><?php echo esc_html($room->room_type_name); ?></h3>
 
-                    <?php if ($show_description): ?>
-                        <div class="bys-room-description">
-                            <?php echo esc_html(format_room_description($room)); ?>
+                        <?php if ($room->max_occupancy): ?>
+                            <div class="bys-room-specs">
+                                <span class="bys-room-specs-line"><?php echo esc_html($room->max_occupancy); ?>
+                                    <?php echo $room->max_occupancy == 1 ? __('Guest', 'dhr-hotel-management') : __('Guests', 'dhr-hotel-management'); ?></span>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($show_amenities && !empty($room_amenities)): ?>
+                            <ul class="bys-room-amenities">
+                                <?php foreach ($room_amenities as $amenity):
+                                    $amenity_name = isset($amenity['name']) ? $amenity['name'] : (is_string($amenity) ? $amenity : '');
+                                    if (empty($amenity_name))
+                                        continue;
+                                ?>
+                                    <li class="bys-room-amenity-item">
+                                        <span class="bys-amenity-icon">
+                                            <?php echo get_amenity_icon($amenity_name); ?>
+                                        </span>
+                                        <span class="bys-amenity-text"><?php echo esc_html($amenity_name); ?></span>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
+
+                        <?php if ($show_description): ?>
+                            <div class="bys-room-description">
+                                <?php echo esc_html(format_room_description($room)); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="bys-room-actions">
+                            <a href="#" class="bys-book-now-link" data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
+                                data-hotel-code="<?php echo esc_attr($hotel_code); ?>" data-property-id=""
+                                data-checkin="<?php echo esc_attr(date('Y-m-d', strtotime('+1 day'))); ?>"
+                                data-checkout="<?php echo esc_attr(date('Y-m-d', strtotime('+3 days'))); ?>"
+                                data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>" data-children="0" data-rooms="1">
+                                <?php _e('Book Now', 'dhr-hotel-management'); ?>
+                            </a>
+                            <!-- <a href="#" class="bys-book-now-button" data-room-code="<?php //echo esc_attr($room->room_type_code); 
+                                                                                            ?>"
+                                data-hotel-code="<?php //echo esc_attr($hotel_code); 
+                                                    ?>" data-property-id=""
+                                data-checkin="<?php //echo esc_attr(date('Y-m-d', strtotime('+1 day'))); 
+                                                ?>"
+                                data-checkout="<?php //echo esc_attr(date('Y-m-d', strtotime('+3 days'))); 
+                                                ?>"
+                                data-adults="<?php //echo esc_attr($room->max_occupancy ?: 2); 
+                                                ?>" data-children="0" data-rooms="1">
+                                <?php //_e('Book Now', 'dhr-hotel-management'); 
+                                ?>
+                            </a> -->
                         </div>
-                    <?php endif; ?>
-
-                    <div class="bys-room-actions">
-                        <a href="#" class="bys-book-now-link" data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
-                            data-hotel-code="<?php echo esc_attr($hotel_code); ?>" data-property-id=""
-                            data-checkin="<?php echo esc_attr(date('Y-m-d', strtotime('+1 day'))); ?>"
-                            data-checkout="<?php echo esc_attr(date('Y-m-d', strtotime('+3 days'))); ?>"
-                            data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>" data-children="0" data-rooms="1">
-                            <?php _e('Book Now', 'dhr-hotel-management'); ?>
-                        </a>
-                        <!-- <a href="#" class="bys-book-now-button" data-room-code="<?php //echo esc_attr($room->room_type_code); 
-                                                                                        ?>"
-                            data-hotel-code="<?php //echo esc_attr($hotel_code); 
-                                                ?>" data-property-id=""
-                            data-checkin="<?php //echo esc_attr(date('Y-m-d', strtotime('+1 day'))); 
-                                            ?>"
-                            data-checkout="<?php //echo esc_attr(date('Y-m-d', strtotime('+3 days'))); 
-                                            ?>"
-                            data-adults="<?php //echo esc_attr($room->max_occupancy ?: 2); 
-                                            ?>" data-children="0" data-rooms="1">
-                            <?php //_e('Book Now', 'dhr-hotel-management'); 
-                            ?>
-                        </a> -->
                     </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-
-<?php $plugin_url = plugin_dir_url(dirname(__FILE__, 2)); ?>
-
-
-<!-- My Hotel Room - 2 -->
-
-<div class="bys-hotel-rooms-second" style="display: none;">
-    <div class="bys-hotel-room-grid">
-        <div class="bys-hotel-room-card">
-            <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>
-            <div class="bys-hotel__content">
-                <div class="card__top-badge">
-                    <p class="package-overlay__tag">
-                        From R2,500/Night
-                    </p>
-                </div>
-                <div class="bys-hotel-overlay__content">
-                    <div class="bys-hotel-overlay__content__inner">
-                        <h3 class="bys-hotel-overlay__main-title">Classic Room</h3>
-                    </div>
-                    <div class="bys-hotel-btn-grp">
-                        <a href="#" class="bys-hotel-btn button-light">Book Now</a>
-                        <a href="#" class="bys-hotel-btn button-dark">View Room</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="bys-hotel-room-card">
-            <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>
-            <div class="bys-hotel__content">
-                <div class="card__top-badge">
-                    <p class="package-overlay__tag">
-                        From R2,500/Night
-                    </p>
-                </div>
-                <div class="bys-hotel-overlay__content">
-                    <div class="bys-hotel-overlay__content__inner">
-                        <h3 class="bys-hotel-overlay__main-title">Classic Room</h3>
-                    </div>
-                    <div class="bys-hotel-btn-grp">
-                        <a href="#" class="bys-hotel-btn button-light">Book Now</a>
-                        <a href="#" class="bys-hotel-btn button-dark">View Room</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="bys-hotel-room-card">
-            <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>
-            <div class="bys-hotel__content">
-                <div class="card__top-badge">
-                    <p class="package-overlay__tag">
-                        From R2,500/Night
-                    </p>
-                </div>
-                <div class="bys-hotel-overlay__content">
-                    <div class="bys-hotel-overlay__content__inner">
-                        <h3 class="bys-hotel-overlay__main-title">Classic Room</h3>
-                    </div>
-                    <div class="bys-hotel-btn-grp">
-                        <a href="#" class="bys-hotel-btn button-light">Book Now</a>
-                        <a href="#" class="bys-hotel-btn button-dark">View Room</a>
-                    </div>
-                </div>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
-</div>
+<?php endif; ?>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const accordionTriggers = document.querySelectorAll('.bird-packages__content__title__tag');
-
-        function isMobileView() {
-            return window.innerWidth < 1024;
-        }
-
-        function closeAllAccordions() {
-            accordionTriggers.forEach(trigger => {
-                const card = trigger.closest('.bird-packages-grid__card__info');
-                const wrapper = card.querySelector('.bird-packages__content__description-wrapper');
-
-                wrapper.style.height = '0px';
-                trigger.classList.remove('active');
-            });
-        }
-
-        function toggleAccordion(trigger, wrapper, description) {
-            if (!isMobileView()) return;
-
-            const isActive = trigger.classList.contains('active');
-
-            if (isActive) {
-                wrapper.style.height = '0px';
-                trigger.classList.remove('active');
-            } else {
-                closeAllAccordions();
-
-                const fullHeight = description.scrollHeight;
-                wrapper.style.height = fullHeight + 'px';
-                trigger.classList.add('active');
-            }
-        }
-
-        function handleResize() {
-            accordionTriggers.forEach(trigger => {
-                const card = trigger.closest('.bird-packages-grid__card__info');
-                const wrapper = card.querySelector('.bird-packages__content__description-wrapper');
-                const description = card.querySelector('.bird-packages__content__description');
-
-                if (isMobileView()) {
-                    if (!trigger.classList.contains('active')) {
-                        wrapper.style.height = '0px';
-                    } else {
-                        const fullHeight = description.scrollHeight;
-                        wrapper.style.height = fullHeight + 'px';
-                    }
-                } else {
-                    wrapper.style.height = 'auto';
-                    trigger.classList.remove('active');
-                }
-            });
-        }
-
-        accordionTriggers.forEach(trigger => {
-            const card = trigger.closest('.bird-packages-grid__card__info');
-            const wrapper = card.querySelector('.bird-packages__content__description-wrapper');
-            const description = card.querySelector('.bird-packages__content__description');
-
-            trigger.addEventListener('click', function() {
-                toggleAccordion(trigger, wrapper, description);
-            });
-        });
-
-        window.addEventListener('resize', handleResize);
-
-        handleResize();
-    });
-</script>
+<?php if ($layout === 'cards'): ?>
+    <div class="bys-hotel-rooms-second">
+        <div class="bys-hotel-room-grid">
+            <?php foreach ($rooms as $room):
+                $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
+                $first_image = !empty($room_images) ? $room_images[0] : $plugin_url . 'assets/images/package/2.png';
+                $room_price = 0; // Can be extended from pricing API
+            ?>
+                <div class="bys-hotel-room-card">
+                    <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($first_image); ?>')"></div>
+                    <div class="bys-hotel__content">
+                        <div class="card__top-badge">
+                            <p class="package-overlay__tag">
+                                <?php echo esc_html(sprintf(__('From R%s/Night', 'dhr-hotel-management'), $room_price)); ?>
+                            </p>
+                        </div>
+                        <div class="bys-hotel-overlay__content">
+                            <div class="bys-hotel-overlay__content__inner">
+                                <h3 class="bys-hotel-overlay__main-title"><?php echo esc_html($room->room_type_name); ?></h3>
+                            </div>
+                            <div class="bys-hotel-btn-grp">
+                                <a href="#" class="bys-hotel-btn button-light bys-book-now-link"
+                                    data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
+                                    data-hotel-code="<?php echo esc_attr($hotel_code); ?>"
+                                    data-property-id=""
+                                    data-checkin="<?php echo esc_attr(date('Y-m-d', strtotime('+1 day'))); ?>"
+                                    data-checkout="<?php echo esc_attr(date('Y-m-d', strtotime('+3 days'))); ?>"
+                                    data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>"
+                                    data-children="0"
+                                    data-rooms="1"><?php _e('Book Now', 'dhr-hotel-management'); ?></a>
+                                <a href="#" class="bys-hotel-btn button-dark"><?php _e('View Room', 'dhr-hotel-management'); ?></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>
