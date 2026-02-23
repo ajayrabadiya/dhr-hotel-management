@@ -85,6 +85,15 @@ function format_room_description($room)
     return implode(' • ', $parts);
 }
 }
+
+/**
+ * Format price for display (e.g. 2500 → 2,500)
+ */
+if (!function_exists('dhr_format_room_price')) {
+function dhr_format_room_price($amount) {
+    return number_format((int) $amount, 0, '.', ',');
+}
+}
 ?>
 
 <link rel='stylesheet' id='custom-icons-animation-css-css'
@@ -125,7 +134,7 @@ function format_room_description($room)
                                 loading="lazy">
                             <div class="bys-room-price-badge">
                                 <span class="bys-price-label">FROM</span>
-                                <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
+                                <span class="bys-price-amount">R<?php echo esc_html(dhr_format_room_price($room_price)); ?></span>
                                 <span class="bys-price-period">/ NIGHT</span>
                             </div>
                         </div>
@@ -135,7 +144,7 @@ function format_room_description($room)
                                 loading="lazy">
                             <div class="bys-room-price-badge">
                                 <span class="bys-price-label">FROM</span>
-                                <span class="bys-price-amount">R<?php echo esc_html($room_price); ?></span>
+                                <span class="bys-price-amount">R<?php echo esc_html(dhr_format_room_price($room_price)); ?></span>
                                 <span class="bys-price-period">/ NIGHT</span>
                             </div>
                         </div>
@@ -216,7 +225,7 @@ function format_room_description($room)
                     <div class="bys-hotel__content">
                         <div class="card__top-badge">
                             <p class="package-overlay__tag">
-                                <?php echo esc_html(sprintf(__('From R%s/Night', 'dhr-hotel-management'), $room_price)); ?>
+                                <?php echo esc_html(sprintf(__('From R%s/Night', 'dhr-hotel-management'), dhr_format_room_price($room_price))); ?>
                             </p>
                         </div>
                         <div class="bys-hotel-overlay__content">
