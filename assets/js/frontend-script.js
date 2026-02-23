@@ -1,8 +1,8 @@
 (function ($) {
     'use strict';
 
-    // Book Now: availability check then open Windsurfer booking URL (today / tomorrow)
-    $(document).on('click', '.dhr-hotel-rooms-shortcode .bys-book-now-link', function (e) {
+    // Book Now: availability check then open Windsurfer booking URL (uses data-checkin / data-checkout from link)
+    $(document).on('click', '.bys-book-now-link', function (e) {
         e.preventDefault();
         var $btn = $(this);
         var hotelCode = $btn.data('hotel-code');
@@ -15,8 +15,11 @@
             var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
             return y + '-' + m + '-' + day;
         };
-        var checkIn = fmt(today);
-        var checkOut = fmt(tomorrow);
+        var dateRe = /^\d{4}-\d{2}-\d{2}$/;
+        var checkInRaw = $btn.data('checkin');
+        var checkOutRaw = $btn.data('checkout');
+        var checkIn = (checkInRaw && dateRe.test(String(checkInRaw))) ? String(checkInRaw) : fmt(today);
+        var checkOut = (checkOutRaw && dateRe.test(String(checkOutRaw))) ? String(checkOutRaw) : fmt(tomorrow);
         var rooms = parseInt($btn.data('rooms'), 10) || 1;
         var adults = parseInt($btn.data('adults'), 10) || 2;
         var children = parseInt($btn.data('children'), 10) || 0;

@@ -174,8 +174,8 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
         if ($channel_id <= 0) {
             $channel_id = (int) get_option('dhr_shr_channel_id', '30');
         }
-        $today  = date('Y-m-d');
-        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+        $today    = function_exists('wp_date') ? wp_date('Y-m-d') : date('Y-m-d', current_time('timestamp'));
+        $tomorrow = function_exists('wp_date') ? wp_date('Y-m-d', current_time('timestamp') + DAY_IN_SECONDS) : date('Y-m-d', strtotime('+1 day', current_time('timestamp')));
         if (empty($check_in) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $check_in)) {
             $check_in = $today;
         }
@@ -184,7 +184,7 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
         }
         $child_age_int = $child_age === '' || $child_age === null ? null : max(0, min(17, (int) $child_age));
 
-        $api = DHR_Hotel_API::get_instance();
+        $api    = new DHR_Hotel_API();
         $result = $api->get_shr_availability_booking_url($hotel_code, $channel_id, $check_in, $check_out, $rooms, $adults, $child_age_int);
 
         wp_send_json($result);
@@ -457,7 +457,7 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
         }
 
         // Fetch room-wise rates from rateCalendar API for each room that has room_type_id
-        $today = current_time('Y-m-d');
+        $today    = function_exists('wp_date') ? wp_date('Y-m-d') : date('Y-m-d', current_time('timestamp'));
         $max_date = date('Y-m-d', strtotime($today . ' +1 month'));
         foreach ($rooms as $room) {
             $room->from_price = 0;

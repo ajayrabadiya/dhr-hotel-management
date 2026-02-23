@@ -14,8 +14,11 @@ $hotel_code = $hotel_data['hotel_code'];
 $hotel_name = $hotel_data['hotel_name'];
 $channel_id = isset($hotel_data['channel_id']) ? (int) $hotel_data['channel_id'] : 30;
 $rooms = $hotel_data['rooms'];
-$book_now_checkin = date('Y-m-d');
-$book_now_checkout = date('Y-m-d', strtotime('+1 day'));
+$book_now_checkin = function_exists('wp_date') ? wp_date('Y-m-d') : date('Y-m-d', current_time('timestamp'));
+$book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time('timestamp') + 2 * DAY_IN_SECONDS) : date('Y-m-d', strtotime('+5 days', current_time('timestamp')));
+
+// echo $book_now_checkin;
+// exit;
 $columns = $hotel_data['columns'];
 $show_images = $hotel_data['show_images'];
 $show_amenities = $hotel_data['show_amenities'];
@@ -187,7 +190,7 @@ function dhr_format_room_price($amount) {
                         <?php endif; ?>
 
                         <div class="bys-room-actions">
-                            <a href="#" class="bys-book-now-link" data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
+                            <a href="javascript:void(0)" class="bys-book-now-link" data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
                                 data-hotel-code="<?php echo esc_attr($hotel_code); ?>" data-channel-id="<?php echo esc_attr($channel_id); ?>"
                                 data-checkin="<?php echo esc_attr($book_now_checkin); ?>" data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
                                 data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>" data-children="0" data-rooms="1">
