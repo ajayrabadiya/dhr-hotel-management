@@ -360,23 +360,29 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
     }
     
     /**
-     * Display hotel rooms shortcode
+     * Display hotel rooms shortcode.
+     * Hotel code is taken from Book Your Stay Settings (Hotel Code / pcode). Use shortcode: [hotel_rooms]
      */
     public function display_hotel_rooms($atts) {
         $atts = shortcode_atts(array(
-            'hotel_code' => '',
             'columns' => '2',
             'show_images' => 'true',
             'show_amenities' => 'true',
             'show_description' => 'true'
         ), $atts);
-        
-        // Validate hotel_code
-        if (empty($atts['hotel_code'])) {
-            return '<p class="dhr-hotel-rooms-error">' . __('Hotel code is required. Please use: [hotel_rooms hotel_code="DRE013"]', 'dhr-hotel-management') . '</p>';
-        }
 
-        $hotel_code = $atts['hotel_code'];
+        // Get hotel code from Book Your Stay Settings page
+        $hotel_code = get_option('bys_hotel_code', '');
+        $hotel_code = is_string($hotel_code) ? trim($hotel_code) : '';
+
+        if (empty($hotel_code)) {
+            $settings_url = admin_url('admin.php?page=book-your-stay');
+            $message = sprintf(
+                __('Hotel code is required. Please set it in %s (Book Your Stay → Settings). Use shortcode: [hotel_rooms]', 'dhr-hotel-management'),
+                '<a href="' . esc_url($settings_url) . '">' . __('Book Your Stay Settings', 'dhr-hotel-management') . '</a>'
+            );
+            return '<p class="dhr-hotel-rooms-error">' . $message . '</p>';
+        }
 
         // Fetch rooms from SHR API (with token auto-regeneration on expiry)
         $api   = new DHR_Hotel_API();
