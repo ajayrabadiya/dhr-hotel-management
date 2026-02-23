@@ -198,68 +198,42 @@ function format_room_description($room)
 
 <?php $plugin_url = plugin_dir_url(dirname(__FILE__, 2)); ?>
 
-
-<!-- My Hotel Room - 2 -->
-
-<div class="bys-hotel-rooms-second" style="display: none;">
+<!-- Hotel rooms – card design (same data as above) -->
+<div class="bys-hotel-rooms-second">
     <div class="bys-hotel-room-grid">
-        <div class="bys-hotel-room-card">
-            <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>
-            <div class="bys-hotel__content">
-                <div class="card__top-badge">
-                    <p class="package-overlay__tag">
-                        From R2,500/Night
-                    </p>
-                </div>
-                <div class="bys-hotel-overlay__content">
-                    <div class="bys-hotel-overlay__content__inner">
-                        <h3 class="bys-hotel-overlay__main-title">Classic Room</h3>
+        <?php foreach ($rooms as $room):
+            $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
+            $first_image = !empty($room_images) ? $room_images[0] : $plugin_url . 'assets/images/package/2.png';
+            $room_price = 0; // Can be extended from pricing API
+        ?>
+            <div class="bys-hotel-room-card">
+                <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($first_image); ?>')"></div>
+                <div class="bys-hotel__content">
+                    <div class="card__top-badge">
+                        <p class="package-overlay__tag">
+                            <?php echo esc_html(sprintf(__('From R%s/Night', 'dhr-hotel-management'), $room_price)); ?>
+                        </p>
                     </div>
-                    <div class="bys-hotel-btn-grp">
-                        <a href="#" class="bys-hotel-btn button-light">Book Now</a>
-                        <a href="#" class="bys-hotel-btn button-dark">View Room</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="bys-hotel-room-card">
-            <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>
-            <div class="bys-hotel__content">
-                <div class="card__top-badge">
-                    <p class="package-overlay__tag">
-                        From R2,500/Night
-                    </p>
-                </div>
-                <div class="bys-hotel-overlay__content">
-                    <div class="bys-hotel-overlay__content__inner">
-                        <h3 class="bys-hotel-overlay__main-title">Classic Room</h3>
-                    </div>
-                    <div class="bys-hotel-btn-grp">
-                        <a href="#" class="bys-hotel-btn button-light">Book Now</a>
-                        <a href="#" class="bys-hotel-btn button-dark">View Room</a>
+                    <div class="bys-hotel-overlay__content">
+                        <div class="bys-hotel-overlay__content__inner">
+                            <h3 class="bys-hotel-overlay__main-title"><?php echo esc_html($room->room_type_name); ?></h3>
+                        </div>
+                        <div class="bys-hotel-btn-grp">
+                            <a href="#" class="bys-hotel-btn button-light bys-book-now-link"
+                                data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
+                                data-hotel-code="<?php echo esc_attr($hotel_code); ?>"
+                                data-property-id=""
+                                data-checkin="<?php echo esc_attr(date('Y-m-d', strtotime('+1 day'))); ?>"
+                                data-checkout="<?php echo esc_attr(date('Y-m-d', strtotime('+3 days'))); ?>"
+                                data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>"
+                                data-children="0"
+                                data-rooms="1"><?php _e('Book Now', 'dhr-hotel-management'); ?></a>
+                            <a href="#" class="bys-hotel-btn button-dark"><?php _e('View Room', 'dhr-hotel-management'); ?></a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="bys-hotel-room-card">
-            <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>
-            <div class="bys-hotel__content">
-                <div class="card__top-badge">
-                    <p class="package-overlay__tag">
-                        From R2,500/Night
-                    </p>
-                </div>
-                <div class="bys-hotel-overlay__content">
-                    <div class="bys-hotel-overlay__content__inner">
-                        <h3 class="bys-hotel-overlay__main-title">Classic Room</h3>
-                    </div>
-                    <div class="bys-hotel-btn-grp">
-                        <a href="#" class="bys-hotel-btn button-light">Book Now</a>
-                        <a href="#" class="bys-hotel-btn button-dark">View Room</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <?php endforeach; ?>
     </div>
 </div>
 
