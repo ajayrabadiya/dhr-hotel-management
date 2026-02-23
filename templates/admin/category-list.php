@@ -13,9 +13,53 @@ $messages = array(
     'error'   => array('type' => 'error', 'text' => __('An error occurred. Please try again.', 'dhr-hotel-management')),
 );
 ?>
+<?php
+$category_list_shortcode = '[dhr_category_list]';
+?>
 <div class="wrap dhr-hotel-admin">
     <h1 class="wp-heading-inline"><?php _e('Category List', 'dhr-hotel-management'); ?></h1>
     <a href="<?php echo admin_url('admin.php?page=dhr-hotel-categories&action=add'); ?>" class="page-title-action"><?php _e('Add New', 'dhr-hotel-management'); ?></a>
+
+    <div class="dhr-shortcode-copy" style="margin: 15px 0; padding: 12px 16px; background: #f0f6fc; border: 1px solid #c3c4c7; border-left: 4px solid #2271b1; border-radius: 2px;">
+        <strong style="margin-right: 8px;"><?php _e('Shortcode:', 'dhr-hotel-management'); ?></strong>
+        <code id="dhr-category-list-shortcode" style="padding: 4px 8px; background: #fff; border: 1px solid #c3c4c7;"><?php echo esc_html($category_list_shortcode); ?></code>
+        <button type="button" class="button button-small" id="dhr-copy-category-shortcode" style="margin-left: 10px; vertical-align: middle;">
+            <span class="dashicons dashicons-admin-page" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle;"></span>
+            <?php _e('Copy', 'dhr-hotel-management'); ?>
+        </button>
+        <span id="dhr-copy-feedback" style="margin-left: 8px; color: #00a32a; font-weight: 500; display: none;"><?php _e('Copied!', 'dhr-hotel-management'); ?></span>
+    </div>
+    <script>
+    (function() {
+        var btn = document.getElementById('dhr-copy-category-shortcode');
+        var code = document.getElementById('dhr-category-list-shortcode');
+        var feedback = document.getElementById('dhr-copy-feedback');
+        if (btn && code) {
+            btn.addEventListener('click', function() {
+                var text = code.textContent || code.innerText;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        feedback.style.display = 'inline';
+                        setTimeout(function() { feedback.style.display = 'none'; }, 2000);
+                    });
+                } else {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try {
+                        document.execCommand('copy');
+                        feedback.style.display = 'inline';
+                        setTimeout(function() { feedback.style.display = 'none'; }, 2000);
+                    } catch (e) {}
+                    document.body.removeChild(ta);
+                }
+            });
+        }
+    })();
+    </script>
 
     <?php if ($message && isset($messages[$message])): ?>
         <div class="notice notice-<?php echo esc_attr($messages[$message]['type']); ?> is-dismissible">
