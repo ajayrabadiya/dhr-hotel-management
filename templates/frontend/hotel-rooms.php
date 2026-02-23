@@ -20,9 +20,9 @@ $show_description = $hotel_data['show_description'];
 $plugin_url = plugin_dir_url(dirname(__FILE__, 2));
 
 /**
- * Get amenity icon SVG
+ * Get amenity icon SVG (wrapped in function_exists for multiple shortcode instances on same page)
  */
-
+if (!function_exists('get_amenity_icon')) {
 function get_amenity_icon($amenity_name)
 {
     // Map amenity names to icon font classes
@@ -45,10 +45,12 @@ function get_amenity_icon($amenity_name)
 
     return '<i aria-hidden="true" class="' . esc_attr($icon_class) . '"></i>';
 }
+}
 
 /**
- * Format room description
+ * Format room description (wrapped in function_exists for multiple shortcode instances on same page)
  */
+if (!function_exists('format_room_description')) {
 function format_room_description($room)
 {
     // Use API shortDescription when available
@@ -81,6 +83,7 @@ function format_room_description($room)
     }
 
     return implode(' • ', $parts);
+}
 }
 ?>
 
