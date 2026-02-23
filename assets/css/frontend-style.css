@@ -2558,6 +2558,11 @@ div:focus-visible {
     margin: 0 auto;
 }
 
+.bys-hotel-rooms-second .bys-hotel-room-design {
+    max-width: 1140px;
+    margin: 0 auto;
+}
+
 .bys-hotel-rooms-second .bys-hotel-room-card {
     position: relative;
     display: flex;
@@ -2696,7 +2701,6 @@ div:focus-visible {
 }
 
 @media (max-width: 1024px) {
-
     .bys-hotel-rooms-second .bys-hotel-room-grid {
         grid-template-columns: repeat(2, 1fr);
     }
