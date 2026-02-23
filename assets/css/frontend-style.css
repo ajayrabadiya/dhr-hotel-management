@@ -1495,6 +1495,13 @@ div:focus-visible {
     text-decoration: underline;
 }
 
+.dhr-hotel-rooms-shortcode .bys-book-now-link.dhr-book-now-loading,
+.bys-hotel-rooms .bys-book-now-link.dhr-book-now-loading {
+    pointer-events: none;
+    opacity: 0.7;
+    cursor: wait;
+}
+
 .bys-hotel-rooms .bys-book-now-button {
     display: inline-block;
     font-size: 14px;
