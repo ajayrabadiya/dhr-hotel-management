@@ -275,38 +275,22 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
 
             var bounds = new google.maps.LatLngBounds();
             var deviceType = getDeviceType();
-            var mapZoom = (deviceType === 'mobile') ? 5.6 : 6.9;
-            var adjustedCenterLat, adjustedCenterLng;
+            // South Africa default center and zoom (map set to South Africa)
+            var southAfricaCenter = { lat: -26.2, lng: 28.5 };
+            var southAfricaZoom = 5;
 
             if (validHotels.length > 0) {
-                var centerLat = 0;
-                var centerLng = 0;
                 validHotels.forEach(function (hotel) {
                     var lat = parseFloat(hotel.latitude);
                     var lng = parseFloat(hotel.longitude);
-                    centerLat += lat;
-                    centerLng += lng;
                     bounds.extend(new google.maps.LatLng(lat, lng));
                 });
-                centerLat = centerLat / validHotels.length;
-                centerLng = centerLng / validHotels.length;
-                var ne = bounds.getNorthEast();
-                var sw = bounds.getSouthWest();
-                var latSpan = ne.lat() - sw.lat();
-                var lngSpan = ne.lng() - sw.lng();
-                var latMultiplier = (deviceType === 'mobile') ? 8 : (deviceType === 'tablet') ? 3.5 : 3;
-                var lngMultiplier = (deviceType === 'mobile') ? 0.5 : (deviceType === 'tablet') ? 0.5 : 0.8;
-                adjustedCenterLat = centerLat + (latSpan * latMultiplier);
-                adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
-            } else {
-                adjustedCenterLat = -33.9249;
-                adjustedCenterLng = 18.4241;
             }
 
             // Initialize map
             map = new google.maps.Map(mapElement, {
-                zoom: mapZoom,
-                center: { lat: adjustedCenterLat, lng: adjustedCenterLng },
+                zoom: southAfricaZoom,
+                center: southAfricaCenter,
                 minZoom: 3,
                 maxZoom: 10,
                 styles: [
@@ -321,6 +305,32 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
                         stylers: [{ color: '#a0b6cb' }]
                     }
                 ]
+            });
+
+            // After map loads, fit to markers with 2% zoom-in and shift to right-bottom (same as dining-venue map)
+            google.maps.event.addListenerOnce(map, 'idle', function () {
+                if (validHotels.length > 0 && !bounds.isEmpty()) {
+                    var padding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
+                    var ne = bounds.getNorthEast();
+                    var sw = bounds.getSouthWest();
+                    var center = bounds.getCenter();
+                    var latSpan = ne.lat() - sw.lat();
+                    var lngSpan = ne.lng() - sw.lng();
+                    var expandFactor = 0.98;
+                    var expandedBounds = new google.maps.LatLngBounds(
+                        new google.maps.LatLng(center.lat() - (latSpan * expandFactor) / 2, center.lng() - (lngSpan * expandFactor) / 2),
+                        new google.maps.LatLng(center.lat() + (latSpan * expandFactor) / 2, center.lng() + (lngSpan * expandFactor) / 2)
+                    );
+                    map.fitBounds(expandedBounds, padding);
+                    setTimeout(function () {
+                        var mapDiv = document.getElementById('lodges-camps-map');
+                        if (mapDiv) {
+                            var w = mapDiv.offsetWidth;
+                            var h = mapDiv.offsetHeight;
+                            map.panBy(-Math.round(w * 0.14), -Math.round(h * 0.0));
+                        }
+                    }, 400);
+                }
             });
 
             // Create markers for each valid hotel

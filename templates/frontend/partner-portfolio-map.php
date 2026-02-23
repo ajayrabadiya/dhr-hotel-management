@@ -280,55 +280,29 @@ var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
                 return;
             }
 
-            // Filter to hotels with valid latitude/longitude so one bad entry does not break the map
-            function isValidCoord(val) {
-                var n = parseFloat(val);
-                return isFinite(n) && n >= -90 && n <= 90;
-            }
-            function isValidLng(val) {
-                var n = parseFloat(val);
-                return isFinite(n) && n >= -180 && n <= 180;
-            }
             var validHotels = hotels.filter(function (hotel) {
-                return isValidCoord(hotel.latitude) && isValidLng(hotel.longitude);
+                var lat = parseFloat(hotel.latitude);
+                var lng = parseFloat(hotel.longitude);
+                return isFinite(lat) && lat >= -90 && lat <= 90 && isFinite(lng) && lng >= -180 && lng <= 180;
             });
-            if (validHotels.length === 0) {
-                console.warn('No hotels with valid coordinates; showing default center');
-            }
 
+            var southAfricaCenter = { lat: -36.0, lng: 24.0 };
+            var southAfricaZoom = 4.5;
             var bounds = new google.maps.LatLngBounds();
             var deviceType = getDeviceType();
-            var mapZoom = (deviceType === 'mobile') ? 5 : 5.504;
-            var adjustedCenterLat, adjustedCenterLng;
 
             if (validHotels.length > 0) {
-                var centerLat = 0;
-                var centerLng = 0;
                 validHotels.forEach(function (hotel) {
                     var lat = parseFloat(hotel.latitude);
                     var lng = parseFloat(hotel.longitude);
-                    centerLat += lat;
-                    centerLng += lng;
                     bounds.extend(new google.maps.LatLng(lat, lng));
                 });
-                centerLat = centerLat / validHotels.length;
-                centerLng = centerLng / validHotels.length;
-                var ne = bounds.getNorthEast();
-                var sw = bounds.getSouthWest();
-                var latSpan = ne.lat() - sw.lat();
-                var lngSpan = ne.lng() - sw.lng();
-                var latMultiplier = (deviceType === 'mobile') ? 13 : (deviceType === 'tablet') ? 8 : 14;
-                var lngMultiplier = (deviceType === 'mobile') ? 1 : (deviceType === 'tablet') ? 0 : -1.2;
-                adjustedCenterLat = centerLat + (latSpan * latMultiplier);
-                adjustedCenterLng = centerLng + (lngSpan * lngMultiplier);
-            } else {
-                adjustedCenterLat = -33.9249;
-                adjustedCenterLng = 18.4241;
             }
 
+            // Start with South Africa by default; fit to markers after load
             map = new google.maps.Map(document.getElementById('partner-portfolio-map'), {
-                zoom: mapZoom,
-                center: { lat: adjustedCenterLat, lng: adjustedCenterLng },
+                zoom: southAfricaZoom,
+                center: southAfricaCenter,
                 minZoom: 2,
                 maxZoom: 10,
                 styles: [
@@ -343,6 +317,34 @@ var dhrPartnerPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
                         stylers: [{ color: '#E2EFF7' }]
                     }
                 ]
+            });
+
+            // After map loads, fit to markers with 10% zoom out and shift to right-bottom
+            google.maps.event.addListenerOnce(map, 'idle', function () {
+                if (validHotels.length > 0 && !bounds.isEmpty()) {
+                    var padding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
+                    // Zoom out 10%: expand bounds by 10% then fit (avoids setZoom timing issues)
+                    var ne = bounds.getNorthEast();
+                    var sw = bounds.getSouthWest();
+                    var center = bounds.getCenter();
+                    var latSpan = ne.lat() - sw.lat();
+                    var lngSpan = ne.lng() - sw.lng();
+                    var expandFactor = 1.07;
+                    var expandedBounds = new google.maps.LatLngBounds(
+                        new google.maps.LatLng(center.lat() - (latSpan * expandFactor) / 2, center.lng() - (lngSpan * expandFactor) / 2),
+                        new google.maps.LatLng(center.lat() + (latSpan * expandFactor) / 2, center.lng() + (lngSpan * expandFactor) / 2)
+                    );
+                    map.fitBounds(expandedBounds, padding);
+                    // Pan so content sits toward right-bottom (after fitBounds animation)
+                    setTimeout(function () {
+                        var mapDiv = document.getElementById('partner-portfolio-map');
+                        if (mapDiv) {
+                            var w = mapDiv.offsetWidth;
+                            var h = mapDiv.offsetHeight;
+                            map.panBy(-Math.round(w * 0.22), -Math.round(h * 0.22));
+                        }
+                    }, 400);
+                }
             });
 
             // Create markers for each valid hotel

@@ -156,6 +156,7 @@ class DHR_Hotel_Database {
         $sql_categories = "CREATE TABLE IF NOT EXISTS $categories_table (
             id int(11) NOT NULL AUTO_INCREMENT,
             title varchar(255) NOT NULL,
+            subtitle varchar(255) DEFAULT NULL,
             description text,
             image_url varchar(500) DEFAULT NULL,
             icon_url varchar(500) DEFAULT NULL,
@@ -167,6 +168,7 @@ class DHR_Hotel_Database {
             PRIMARY KEY (id)
         ) $charset_collate;";
         dbDelta($sql_categories);
+        self::maybe_upgrade_dhr_categories_table($categories_table);
 
         // Create packages table
         $packages_table = $wpdb->prefix . 'dhr_packages';
@@ -236,6 +238,24 @@ class DHR_Hotel_Database {
 
         if (!in_array('hotel_code', $existing, true)) {
             $wpdb->query("ALTER TABLE `$table_name` ADD UNIQUE KEY hotel_code (hotel_code)");
+        }
+    }
+
+    /**
+     * Add missing columns to wp_dhr_categories (e.g. subtitle) for existing installs.
+     */
+    public static function maybe_upgrade_dhr_categories_table($table_name) {
+        global $wpdb;
+        $existing = $wpdb->get_col($wpdb->prepare(
+            "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE table_schema = %s AND table_name = %s",
+            DB_NAME,
+            $table_name
+        ));
+        if (!is_array($existing)) {
+            return;
+        }
+        if (!in_array('subtitle', $existing, true)) {
+            $wpdb->query("ALTER TABLE `$table_name` ADD COLUMN subtitle varchar(255) DEFAULT NULL AFTER title");
         }
     }
 
@@ -770,13 +790,13 @@ class DHR_Hotel_Database {
     public static function get_all_categories() {
         global $wpdb;
         $table = $wpdb->prefix . 'dhr_categories';
-        return $wpdb->get_results("SELECT * FROM $table ORDER BY title ASC");
+        return $wpdb->get_results("SELECT * FROM $table ORDER BY id ASC");
     }
 
     public static function get_active_categories() {
         global $wpdb;
         $table = $wpdb->prefix . 'dhr_categories';
-        return $wpdb->get_results($wpdb->prepare("SELECT * FROM $table WHERE is_active = %d ORDER BY title ASC", 1));
+        return $wpdb->get_results($wpdb->prepare("SELECT * FROM $table WHERE is_active = %d ORDER BY id ASC", 1));
     }
 
     public static function get_category($id) {
@@ -791,6 +811,7 @@ class DHR_Hotel_Database {
         $user_id = get_current_user_id();
         $row = array(
             'title'       => sanitize_text_field($data['title']),
+            'subtitle'    => sanitize_text_field(isset($data['subtitle']) ? $data['subtitle'] : ''),
             'description' => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
             'image_url'   => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
             'icon_url'    => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
@@ -798,7 +819,7 @@ class DHR_Hotel_Database {
             'created_by'  => $user_id ? $user_id : null,
             'updated_by'  => $user_id ? $user_id : null,
         );
-        $result = $wpdb->insert($table, $row, array('%s', '%s', '%s', '%s', '%d', '%d', '%d'));
+        $result = $wpdb->insert($table, $row, array('%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d'));
         return $result !== false ? $wpdb->insert_id : false;
     }
 
@@ -808,13 +829,14 @@ class DHR_Hotel_Database {
         $user_id = get_current_user_id();
         $row = array(
             'title'       => sanitize_text_field($data['title']),
+            'subtitle'    => sanitize_text_field(isset($data['subtitle']) ? $data['subtitle'] : ''),
             'description' => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
             'image_url'   => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
             'icon_url'    => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
             'is_active'   => isset($data['is_active']) ? (int) $data['is_active'] : 1,
             'updated_by'  => $user_id ? $user_id : null,
         );
-        return $wpdb->update($table, $row, array('id' => (int) $id), array('%s', '%s', '%s', '%s', '%d', '%d'), array('%d')) !== false;
+        return $wpdb->update($table, $row, array('id' => (int) $id), array('%s', '%s', '%s', '%s', '%s', '%d', '%d'), array('%d')) !== false;
     }
 
     public static function delete_category($id) {

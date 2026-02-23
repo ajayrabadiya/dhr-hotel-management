@@ -85,6 +85,8 @@ class DHR_Hotel_Management {
         $categories_table = $wpdb->prefix . 'dhr_categories';
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $categories_table)) !== $categories_table) {
             DHR_Hotel_Database::create_tables();
+        } else {
+            DHR_Hotel_Database::maybe_upgrade_dhr_categories_table($categories_table);
         }
     }
 

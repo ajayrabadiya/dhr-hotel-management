@@ -364,6 +364,7 @@ div:focus-visible {
     font-weight: 400;
     line-height: 120%;
     margin: 0;
+    text-decoration: none;
 }
 
 .all-maps .hotel-phone-number:hover {
@@ -581,6 +582,7 @@ div:focus-visible {
     padding: 10px 20px;
     transition: all .25s ease-in-out;
     border-radius: 4px;
+    text-decoration: none;
 }
 
 @media (max-width:480px) {
@@ -2217,6 +2219,22 @@ div:focus-visible {
     margin: 0 auto;
 }
 
+.bird-packages__experinces .bys-packages {
+    background-color: transparent;
+}
+
+.bird-packages__experinces .bys-packages .bys-package-button {
+    height: 48px;
+    font-size: 16px;
+    padding: 10px 33px;
+}
+
+@media (max-width: 600px) {
+    .bird-packages__experinces .bys-packages .bys-package-button {
+        width: 100%;
+    }
+}
+
 .bird-packages__first {
     padding-top: 40px;
     display: grid;
@@ -2225,12 +2243,34 @@ div:focus-visible {
 }
 
 .bird-packages__content__label {
+    display: block;
     font-size: 13px;
     font-weight: 600;
     line-height: 14.4px;
+    letter-spacing: 0.02em;
     color: #D3AA74;
     text-transform: uppercase;
     margin-bottom: 20px;
+}
+
+.bird-packages__content__title__tag .bird-packages__content__title {
+    font-family: inherit;
+    font-size: 40px;
+    font-weight: 300;
+    line-height: 110%;
+    color: #062943;
+    max-width: 580px;
+}
+
+@media (max-width: 1023px) {
+    .bird-packages__content__label {
+        margin-bottom: 10px;
+    }
+
+    .bird-packages__content__title__tag .bird-packages__content__title {
+        font-size: 30px;
+        line-height: 120%;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -2281,15 +2321,12 @@ div:focus-visible {
 }
 
 @media (max-width: 1023px) {
-
     .bird-packages__content__title__tag {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
         margin-bottom: 20px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #9EA1A3;
     }
 
     .bird-packages__content__title {
@@ -2306,10 +2343,18 @@ div:focus-visible {
 
     .bird-packages__content__description {
         padding-bottom: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #9EA1A3;
     }
 
-    .bird-packages-grid__card__info {
-        padding-bottom: 0 !important;
+    .bird-packages__content__description p {
+        margin: 0;
+    }
+}
+
+@media (max-width: 575px) {
+    .bird-packages__content__title__tag {
+        margin-bottom: 15px;
     }
 }
 
@@ -2337,7 +2382,9 @@ div:focus-visible {
     max-width: 580px;
 }
 
-.bird-packages__content__description {
+.bird-packages__content__description,
+.bird-packages__content__description>p {
+    font-size: 16px;
     font-weight: 400;
     line-height: 140%;
     color: #676B6D;
@@ -2387,10 +2434,43 @@ div:focus-visible {
     height: 690px;
 }
 
+@media (max-width: 1370px) {
+    .bird-packages-grid__card {
+        max-height: 600px;
+        height: 600px;
+    }
+}
+
+@media (max-width: 1280px) {
+    .bird-packages-grid__card {
+        max-height: 500px;
+        height: 500px;
+    }
+}
+
 .bird-packages-grid__card__info {
     max-width: 740px;
     margin: 0 auto;
-    padding: 16px;
+    padding: 0 10px;
+    text-align: center;
+}
+
+@media (max-width: 1370px) {
+    .bird-packages-grid__card__info {
+        padding: 30px 40px 40px;
+    }
+}
+
+@media (max-width: 1023px) {
+    .bird-packages-grid__card__info {
+        text-align: left;
+    }
+}
+
+@media (max-width: 420px) {
+    .bird-packages-grid__card__info {
+        padding: 25px 30px 30px;
+    }
 }
 
 .bird-packages__two .bird-packages__content__title,
@@ -2409,6 +2489,13 @@ div:focus-visible {
     object-fit: cover;
     object-position: center;
     background-position: center;
+}
+
+.bird-packages__two .bird-packages-grid__card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 @media (max-width: 1023px) {
@@ -2437,7 +2524,7 @@ div:focus-visible {
     }
 
     .bird-packages__two .bird-packages-grid__card__image {
-        height: 400px;
+        height: 450px;
         background-position: right;
         background-size: cover;
     }
@@ -2445,7 +2532,13 @@ div:focus-visible {
 
 @media (max-width: 767px) {
     .bird-packages__two .bird-packages-grid__card__image {
-        height: 250px;
+        height: auto;
+    }
+}
+
+@media (max-width: 575px) {
+    .bird-packages__two .bird-packages-grid__card__image {
+        height: 100%;
     }
 }
 
@@ -2489,7 +2582,7 @@ div:focus-visible {
     background-position: center center;
     background-repeat: no-repeat;
     transition: transform 0.8s;
-    z-index: -1;
+    /* z-index: -1; */
 }
 
 .bys-hotel-rooms-second .bys-hotel-room-card:hover .bys-hotel-room-card__frature-img {
