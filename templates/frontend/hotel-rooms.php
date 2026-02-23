@@ -12,7 +12,10 @@ if (!defined('ABSPATH')) {
 $layout = isset($hotel_data['layout']) ? $hotel_data['layout'] : 'grid';
 $hotel_code = $hotel_data['hotel_code'];
 $hotel_name = $hotel_data['hotel_name'];
+$channel_id = isset($hotel_data['channel_id']) ? (int) $hotel_data['channel_id'] : 30;
 $rooms = $hotel_data['rooms'];
+$book_now_checkin = date('Y-m-d');
+$book_now_checkout = date('Y-m-d', strtotime('+1 day'));
 $columns = $hotel_data['columns'];
 $show_images = $hotel_data['show_images'];
 $show_amenities = $hotel_data['show_amenities'];
@@ -185,9 +188,8 @@ function dhr_format_room_price($amount) {
 
                         <div class="bys-room-actions">
                             <a href="#" class="bys-book-now-link" data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
-                                data-hotel-code="<?php echo esc_attr($hotel_code); ?>" data-property-id=""
-                                data-checkin="<?php echo esc_attr(date('Y-m-d', strtotime('+1 day'))); ?>"
-                                data-checkout="<?php echo esc_attr(date('Y-m-d', strtotime('+3 days'))); ?>"
+                                data-hotel-code="<?php echo esc_attr($hotel_code); ?>" data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                                data-checkin="<?php echo esc_attr($book_now_checkin); ?>" data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
                                 data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>" data-children="0" data-rooms="1">
                                 <?php _e('Book Now', 'dhr-hotel-management'); ?>
                             </a>
@@ -236,9 +238,9 @@ function dhr_format_room_price($amount) {
                                 <a href="#" class="bys-hotel-btn button-light bys-book-now-link"
                                     data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
                                     data-hotel-code="<?php echo esc_attr($hotel_code); ?>"
-                                    data-property-id=""
-                                    data-checkin="<?php echo esc_attr(date('Y-m-d', strtotime('+1 day'))); ?>"
-                                    data-checkout="<?php echo esc_attr(date('Y-m-d', strtotime('+3 days'))); ?>"
+                                    data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                                    data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
+                                    data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
                                     data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>"
                                     data-children="0"
                                     data-rooms="1"><?php _e('Book Now', 'dhr-hotel-management'); ?></a>

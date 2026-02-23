@@ -463,6 +463,14 @@ class DHR_Hotel_API {
     }
 
     /**
+     * Get SHR Availability API base URL (POST availability check, different from Shop API).
+     */
+    private function get_shr_availability_base_url() {
+        $url = get_option('dhr_shr_availability_base_url', 'https://api.shrglobal.com/availability');
+        return rtrim($url, '/');
+    }
+
+    /**
      * Clear cached SHR access token (so next call will request a new one).
      * Also clears manual token so expired manual token is not reused.
      * Used when API returns 401 to force token refresh.
@@ -539,6 +547,88 @@ class DHR_Hotel_API {
             'success'      => true,
             'access_token' => $access_token,
         );
+    }
+
+    /**
+     * Request and cache a token with scope wsapi.shop.availability (for availability API only).
+     * Uses same client id/secret; separate cache so main token is unchanged.
+     */
+    private function request_shr_availability_token() {
+        $client_id     = $this->get_shr_client_id();
+        $client_secret = $this->get_shr_client_secret();
+        $token_url     = $this->get_shr_token_url();
+        $scope         = 'wsapi.shop.availability';
+
+        if (empty($client_id) || empty($client_secret)) {
+            return array(
+                'success' => false,
+                'error'   => __('SHR client ID and secret are required for availability.', 'dhr-hotel-management'),
+            );
+        }
+
+        $response = wp_remote_post(
+            $token_url,
+            array(
+                'headers' => array(
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ),
+                'body'    => array(
+                    'client_id'     => $client_id,
+                    'client_secret' => $client_secret,
+                    'grant_type'    => 'client_credentials',
+                    'scope'         => $scope,
+                ),
+                'timeout' => 30,
+            )
+        );
+
+        if (is_wp_error($response)) {
+            return array(
+                'success' => false,
+                'error'   => $response->get_error_message(),
+            );
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body        = wp_remote_retrieve_body($response);
+        $data        = json_decode($body, true);
+
+        if ($status_code !== 200 || !is_array($data) || empty($data['access_token'])) {
+            return array(
+                'success' => false,
+                'error'   => sprintf(
+                    __('SHR availability token failed (status %d). Ensure scope "wsapi.shop.availability" is allowed for your client.', 'dhr-hotel-management'),
+                    $status_code
+                ),
+                'details' => $body,
+            );
+        }
+
+        $access_token = $data['access_token'];
+        $expires_in   = isset($data['expires_in']) ? intval($data['expires_in']) : 3600;
+
+        update_option('dhr_shr_availability_access_token', $access_token);
+        update_option('dhr_shr_availability_access_token_expires_at', time() + $expires_in);
+
+        return array(
+            'success'      => true,
+            'access_token' => $access_token,
+        );
+    }
+
+    /**
+     * Get SHR token for availability API (scope wsapi.shop.availability).
+     * Cached separately from main token; 60s buffer before expiry.
+     *
+     * @return array { success, access_token?, error? }
+     */
+    public function get_shr_availability_token() {
+        $cached = get_option('dhr_shr_availability_access_token', '');
+        $expires_at = intval(get_option('dhr_shr_availability_access_token_expires_at', 0));
+        if (!empty($cached) && $expires_at > (time() + 60)) {
+            return array('success' => true, 'access_token' => $cached);
+        }
+        return $this->request_shr_availability_token();
     }
 
     /**
@@ -927,6 +1017,158 @@ class DHR_Hotel_API {
             'from_price' => $from_price,
             'rates'      => $rates,
         );
+    }
+
+    /**
+     * Check SHR availability and return Windsurfer booking URL if rooms available.
+     * Uses scope wsapi.shop.availability (separate token). Deep link: res.windsurfercrs.com/ibe/details.aspx
+     *
+     * @param string   $hotel_code Hotel code e.g. DRE002
+     * @param int      $channel_id Channel ID e.g. 30
+     * @param string   $check_in   Y-m-d
+     * @param string   $check_out  Y-m-d
+     * @param int      $rooms      Number of rooms
+     * @param int      $adults     Number of adults
+     * @param int|null $child_age  Single child age or null
+     * @return array { success, url? } or { success: false, errors: string[] }
+     */
+    public function get_shr_availability_booking_url($hotel_code, $channel_id, $check_in, $check_out, $rooms, $adults, $child_age = null) {
+        $hotel_code = trim($hotel_code);
+        $channel_id = (int) $channel_id;
+        $rooms      = max(1, (int) $rooms);
+        $adults     = max(1, (int) $adults);
+        if ($hotel_code === '') {
+            return array('success' => false, 'errors' => array(__('Hotel code is required.', 'dhr-hotel-management')));
+        }
+
+        $token_result = $this->get_shr_availability_token();
+        if (!$token_result['success']) {
+            return array(
+                'success' => false,
+                'errors'  => array($token_result['error'] ?: __('Unable to connect to the booking service.', 'dhr-hotel-management')),
+            );
+        }
+
+        $base_url = $this->get_shr_availability_base_url();
+        $url      = $base_url . '/' . rawurlencode($hotel_code);
+        $payload  = array(
+            'adults'    => $adults,
+            'Child'     => $child_age !== null ? array((int) $child_age) : array(),
+            'channelID' => $channel_id,
+            'checkIn'   => $check_in,
+            'checkOut'  => $check_out,
+            'rooms'     => $rooms,
+        );
+
+        $response = wp_remote_post(
+            $url,
+            array(
+                'headers' => array(
+                    'Content-Type'              => 'application/json',
+                    'Accept'                   => 'application/json',
+                    'Authorization'            => 'Bearer ' . $token_result['access_token'],
+                    'X-LoyaltyAPI-AccessToken' => 'string',
+                    'X-BookingEngine-ClientIP'  => 'string',
+                    'X-BookingEngine-Domain'   => 'string',
+                ),
+                'body'    => wp_json_encode($payload),
+                'timeout' => 30,
+            )
+        );
+
+        if (is_wp_error($response)) {
+            return array(
+                'success' => false,
+                'errors'  => array(__('We could not reach the booking service. Please check your connection and try again.', 'dhr-hotel-management')),
+            );
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body        = wp_remote_retrieve_body($response);
+        $data        = json_decode($body, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
+            return array(
+                'success' => false,
+                'errors'  => array(__('Something went wrong on our end. Please try again shortly.', 'dhr-hotel-management')),
+            );
+        }
+
+        if (isset($data['status']) && (int) $data['status'] === -1) {
+            $errors = isset($data['errors']) && is_array($data['errors']) ? $data['errors'] : array(__('We were unable to process your request. Please try different dates or contact us.', 'dhr-hotel-management'));
+            return array('success' => false, 'errors' => $errors);
+        }
+
+        $avail = isset($data['availResponse']) && is_array($data['availResponse']) ? $data['availResponse'] : array();
+        $available_rooms = isset($avail['rooms']) ? (int) $avail['rooms'] : 0;
+        if ($available_rooms <= 1) {
+            return array(
+                'success' => false,
+                'errors'  => array(__('Sorry, there are no rooms available for your selected dates. Please try different dates or adjust your guest count.', 'dhr-hotel-management')),
+            );
+        }
+
+        if (empty($avail['roomStayInfos']) || !is_array($avail['roomStayInfos']) || empty($avail['roomTypes']) || !is_array($avail['roomTypes'])) {
+            return array(
+                'success' => false,
+                'errors'  => array(__('No rooms could be found matching your request. Please try adjusting your search criteria.', 'dhr-hotel-management')),
+            );
+        }
+
+        $room_stays = $avail['roomStayInfos'];
+        usort($room_stays, function ($a, $b) {
+            $ra = isset($a['sortRank']) ? (int) $a['sortRank'] : 999;
+            $rb = isset($b['sortRank']) ? (int) $b['sortRank'] : 999;
+            return $ra <=> $rb;
+        });
+        $best = $room_stays[0];
+        $room_type_id = isset($best['roomTypeID']) ? $best['roomTypeID'] : null;
+        $rate_code_id = isset($best['rateCodeID']) ? $best['rateCodeID'] : null;
+
+        $matched_room = null;
+        foreach ($avail['roomTypes'] as $rt) {
+            if (isset($rt['id']) && $rt['id'] === $room_type_id) {
+                $matched_room = $rt;
+                break;
+            }
+        }
+        $matched_rate = null;
+        $rate_codes   = isset($avail['rateCodes']) && is_array($avail['rateCodes']) ? $avail['rateCodes'] : array();
+        foreach ($rate_codes as $rc) {
+            if (isset($rc['id']) && $rc['id'] === $rate_code_id) {
+                $matched_rate = $rc;
+                break;
+            }
+        }
+
+        $request_info = isset($data['requestInfo']) && is_array($data['requestInfo']) ? $data['requestInfo'] : array();
+        $hotel_id     = isset($request_info['hotelID']) ? $request_info['hotelID'] : null;
+
+        $fmt_date = function ($d) {
+            $t = strtotime($d);
+            return $t ? date('m/d/Y', $t) : $d;
+        };
+        $child_count = $child_age !== null ? 1 : 0;
+        $child_ages  = $child_age !== null ? (string) (int) $child_age : '';
+
+        $params = array_filter(array(
+            'hotelID'   => $hotel_id,
+            'langID'    => 1,
+            'checkin'   => $fmt_date($check_in),
+            'checkout'  => $fmt_date($check_out),
+            'rooms'     => $rooms,
+            'adults'    => $adults,
+            'children'  => $child_count ? $child_count : null,
+            'childAges' => $child_ages !== '' ? $child_ages : null,
+            'roomType'  => $matched_room && isset($matched_room['code']) ? $matched_room['code'] : null,
+            'rmID'      => $matched_room && isset($matched_room['id']) ? $matched_room['id'] : null,
+            'rate'      => $matched_rate && isset($matched_rate['code']) ? $matched_rate['code'] : null,
+            'rcID'      => $matched_rate && isset($matched_rate['id']) ? $matched_rate['id'] : null,
+        ), function ($v) { return $v !== null && $v !== ''; });
+
+        $booking_url = 'https://res.windsurfercrs.com/ibe/details.aspx?' . http_build_query($params);
+
+        return array('success' => true, 'url' => $booking_url);
     }
 
     /**

@@ -32,6 +32,8 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
         add_shortcode('dhr_category_list', array($this, 'display_package_experiences_design'));
 
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
+        add_action('wp_ajax_dhr_get_availability_booking_url', array($this, 'ajax_get_availability_booking_url'));
+        add_action('wp_ajax_nopriv_dhr_get_availability_booking_url', array($this, 'ajax_get_availability_booking_url'));
     }
     
     /**
@@ -144,7 +146,48 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
                 'hotels' => $hotels_array,
                 'pluginUrl' => DHR_HOTEL_PLUGIN_URL
             ));
+            wp_localize_script('dhr-hotel-frontend-script', 'dhrBookNow', array(
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce'   => wp_create_nonce('dhr_get_availability_booking_url'),
+            ));
         }
+    }
+
+    /**
+     * AJAX: get SHR availability booking URL (check-in today, check-out tomorrow by default).
+     * Expects: hotel_code, channel_id, check_in, check_out, rooms, adults, child_age (optional).
+     * Returns JSON: { success, url? } or { success: false, errors: [] }
+     */
+    public function ajax_get_availability_booking_url() {
+        check_ajax_referer('dhr_get_availability_booking_url', 'nonce');
+        $hotel_code = isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '';
+        $channel_id = isset($_POST['channel_id']) ? absint($_POST['channel_id']) : 0;
+        $check_in   = isset($_POST['check_in']) ? sanitize_text_field($_POST['check_in']) : '';
+        $check_out  = isset($_POST['check_out']) ? sanitize_text_field($_POST['check_out']) : '';
+        $rooms      = isset($_POST['rooms']) ? max(1, absint($_POST['rooms'])) : 1;
+        $adults     = isset($_POST['adults']) ? max(1, absint($_POST['adults'])) : 2;
+        $child_age  = isset($_POST['child_age']) ? sanitize_text_field($_POST['child_age']) : '';
+
+        if (empty($hotel_code)) {
+            wp_send_json(array('success' => false, 'errors' => array(__('Hotel code is required.', 'dhr-hotel-management'))));
+        }
+        if ($channel_id <= 0) {
+            $channel_id = (int) get_option('dhr_shr_channel_id', '30');
+        }
+        $today  = date('Y-m-d');
+        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+        if (empty($check_in) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $check_in)) {
+            $check_in = $today;
+        }
+        if (empty($check_out) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $check_out)) {
+            $check_out = $tomorrow;
+        }
+        $child_age_int = $child_age === '' || $child_age === null ? null : max(0, min(17, (int) $child_age));
+
+        $api = DHR_Hotel_API::get_instance();
+        $result = $api->get_shr_availability_booking_url($hotel_code, $channel_id, $check_in, $check_out, $rooms, $adults, $child_age_int);
+
+        wp_send_json($result);
     }
     
     /**
@@ -432,10 +475,12 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
             }
         }
 
+        $channel_id = (int) get_option('dhr_shr_channel_id', '30');
         $hotel_data = array(
             'layout' => $layout,
             'hotel_code' => $hotel_code,
             'hotel_name' => $hotel_name,
+            'channel_id' => $channel_id,
             'rooms' => $rooms,
             'columns' => intval($atts['columns']),
             'show_images' => filter_var($atts['show_images'], FILTER_VALIDATE_BOOLEAN),
