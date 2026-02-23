@@ -18,38 +18,42 @@ $accordion_svg = '<path d="M20.8359 15.9141L21.9141 14.8359L12.5391 5.46094L12 4
 <!-- Five Package Design - Category List data -->
 <div class="bird-packages__experinces">
     <div class="bird-packages__two">
-        <div class="bird-packages__two__content">
-            <?php if (empty($categories)) : ?>
-                <p class="bird-packages__empty"><?php esc_html_e('No package experiences available. Add categories in the admin panel.', 'dhr-hotel-management'); ?></p>
-            <?php else : ?>
-                <?php foreach ($categories as $index => $cat) :
-                    $image_url = !empty($cat->image_url) ? $cat->image_url : $default_image;
-                    $is_image_first = ($index % 2) === 1;
-                ?>
-                <div class="bird-packages-grid__card">
-                    <?php if ($is_image_first) : ?>
-                        <div class="bird-packages-grid__card__image" style="background-image: url('<?php echo esc_url($image_url); ?>')"></div>
-                    <?php endif; ?>
-                    <div class="bird-packages-grid__card__info">
-                        <span class="bird-packages__content__label"><?php echo esc_html(strtoupper($cat->title)); ?></span>
-                        <div class="bird-packages__content__title__tag">
-                            <h3 class="bird-packages__content__title"><?php echo esc_html($cat->title); ?></h3>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <?php echo $accordion_svg; ?>
-                            </svg>
-                        </div>
-                        <div class="bird-packages__content__description-wrapper">
-                            <div class="bird-packages__content__description"><?php echo wp_kses_post(wpautop($cat->description ? $cat->description : '')); ?></div>
-                        </div>
+        <?php if (empty($categories)) : ?>
+            <p class="bird-packages__empty"><?php esc_html_e('No package experiences available. Add categories in the admin panel.', 'dhr-hotel-management'); ?></p>
+        <?php else : ?>
+            <?php foreach ($categories as $index => $cat) :
+                $image_url = !empty($cat->image_url) ? $cat->image_url : $default_image;
+                $is_image_first = ($index % 2) === 1;
+            ?>
+            <div class="bird-packages-grid__card">
+                <?php if ($is_image_first) : ?>
+                    <div class="bird-packages-grid__card__image" style="">
+                        <img src="<?php echo esc_url($image_url); ?>" alt="">
+                    </div>
+                <?php endif; ?>
+                <div class="bird-packages-grid__card__info">
+                    <span class="bird-packages__content__label"><?php echo esc_html(!empty($cat->subtitle) ? $cat->subtitle : strtoupper($cat->title)); ?></span>
+                    <div class="bird-packages__content__title__tag">
+                        <h3 class="bird-packages__content__title"><?php echo esc_html($cat->title); ?></h3>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <?php echo $accordion_svg; ?>
+                        </svg>
+                    </div>
+                    <div class="bird-packages__content__description-wrapper">
+                        <div class="bird-packages__content__description"><?php echo wp_kses_post(wpautop($cat->description ? $cat->description : '')); ?></div>
+                    </div>
+                    <div class="bys-packages">
                         <a href="#" class="bys-package-button button--theme-2"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
                     </div>
-                    <?php if (!$is_image_first) : ?>
-                        <div class="bird-packages-grid__card__image" style="background-image: url('<?php echo esc_url($image_url); ?>')"></div>
-                    <?php endif; ?>
                 </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+                <?php if (!$is_image_first) : ?>
+                    <div class="bird-packages-grid__card__image" style="">
+                        <img src="<?php echo esc_url($image_url); ?>" alt="">
+                    </div>
+                <?php endif; ?>
+            </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
     <script>

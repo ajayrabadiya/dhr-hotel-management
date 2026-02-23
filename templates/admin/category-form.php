@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) {
 $is_edit = $category !== null;
 $title = $is_edit ? __('Edit Category', 'dhr-hotel-management') : __('Add New Category', 'dhr-hotel-management');
 $cat_title = $is_edit ? $category->title : '';
+$cat_subtitle = $is_edit ? (isset($category->subtitle) ? $category->subtitle : '') : '';
 $cat_description = $is_edit ? $category->description : '';
 $image_url = $is_edit ? $category->image_url : '';
 $icon_url = $is_edit ? $category->icon_url : '';
@@ -25,6 +26,12 @@ $is_active = $is_edit ? (int) $category->is_active : 1;
         <?php endif; ?>
 
         <table class="form-table">
+            <tr>
+                <th><label for="subtitle"><?php _e('Subtitle', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="text" id="subtitle" name="subtitle" class="regular-text" value="<?php echo esc_attr($cat_subtitle); ?>" placeholder="<?php esc_attr_e('e.g. FUN TOGETHER', 'dhr-hotel-management'); ?>">
+                </td>
+            </tr>
             <tr>
                 <th><label for="title"><?php _e('Title', 'dhr-hotel-management'); ?> <span class="required">*</span></label></th>
                 <td>

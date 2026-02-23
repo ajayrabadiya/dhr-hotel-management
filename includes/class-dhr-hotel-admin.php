@@ -419,6 +419,7 @@ class DHR_Hotel_Admin {
         $id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
         $data = array(
             'title'      => isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '',
+            'subtitle'   => isset($_POST['subtitle']) ? sanitize_text_field($_POST['subtitle']) : '',
             'description' => isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '',
             'image_url'  => isset($_POST['image_url']) ? esc_url_raw($_POST['image_url']) : '',
             'icon_url'   => isset($_POST['icon_url']) ? esc_url_raw($_POST['icon_url']) : '',
