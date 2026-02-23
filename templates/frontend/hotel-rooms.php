@@ -49,6 +49,11 @@ function get_amenity_icon($amenity_name)
  */
 function format_room_description($room)
 {
+    // Use API shortDescription when available
+    if (!empty($room->description)) {
+        return $room->description;
+    }
+
     $parts = array();
 
     // Bed type
@@ -673,7 +678,7 @@ function format_room_description($room)
 
 <!-- My Hotel Room - 2 -->
 
-<div class="bys-hotel-rooms-second">
+<div class="bys-hotel-rooms-second" style="display: none;">
     <div class="bys-hotel-room-grid">
         <div class="bys-hotel-room-card">
             <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($plugin_url . 'assets/images/package/2.png'); ?>')"></div>

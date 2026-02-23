@@ -27,8 +27,9 @@ class DHR_Hotel_Frontend {
         add_shortcode('dhr_package_second_design', array($this, 'display_package_second_design'));
         add_shortcode('dhr_package_kids_design', array($this, 'display_package_kids_design'));
         add_shortcode('dhr_package_early_bird_design', array($this, 'display_package_early_bird_design'));
-        add_shortcode('dhr_package_experiences_design', array($this, 'display_package_experiences_design'));
-        
+add_shortcode('dhr_package_experiences_design', array($this, 'display_package_experiences_design'));
+        add_shortcode('dhr_category_list', array($this, 'display_package_experiences_design'));
+
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
     }
     

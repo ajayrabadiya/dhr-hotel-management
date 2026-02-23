@@ -464,11 +464,13 @@ class DHR_Hotel_API {
 
     /**
      * Clear cached SHR access token (so next call will request a new one).
+     * Also clears manual token so expired manual token is not reused.
      * Used when API returns 401 to force token refresh.
      */
     private function clear_shr_token_cache() {
         delete_option('dhr_shr_access_token');
         delete_option('dhr_shr_access_token_expires_at');
+        delete_option('dhr_shr_manual_access_token');
     }
 
     /**
@@ -669,10 +671,17 @@ class DHR_Hotel_API {
         $channel_id = get_option('dhr_shr_channel_id', '1');
         $url        = $base_url . '/hotelDetails/' . rawurlencode($hotel_code) . '/room';
         $url        = add_query_arg('channelId', $channel_id, $url);
+        $url       .= (strpos($url, '?') !== false ? '&' : '?') . 'requiredDetails=all&requiredDetails=images';
 
         $result = $this->do_shr_hotel_details_request($url, $token_result['access_token']);
 
+        // echo "<pre>" . print_r($result, true) . "</pre>"; // Debug output
+        // die(); // Stop execution after debug output
         if (!empty($result['error'])) {
+            if (isset($_GET['dhr_api_debug']) && $_GET['dhr_api_debug'] === '1') {
+                echo '<pre>' . print_r(array('url' => $url, 'result' => $result), true) . '</pre>';
+                exit;
+            }
             return array('success' => false, 'error' => $result['error']);
         }
 
@@ -680,7 +689,7 @@ class DHR_Hotel_API {
         $body        = $result['body'];
         $data        = $result['data'];
 
-        // On 401, regenerate token and retry once
+        // On 401 (token expired), clear cache/manual token and regenerate from API, then retry once
         if ($status_code === 401) {
             $client_id     = $this->get_shr_client_id();
             $client_secret = $this->get_shr_client_secret();
@@ -699,6 +708,11 @@ class DHR_Hotel_API {
             }
         }
 
+        if (isset($_GET['dhr_api_debug']) && $_GET['dhr_api_debug'] === '1') {
+            echo '<pre>' . print_r(array('url' => $url, 'status_code' => $status_code, 'body' => $body, 'data' => $data), true) . '</pre>';
+            exit;
+        }
+
         if ($status_code !== 200) {
             $err_msg = sprintf(__('SHR room API failed (status %d).', 'dhr-hotel-management'), $status_code);
             $err_data = is_array(json_decode($body, true)) ? json_decode($body, true) : array();
@@ -709,6 +723,18 @@ class DHR_Hotel_API {
 
         if (!is_array($data)) {
             return array('success' => false, 'error' => __('Invalid response format from SHR room API.', 'dhr-hotel-management'));
+        }
+
+        // Handle HTTP 200 with business error in body (e.g. status: 404, "Room Type Not Found")
+        if (isset($data['status']) && (int) $data['status'] >= 400) {
+            $err_msg = isset($data['title']) ? $data['title'] : __('SHR room API error.', 'dhr-hotel-management');
+            if (!empty($data['errors']) && is_array($data['errors'])) {
+                $err_msg .= ' ' . implode(' ', array_map('trim', $data['errors']));
+            }
+            if (strpos($err_msg, 'Room Type Not Found') !== false) {
+                $err_msg .= ' ' . sprintf(__('Try channelId=1 in DHR Hotel Settings (current: %s).', 'dhr-hotel-management'), $channel_id);
+            }
+            return array('success' => false, 'error' => trim($err_msg));
         }
 
         // Store last room API response for debugging / print (transient expires in 1 hour)
@@ -759,19 +785,24 @@ class DHR_Hotel_API {
             $room = new stdClass();
             $room->room_type_code    = $this->pluck($item, array('code', 'roomTypeCode', 'room_type_code'));
             $room->room_type_name    = $this->pluck($item, array('name', 'roomTypeName', 'room_type_name', 'roomName', 'description'));
+            $room->description       = $this->pluck($item, array('shortDescription', 'longDescription', 'description'));
             $room->max_occupancy     = intval($this->pluck($item, array('totalOccupancy', 'adultOccupancy', 'maxOccupancy', 'max_occupancy', 'maxAdults')));
             $room->standard_num_beds = intval($this->pluck($item, array('standardNumBeds', 'numBeds', 'beds')));
 
-            // Images (SHR room API productDetailList does not include images)
-            $imgs = $this->pluck($item, array('images', 'media', 'photos'));
+            // Images (SHR room API with requiredDetails=images returns productMedia, media, etc.)
+            $imgs = $this->pluck($item, array('images', 'media', 'photos', 'productMedia', 'mediaList', 'productDetailMedia'));
             if (is_array($imgs)) {
                 $urls = array();
                 foreach ($imgs as $img) {
                     $i = is_array($img) ? $img : (array) $img;
-                    $u = $this->pluck($i, array('fileName', 'url', 'path', 'value'));
-                    if (!empty($u)) $urls[] = $u;
+                    $u = $this->pluck($i, array('url', 'fileName', 'path', 'value', 'mediaUrl', 'fileUrl', 'imageUrl'));
+                    if (is_string($u) && !empty($u)) {
+                        $urls[] = $u;
+                    } elseif (is_array($u) && !empty($u['url'])) {
+                        $urls[] = $u['url'];
+                    }
                 }
-                $room->images = $urls;
+                $room->images = array_values(array_filter(array_unique($urls)));
             } else {
                 $room->images = array();
             }
