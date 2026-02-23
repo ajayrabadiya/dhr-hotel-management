@@ -171,7 +171,7 @@ $messages = array(
             <pre style="white-space: pre-wrap; word-break: break-all; margin: 0; font-size: 12px;"><?php echo esc_html(json_encode($last_room_response['data'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)); ?></pre>
         </div>
     <?php elseif ($show_room_response && !$last_room_response): ?>
-        <p style="margin-top: 16px; color: #646970;"><?php _e('No room API response stored yet. Load a page with [hotel_rooms hotel_code="DRE013"] to capture the response.', 'dhr-hotel-management'); ?></p>
+        <p style="margin-top: 16px; color: #646970;"><?php _e('No room API response stored yet. Set the hotel code in Book Your Stay → Settings, then load a page with [hotel_rooms] to capture the response.', 'dhr-hotel-management'); ?></p>
     <?php endif; ?>
 </div>
 
