@@ -377,6 +377,20 @@ class DHR_Hotel_Database {
                     'legend_weddings' => 'Weddings & Conferences',
                     'show_list' => true
                 ))
+            ),
+            array(
+                'map_type' => 'conference',
+                'map_name' => 'Conference Map',
+                'shortcode' => 'dhr_conference_map',
+                'settings' => json_encode(array(
+                    'header_label' => 'CONFERENCES',
+                    'main_heading' => 'Find A Conference Venue For Your Next Event',
+                    'description' => 'From intimate boardroom meetings to large-scale conferences, our venues offer world-class facilities equipped with modern technology, flexible spaces, and dedicated event coordinators to ensure your business gathering is a resounding success.',
+                    'reservation_label' => 'RESERVATION BY PHONE',
+                    'reservation_phone' => '+27 (0)13 243 9401/2',
+                    'dropdown_placeholder' => 'Select a Venue',
+                    'book_now_text' => 'Get A Quote'
+                ))
             )
         );
         

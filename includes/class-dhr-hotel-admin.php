@@ -311,14 +311,11 @@ class DHR_Hotel_Admin {
             DHR_Hotel_Database::create_tables();
         }
         
+        // Ensure any newly added default maps are inserted (skips existing ones)
+        DHR_Hotel_Database::create_default_map_configs();
+        
         // Get map configs
         $map_configs = DHR_Hotel_Database::get_all_map_configs();
-        
-        // If no maps exist, try to create them
-        if (empty($map_configs)) {
-            DHR_Hotel_Database::create_default_map_configs();
-            $map_configs = DHR_Hotel_Database::get_all_map_configs();
-        }
         
         include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/map-management.php';
     }
