@@ -391,6 +391,23 @@ class DHR_Hotel_Database {
                     'dropdown_placeholder' => 'Select a Venue',
                     'book_now_text' => 'Get A Quote'
                 ))
+            ),
+            array(
+                'map_type' => 'where_to_find_us',
+                'map_name' => 'Where To Find Us Map',
+                'shortcode' => 'dhr_where_to_find_us_map',
+                'settings' => json_encode(array(
+                    'main_heading' => 'Where To Find Us',
+                    'address_text' => '',
+                    'phone_label' => '',
+                    'phone_number' => '',
+                    'email_address' => '',
+                    'gps_coordinates' => '',
+                    'enquire_text' => 'Enquire now',
+                    'enquire_url' => '',
+                    'logo_url' => '',
+                    'bg_color' => '#8FA7BF'
+                ))
             )
         );
         

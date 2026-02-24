@@ -19,6 +19,7 @@ class DHR_Hotel_Frontend {
         add_shortcode('dhr_property_portfolio_map', array($this, 'display_property_portfolio_map'));
         add_shortcode('dhr_lodges_camps_map', array($this, 'display_lodges_camps_map'));
         add_shortcode('dhr_conference_map', array($this, 'display_conference_map'));
+        add_shortcode('dhr_where_to_find_us_map', array($this, 'display_where_to_find_us_map'));
         
         // Register hotel rooms shortcodes: [hotel_rooms] = grid, [hotel_rooms_cards] = cards
         add_shortcode('hotel_rooms', array($this, 'display_hotel_rooms'));
@@ -420,6 +421,24 @@ class DHR_Hotel_Frontend {
         
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/conference-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display Where To Find Us map shortcode (Map 9)
+     */
+    public function display_where_to_find_us_map($atts) {
+        $atts = shortcode_atts(array(
+            'height' => '450px'
+        ), $atts);
+        
+        $hotels = DHR_Hotel_Database::get_all_hotels('active');
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_where_to_find_us_map');
+        $settings = self::get_map_settings($map_config);
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/where-to-find-us-map.php';
         return ob_get_clean();
     }
     
