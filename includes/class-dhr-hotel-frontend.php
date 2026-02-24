@@ -494,44 +494,68 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
     }
     
     /**
-     * Display first package design shortcode
+     * Get packages for frontend display (active, within valid date range) with details and hotel info.
+     *
+     * @return array List of items: [ 'package' => object, 'details' => object|null, 'hotel' => object|null ]
+     */
+    public static function get_packages_for_display() {
+        $packages = DHR_Hotel_Database::get_available_packages();
+        $out = array();
+        foreach ($packages as $pkg) {
+            $details = DHR_Hotel_Database::get_package_details($pkg->id);
+            $hotel = !empty($pkg->hotel_code) ? DHR_Hotel_Database::get_hotel_by_code($pkg->hotel_code) : null;
+            $out[] = array(
+                'package'  => $pkg,
+                'details'  => $details,
+                'hotel'    => $hotel,
+            );
+        }
+        return $out;
+    }
+
+    /**
+     * Display first package design shortcode – data from database, same design.
      */
     public function display_package_first_design($atts) {
         $atts = shortcode_atts(array(), $atts);
-        
+        $packages = self::get_packages_for_display();
+        $plugin_url = DHR_HOTEL_PLUGIN_URL;
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-first-design.php';
         return ob_get_clean();
     }
-    
+
     /**
-     * Display second package design shortcode
+     * Display second package design shortcode – data from database, same design.
      */
     public function display_package_second_design($atts) {
         $atts = shortcode_atts(array(), $atts);
-        
+        $packages = self::get_packages_for_display();
+        $plugin_url = DHR_HOTEL_PLUGIN_URL;
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-second-design.php';
         return ob_get_clean();
     }
-    
+
     /**
-     * Display kids package design shortcode
+     * Display kids package design shortcode – data from database, same design.
      */
     public function display_package_kids_design($atts) {
         $atts = shortcode_atts(array(), $atts);
-        
+        $packages = self::get_packages_for_display();
+        $plugin_url = DHR_HOTEL_PLUGIN_URL;
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-kids-design.php';
         return ob_get_clean();
     }
-    
+
     /**
-     * Display early bird package design shortcode
+     * Display early bird package design shortcode – data from database, same design.
      */
     public function display_package_early_bird_design($atts) {
         $atts = shortcode_atts(array(), $atts);
-        
+        $packages = self::get_packages_for_display();
+        $plugin_url = DHR_HOTEL_PLUGIN_URL;
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-early-bird-design.php';
         return ob_get_clean();
