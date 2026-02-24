@@ -908,6 +908,31 @@ class DHR_Hotel_Database {
         ));
     }
 
+    /**
+     * Packages that are active, within valid date range, and in the given category IDs.
+     *
+     * @param int[] $category_ids Array of category IDs (e.g. [1, 2, 3]). Empty = all (same as get_available_packages).
+     * @return object[]
+     */
+    public static function get_available_packages_by_category_ids($category_ids = array()) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_packages';
+        $cat_table = $wpdb->prefix . 'dhr_categories';
+        $now = current_time('mysql');
+        $category_ids = array_filter(array_map('intval', (array) $category_ids));
+        if (empty($category_ids)) {
+            return self::get_available_packages();
+        }
+        $placeholders = implode(',', array_fill(0, count($category_ids), '%d'));
+        $query = $wpdb->prepare(
+            "SELECT p.*, c.title AS category_title FROM $table p " .
+            "LEFT JOIN $cat_table c ON c.id = p.category_id AND c.is_active = 1 " .
+            "WHERE p.is_active = 1 AND p.valid_from <= %s AND p.valid_to >= %s AND p.category_id IN ($placeholders) ORDER BY p.valid_from DESC",
+            array_merge(array($now, $now), $category_ids)
+        );
+        return $wpdb->get_results($query);
+    }
+
     public static function insert_package($data) {
         global $wpdb;
         $table = $wpdb->prefix . 'dhr_packages';

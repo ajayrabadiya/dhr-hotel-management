@@ -85,6 +85,14 @@ class DHR_Hotel_Admin {
         );
         add_submenu_page(
             'dhr-hotel-management',
+            __('Package Settings', 'dhr-hotel-management'),
+            __('Package Settings', 'dhr-hotel-management'),
+            'manage_options',
+            'dhr-hotel-package-settings',
+            array($this, 'display_package_settings')
+        );
+        add_submenu_page(
+            'dhr-hotel-management',
             __('Room Settings', 'dhr-hotel-management'),
             __('Room Settings', 'dhr-hotel-management'),
             'manage_options',
@@ -590,6 +598,17 @@ class DHR_Hotel_Admin {
         }
         wp_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=deleted'));
         exit;
+    }
+
+    /**
+     * Package Settings: category-wise shortcode generator.
+     */
+    public function display_package_settings() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        $categories = DHR_Hotel_Database::get_all_categories();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/package-settings.php';
     }
     
     /**
