@@ -844,6 +844,137 @@ class DHR_Hotel_API {
     }
 
     /**
+     * Get SHR channel ID from settings (used for hotelDetails package/room requests).
+     *
+     * @return string
+     */
+    private function get_shr_channel_id() {
+        return trim((string) get_option('dhr_shr_channel_id', '30'));
+    }
+
+    /**
+     * Fetch package details from SHR Shop API: GET hotelDetails/{hotelCode}/package?requiredDetails=all&requiredDetails=images&code={code}&channelId=...
+     * Used when adding a new package in admin to get beginDate/endDate and validate they are not in the past.
+     *
+     * @param string $hotel_code   Hotel code (e.g. DRE002)
+     * @param string $package_code Package code (e.g. CAPCLSQ)
+     * @return array { success, productDetails?, beginDate?, endDate?, error? }
+     */
+    public function fetch_shr_package_details($hotel_code, $package_code) {
+        $hotel_code   = trim($hotel_code);
+        $package_code = trim($package_code);
+        if ($hotel_code === '' || $package_code === '') {
+            return array(
+                'success' => false,
+                'error'   => __('Hotel code and package code are required.', 'dhr-hotel-management'),
+            );
+        }
+
+        $token_result = $this->get_shr_access_token(false);
+        if (!$token_result['success']) {
+            return array('success' => false, 'error' => $token_result['error']);
+        }
+
+        $base_url   = $this->get_shr_shop_base_url();
+        $channel_id = $this->get_shr_channel_id();
+        if ($channel_id === '') {
+            $channel_id = '30';
+        }
+        $url = $base_url . '/hotelDetails/' . rawurlencode($hotel_code) . '/package';
+        $url .= '?requiredDetails=all&requiredDetails=images&code=' . rawurlencode($package_code) . '&channelId=' . rawurlencode($channel_id);
+
+        $result = $this->do_shr_hotel_details_request($url, $token_result['access_token']);
+
+        if (!empty($result['error'])) {
+            return array('success' => false, 'error' => $result['error']);
+        }
+
+        $status_code = $result['status_code'];
+        $body        = $result['body'];
+        $data        = $result['data'];
+
+        if ($status_code === 401) {
+            $client_id     = $this->get_shr_client_id();
+            $client_secret = $this->get_shr_client_secret();
+            if (!empty($client_id) && !empty($client_secret)) {
+                $this->clear_shr_token_cache();
+                $token_result = $this->get_shr_access_token(true, true);
+                if ($token_result['success']) {
+                    $result = $this->do_shr_hotel_details_request($url, $token_result['access_token']);
+                    if (!empty($result['error'])) {
+                        return array('success' => false, 'error' => $result['error']);
+                    }
+                    $status_code = $result['status_code'];
+                    $body        = $result['body'];
+                    $data        = $result['data'];
+                }
+            }
+        }
+
+        if ($status_code !== 200) {
+            $err_msg = sprintf(__('SHR package API failed (status %d).', 'dhr-hotel-management'), $status_code);
+            $err_data = is_array(json_decode($body, true)) ? json_decode($body, true) : array();
+            if (!empty($err_data['error'])) {
+                $err_msg .= ' ' . $err_data['error'];
+            } elseif (!empty($err_data['message'])) {
+                $err_msg .= ' ' . $err_data['message'];
+            }
+            return array('success' => false, 'error' => $err_msg);
+        }
+
+        if (!is_array($data)) {
+            return array('success' => false, 'error' => __('Invalid response format from SHR package API.', 'dhr-hotel-management'));
+        }
+
+        if (isset($data['status']) && (int) $data['status'] >= 400) {
+            $err_msg = isset($data['title']) ? $data['title'] : __('SHR package API error.', 'dhr-hotel-management');
+            if (!empty($data['errors']) && is_array($data['errors'])) {
+                $err_msg .= ' ' . implode(' ', array_map('trim', $data['errors']));
+            }
+            return array('success' => false, 'error' => trim($err_msg));
+        }
+
+        $product_details = isset($data['productDetails']) && is_array($data['productDetails']) ? $data['productDetails'] : null;
+        if (!$product_details) {
+            return array('success' => false, 'error' => __('Package details not found in SHR response.', 'dhr-hotel-management'));
+        }
+
+        $begin_date = isset($product_details['beginDate']) ? trim($product_details['beginDate']) : '';
+        $end_date   = isset($product_details['endDate']) ? trim($product_details['endDate']) : '';
+        if ($begin_date === '' || $end_date === '') {
+            return array('success' => false, 'error' => __('Package begin date or end date is missing in SHR response.', 'dhr-hotel-management'));
+        }
+
+        return array(
+            'success'         => true,
+            'productDetails'  => $product_details,
+            'beginDate'      => $begin_date,
+            'endDate'        => $end_date,
+        );
+    }
+
+    /**
+     * Check if package validity dates are in the future (end date must be >= today).
+     * Used to block inserting packages that have already ended.
+     *
+     * @param string $begin_date ISO date or datetime (e.g. 2026-01-01T00:00:00)
+     * @param string $end_date   ISO date or datetime (e.g. 2026-11-30T00:00:00)
+     * @return array { valid, error? } valid true only when endDate >= today (no past-only packages).
+     */
+    public function validate_package_dates_not_past($begin_date, $end_date) {
+        $today = current_time('Y-m-d');
+        $begin_ymd = substr($begin_date, 0, 10);
+        $end_ymd   = substr($end_date, 0, 10);
+        if ($end_ymd < $today) {
+            return array(
+                'valid' => false,
+                'error' => __('This package has already ended. Only packages with an end date in the future can be added.', 'dhr-hotel-management'),
+            );
+        }
+        return array('valid' => true);
+    }
+
+    /**
      * Normalise SHR room API response to format expected by hotel-rooms.php template.
      * Handles productDetailList structure: code, name, totalOccupancy, roomAmenities (amenityName).
      */

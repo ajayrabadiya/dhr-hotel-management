@@ -6,11 +6,12 @@ if (!defined('ABSPATH')) {
     exit;
 }
 $message = isset($_GET['message']) ? sanitize_text_field($_GET['message']) : '';
+$error_detail = isset($_GET['error']) ? sanitize_text_field(wp_unslash($_GET['error'])) : '';
 $messages = array(
     'added'   => array('type' => 'success', 'text' => __('Package added successfully.', 'dhr-hotel-management')),
     'updated' => array('type' => 'success', 'text' => __('Package updated successfully.', 'dhr-hotel-management')),
     'deleted' => array('type' => 'success', 'text' => __('Package deleted.', 'dhr-hotel-management')),
-    'error'   => array('type' => 'error', 'text' => __('An error occurred. Please try again.', 'dhr-hotel-management')),
+    'error'   => array('type' => 'error', 'text' => $error_detail ? $error_detail : __('An error occurred. Please try again.', 'dhr-hotel-management')),
 );
 ?>
 <div class="wrap dhr-hotel-admin">
