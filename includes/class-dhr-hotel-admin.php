@@ -529,6 +529,7 @@ class DHR_Hotel_Admin {
             if (substr_count($valid_to, ':') === 1) {
                 $valid_to .= ':00';
             }
+            $api_result = $result; // Keep for saving to package_details table
         } else {
             // Edit: keep existing date handling
             if ($valid_from && strpos($valid_from, 'T') !== false) {
@@ -566,8 +567,13 @@ class DHR_Hotel_Admin {
             $result = DHR_Hotel_Database::update_package($id, $data);
             $message = $result ? 'updated' : 'error';
         } else {
-            $result = DHR_Hotel_Database::insert_package($data);
+            $new_package_id = DHR_Hotel_Database::insert_package($data);
+            $result = (bool) $new_package_id;
             $message = $result ? 'added' : 'error';
+            // Store SHR API response in package details table (only for new packages; we have $result from API in this block)
+            if ($new_package_id && isset($api_result) && !empty($api_result['productDetails'])) {
+                DHR_Hotel_Database::save_package_details($new_package_id, $api_result, $hotel_code);
+            }
         }
         wp_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=' . $message));
         exit;

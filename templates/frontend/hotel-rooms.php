@@ -193,7 +193,7 @@ function dhr_format_room_price($amount) {
                             <a href="javascript:void(0)" class="bys-book-now-link" data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
                                 data-hotel-code="<?php echo esc_attr($hotel_code); ?>" data-channel-id="<?php echo esc_attr($channel_id); ?>"
                                 data-checkin="<?php echo esc_attr($book_now_checkin); ?>" data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
-                                data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>" data-children="0" data-rooms="1">
+                                data-adults="1" data-children="0" data-rooms="1">
                                 <?php _e('Book Now', 'dhr-hotel-management'); ?>
                             </a>
                             <!-- <a href="#" class="bys-book-now-button" data-room-code="<?php //echo esc_attr($room->room_type_code); 

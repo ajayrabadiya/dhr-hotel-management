@@ -948,8 +948,9 @@ class DHR_Hotel_API {
         return array(
             'success'         => true,
             'productDetails'  => $product_details,
-            'beginDate'      => $begin_date,
-            'endDate'        => $end_date,
+            'beginDate'       => $begin_date,
+            'endDate'         => $end_date,
+            'raw_response'    => $data,
         );
     }
 
