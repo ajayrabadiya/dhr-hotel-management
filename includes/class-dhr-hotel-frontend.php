@@ -19,9 +19,10 @@ class DHR_Hotel_Frontend {
         add_shortcode('dhr_property_portfolio_map', array($this, 'display_property_portfolio_map'));
         add_shortcode('dhr_lodges_camps_map', array($this, 'display_lodges_camps_map'));
         
-        // Register hotel rooms shortcodes: [hotel_rooms] = grid, [hotel_rooms_cards] = cards
+        // Register hotel rooms shortcodes: [hotel_rooms] = grid, [hotel_rooms_cards] = cards, [hotel_rooms_second] = same grid
         add_shortcode('hotel_rooms', array($this, 'display_hotel_rooms'));
         add_shortcode('hotel_rooms_cards', array($this, 'display_hotel_rooms_cards'));
+        add_shortcode('hotel_rooms_second', array($this, 'display_hotel_rooms_second'));
         
         // Register package design shortcodes
         add_shortcode('dhr_package_first_design', array($this, 'display_package_first_design'));
@@ -418,6 +419,15 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
     }
 
     /**
+     * [hotel_rooms_second] – alternate design (horizontal card layout).
+     */
+    public function display_hotel_rooms_second($atts) {
+        $atts = is_array($atts) ? $atts : array();
+        $atts['_shortcode'] = 'hotel_rooms_second';
+        return $this->render_hotel_rooms($atts, 'grid_second');
+    }
+
+    /**
      * Shared renderer: fetches rooms and passes layout so template shows one design only.
      */
     private function render_hotel_rooms($atts, $layout) {
@@ -425,7 +435,8 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
             'columns' => '2',
             'show_images' => 'true',
             'show_amenities' => 'true',
-            'show_description' => 'true'
+            'show_description' => 'true',
+            '_shortcode' => ''
         ), $atts);
 
         $hotel_code = get_option('bys_hotel_code', '');
@@ -433,7 +444,7 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
 
         if (empty($hotel_code)) {
             $settings_url = admin_url('admin.php?page=book-your-stay');
-            $sc = $layout === 'cards' ? '[hotel_rooms_cards]' : '[hotel_rooms]';
+            $sc = !empty($atts['_shortcode']) ? '[' . $atts['_shortcode'] . ']' : ($layout === 'cards' ? '[hotel_rooms_cards]' : '[hotel_rooms]');
             $message = sprintf(
                 __('Hotel code is required. Set it in %s. Use shortcode: %s', 'dhr-hotel-management'),
                 '<a href="' . esc_url($settings_url) . '">' . __('Book Your Stay Settings', 'dhr-hotel-management') . '</a>',

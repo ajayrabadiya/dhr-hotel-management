@@ -1250,7 +1250,13 @@ div:focus-visible {
     max-width: 100%;
     padding: 0;
     background-color: #F5F8F9;
-    padding: 0 20px;
+    padding: 0;
+}
+
+@media (max-width: 767px) {
+    .bys-hotel-rooms {
+        padding: 0 20px;
+    }
 }
 
 .bys-hotel-rooms .bys-rooms-grid {
@@ -1383,6 +1389,12 @@ div:focus-visible {
     row-gap: 15px;
 }
 
+@media (max-width: 767px) {
+    .bys-hotel-rooms .bys-room-content {
+        row-gap: 13px;
+    }
+}
+
 .bys-hotel-rooms .bys-room-title {
     font-family: "Playfair", serif !important;
     font-size: 30px;
@@ -1390,6 +1402,12 @@ div:focus-visible {
     line-height: 40px;
     color: #462801;
     margin: 0;
+}
+
+@media (max-width: 767px) {
+    .bys-hotel-rooms .bys-room-title {
+        margin-bottom: -5px;
+    }
 }
 
 .bys-hotel-rooms .bys-room-specs-line {
@@ -2747,7 +2765,6 @@ div:focus-visible {
 }
 
 @media (max-width: 767px) {
-
     .bys-hotel-rooms-second .bys-hotel-room-grid {
         grid-template-columns: repeat(1, 1fr);
     }

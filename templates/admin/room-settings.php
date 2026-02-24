@@ -1,6 +1,6 @@
 <?php
 /**
- * Room Settings – copy shortcodes for [hotel_rooms] and [hotel_rooms_cards]
+ * Room Settings – copy shortcodes for [hotel_rooms], [hotel_rooms_cards], [hotel_rooms_second]
  */
 
 if (!defined('ABSPATH')) {
@@ -9,7 +9,8 @@ if (!defined('ABSPATH')) {
 
 $shortcode_rooms = '[hotel_rooms]';
 $shortcode_cards = '[hotel_rooms_cards]';
-$usage_php = "echo do_shortcode('[hotel_rooms]');\necho do_shortcode('[hotel_rooms_cards]');";
+$shortcode_rooms_second = '[hotel_rooms_second]';
+$usage_php = "echo do_shortcode('[hotel_rooms]');\necho do_shortcode('[hotel_rooms_cards]');\necho do_shortcode('[hotel_rooms_second]');";
 ?>
 
 <div class="wrap dhr-hotel-admin">
@@ -30,6 +31,14 @@ $usage_php = "echo do_shortcode('[hotel_rooms]');\necho do_shortcode('[hotel_roo
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <input type="text" class="dhr-shortcode-input regular-text" value="<?php echo esc_attr($shortcode_cards); ?>" readonly style="flex: 1; min-width: 200px;">
                 <button type="button" class="button dhr-copy-shortcode" data-shortcode="<?php echo esc_attr($shortcode_cards); ?>"><?php _e('Copy', 'dhr-hotel-management'); ?></button>
+            </div>
+        </div>
+
+        <div class="dhr-shortcode-box" style="background: #f6f7f7; border: 1px solid #c3c4c7; border-radius: 4px; padding: 16px 20px; margin-bottom: 16px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px;"><?php _e('3. Horizontal card layout – [hotel_rooms_second]', 'dhr-hotel-management'); ?></label>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <input type="text" class="dhr-shortcode-input regular-text" value="<?php echo esc_attr($shortcode_rooms_second); ?>" readonly style="flex: 1; min-width: 200px;">
+                <button type="button" class="button dhr-copy-shortcode" data-shortcode="<?php echo esc_attr($shortcode_rooms_second); ?>"><?php _e('Copy', 'dhr-hotel-management'); ?></button>
             </div>
         </div>
     </div>
