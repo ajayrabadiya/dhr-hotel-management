@@ -85,6 +85,14 @@ class DHR_Hotel_Admin {
         );
         add_submenu_page(
             'dhr-hotel-management',
+            __('Package Settings', 'dhr-hotel-management'),
+            __('Package Settings', 'dhr-hotel-management'),
+            'manage_options',
+            'dhr-hotel-package-settings',
+            array($this, 'display_package_settings')
+        );
+        add_submenu_page(
+            'dhr-hotel-management',
             __('Room Settings', 'dhr-hotel-management'),
             __('Room Settings', 'dhr-hotel-management'),
             'manage_options',
@@ -303,14 +311,11 @@ class DHR_Hotel_Admin {
             DHR_Hotel_Database::create_tables();
         }
         
+        // Ensure any newly added default maps are inserted (skips existing ones)
+        DHR_Hotel_Database::create_default_map_configs();
+        
         // Get map configs
         $map_configs = DHR_Hotel_Database::get_all_map_configs();
-        
-        // If no maps exist, try to create them
-        if (empty($map_configs)) {
-            DHR_Hotel_Database::create_default_map_configs();
-            $map_configs = DHR_Hotel_Database::get_all_map_configs();
-        }
         
         include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/map-management.php';
     }
@@ -494,36 +499,71 @@ class DHR_Hotel_Admin {
         }
         check_admin_referer('dhr_package_nonce');
         $id = isset($_POST['package_id']) ? intval($_POST['package_id']) : 0;
+        $package_code = isset($_POST['package_code']) ? sanitize_text_field($_POST['package_code']) : '';
+        $hotel_code   = isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '';
+        $category_id  = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
+
         $valid_from = isset($_POST['valid_from']) ? sanitize_text_field($_POST['valid_from']) : '';
         $valid_to   = isset($_POST['valid_to']) ? sanitize_text_field($_POST['valid_to']) : '';
-        if ($valid_from && strpos($valid_from, 'T') !== false) {
-            $valid_from = str_replace('T', ' ', $valid_from);
+
+        // Add New Package: call SHR API to get package details and use beginDate/endDate; only insert if dates are not in the past
+        if ($id === 0) {
+            if (empty($package_code) || empty($hotel_code)) {
+                wp_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=error&error=' . urlencode(__('Package code and hotel code are required.', 'dhr-hotel-management'))));
+                exit;
+            }
+            $api    = new DHR_Hotel_API();
+            $result = $api->fetch_shr_package_details($hotel_code, $package_code);
+            if (!$result['success']) {
+                wp_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=error&error=' . urlencode($result['error'])));
+                exit;
+            }
+            $begin_date = $result['beginDate'];
+            $end_date   = $result['endDate'];
+            $validation = $api->validate_package_dates_not_past($begin_date, $end_date);
+            if (!$validation['valid']) {
+                wp_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=error&error=' . urlencode($validation['error'])));
+                exit;
+            }
+            // Convert SHR ISO dates to MySQL datetime (e.g. 2026-01-01T00:00:00 -> 2026-01-01 00:00:00)
+            $valid_from = str_replace('T', ' ', substr($begin_date, 0, 19));
+            $valid_to   = str_replace('T', ' ', substr($end_date, 0, 19));
             if (substr_count($valid_from, ':') === 1) {
                 $valid_from .= ':00';
             }
-        }
-        if ($valid_to && strpos($valid_to, 'T') !== false) {
-            $valid_to = str_replace('T', ' ', $valid_to);
             if (substr_count($valid_to, ':') === 1) {
                 $valid_to .= ':00';
             }
-        }
-        // When form omits dates (add/edit form no longer has valid_from/valid_to), use defaults or keep existing
-        if (empty($valid_from) || empty($valid_to)) {
-            if ($id > 0) {
+            $api_result = $result; // Keep for saving to package_details table
+        } else {
+            // Edit: keep existing date handling
+            if ($valid_from && strpos($valid_from, 'T') !== false) {
+                $valid_from = str_replace('T', ' ', $valid_from);
+                if (substr_count($valid_from, ':') === 1) {
+                    $valid_from .= ':00';
+                }
+            }
+            if ($valid_to && strpos($valid_to, 'T') !== false) {
+                $valid_to = str_replace('T', ' ', $valid_to);
+                if (substr_count($valid_to, ':') === 1) {
+                    $valid_to .= ':00';
+                }
+            }
+            if (empty($valid_from) || empty($valid_to)) {
                 $existing = DHR_Hotel_Database::get_package($id);
                 if ($existing) {
                     if (empty($valid_from)) $valid_from = $existing->valid_from;
                     if (empty($valid_to))   $valid_to   = $existing->valid_to;
                 }
+                if (empty($valid_from)) $valid_from = current_time('mysql');
+                if (empty($valid_to))   $valid_to   = date('Y-m-d H:i:s', strtotime('+10 years'));
             }
-            if (empty($valid_from)) $valid_from = current_time('mysql');
-            if (empty($valid_to))   $valid_to   = date('Y-m-d H:i:s', strtotime('+10 years'));
         }
+
         $data = array(
-            'package_code' => isset($_POST['package_code']) ? sanitize_text_field($_POST['package_code']) : '',
-            'hotel_code'   => isset($_POST['hotel_code']) ? sanitize_text_field($_POST['hotel_code']) : '',
-            'category_id'  => isset($_POST['category_id']) ? intval($_POST['category_id']) : 0,
+            'package_code' => $package_code,
+            'hotel_code'   => $hotel_code,
+            'category_id'  => $category_id,
             'valid_from'   => $valid_from,
             'valid_to'     => $valid_to,
             'is_active'    => isset($_POST['is_active']) ? 1 : 0,
@@ -532,8 +572,13 @@ class DHR_Hotel_Admin {
             $result = DHR_Hotel_Database::update_package($id, $data);
             $message = $result ? 'updated' : 'error';
         } else {
-            $result = DHR_Hotel_Database::insert_package($data);
+            $new_package_id = DHR_Hotel_Database::insert_package($data);
+            $result = (bool) $new_package_id;
             $message = $result ? 'added' : 'error';
+            // Store SHR API response in package details table (only for new packages; we have $result from API in this block)
+            if ($new_package_id && isset($api_result) && !empty($api_result['productDetails'])) {
+                DHR_Hotel_Database::save_package_details($new_package_id, $api_result, $hotel_code);
+            }
         }
         wp_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=' . $message));
         exit;
@@ -550,6 +595,17 @@ class DHR_Hotel_Admin {
         }
         wp_redirect(admin_url('admin.php?page=dhr-hotel-packages&message=deleted'));
         exit;
+    }
+
+    /**
+     * Package Settings: category-wise shortcode generator.
+     */
+    public function display_package_settings() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        $categories = DHR_Hotel_Database::get_all_categories();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/admin/package-settings.php';
     }
     
     /**

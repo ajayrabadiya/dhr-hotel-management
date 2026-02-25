@@ -18,6 +18,8 @@ class DHR_Hotel_Frontend {
         add_shortcode('dhr_wedding_venue_map', array($this, 'display_wedding_venue_map'));
         add_shortcode('dhr_property_portfolio_map', array($this, 'display_property_portfolio_map'));
         add_shortcode('dhr_lodges_camps_map', array($this, 'display_lodges_camps_map'));
+        add_shortcode('dhr_conference_map', array($this, 'display_conference_map'));
+        add_shortcode('dhr_where_to_find_us_map', array($this, 'display_where_to_find_us_map'));
         
         // Register hotel rooms shortcodes: [hotel_rooms] = grid, [hotel_rooms_cards] = cards, [hotel_rooms_second] = same grid
         add_shortcode('hotel_rooms', array($this, 'display_hotel_rooms'));
@@ -29,7 +31,8 @@ class DHR_Hotel_Frontend {
         add_shortcode('dhr_package_second_design', array($this, 'display_package_second_design'));
         add_shortcode('dhr_package_kids_design', array($this, 'display_package_kids_design'));
         add_shortcode('dhr_package_early_bird_design', array($this, 'display_package_early_bird_design'));
-add_shortcode('dhr_package_experiences_design', array($this, 'display_package_experiences_design'));
+        add_shortcode('dhr_packages', array($this, 'display_packages_by_category'));
+        add_shortcode('dhr_package_experiences_design', array($this, 'display_package_experiences_design'));
         add_shortcode('dhr_category_list', array($this, 'display_package_experiences_design'));
 
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
@@ -405,6 +408,42 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
     }
     
     /**
+     * Display conference map shortcode (Map 8)
+     */
+    public function display_conference_map($atts) {
+        $atts = shortcode_atts(array(
+            'height' => '600px'
+        ), $atts);
+        
+        $hotels = DHR_Hotel_Database::get_all_hotels('active');
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_conference_map');
+        $settings = self::get_map_settings($map_config);
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/conference-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
+     * Display Where To Find Us map shortcode (Map 9)
+     */
+    public function display_where_to_find_us_map($atts) {
+        $atts = shortcode_atts(array(
+            'height' => '450px'
+        ), $atts);
+        
+        $hotels = DHR_Hotel_Database::get_all_hotels('active');
+        $map_config = DHR_Hotel_Database::get_map_config('dhr_where_to_find_us_map');
+        $settings = self::get_map_settings($map_config);
+        $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
+        
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/where-to-find-us-map.php';
+        return ob_get_clean();
+    }
+    
+    /**
      * [hotel_rooms] – grid layout (specs, amenities, description). No code change, only shortcode.
      */
     public function display_hotel_rooms($atts) {
@@ -505,44 +544,102 @@ add_shortcode('dhr_package_experiences_design', array($this, 'display_package_ex
     }
     
     /**
-     * Display first package design shortcode
+     * Get packages for frontend display (active, within valid date range) with details and hotel info.
+     * Optionally filter by category IDs.
+     *
+     * @param int[] $category_ids Optional. Category IDs to filter by. Empty = all categories.
+     * @return array List of items: [ 'package' => object, 'details' => object|null, 'hotel' => object|null ]
+     */
+    public static function get_packages_for_display($category_ids = array()) {
+        $category_ids = array_filter(array_map('intval', (array) $category_ids));
+        $packages = empty($category_ids)
+            ? DHR_Hotel_Database::get_available_packages()
+            : DHR_Hotel_Database::get_available_packages_by_category_ids($category_ids);
+        $out = array();
+        foreach ($packages as $pkg) {
+            $details = DHR_Hotel_Database::get_package_details($pkg->id);
+            $hotel = !empty($pkg->hotel_code) ? DHR_Hotel_Database::get_hotel_by_code($pkg->hotel_code) : null;
+            $out[] = array(
+                'package'  => $pkg,
+                'details'  => $details,
+                'hotel'    => $hotel,
+            );
+        }
+        return $out;
+    }
+
+    /**
+     * Shortcode [dhr_packages]: category-wise package display.
+     * Attributes: categories (comma-separated category IDs), design (first_design|second_design|kids_design|early_bird_design).
+     */
+    public function display_packages_by_category($atts) {
+        $atts = shortcode_atts(array(
+            'categories' => '',
+            'design'     => 'first_design',
+        ), $atts, 'dhr_packages');
+        $category_ids = array();
+        if (!empty($atts['categories'])) {
+            $category_ids = array_filter(array_map('intval', array_map('trim', explode(',', $atts['categories']))));
+        }
+        $packages = self::get_packages_for_display($category_ids);
+        $plugin_url = DHR_HOTEL_PLUGIN_URL;
+        $design = in_array($atts['design'], array('first_design', 'second_design', 'kids_design', 'early_bird_design'), true)
+            ? $atts['design']
+            : 'first_design';
+        $templates = array(
+            'first_design'      => 'package-first-design.php',
+            'second_design'     => 'package-second-design.php',
+            'kids_design'      => 'package-kids-design.php',
+            'early_bird_design' => 'package-early-bird-design.php',
+        );
+        ob_start();
+        include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/' . $templates[$design];
+        return ob_get_clean();
+    }
+
+    /**
+     * Display first package design shortcode – data from database, same design.
      */
     public function display_package_first_design($atts) {
         $atts = shortcode_atts(array(), $atts);
-        
+        $packages = self::get_packages_for_display();
+        $plugin_url = DHR_HOTEL_PLUGIN_URL;
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-first-design.php';
         return ob_get_clean();
     }
-    
+
     /**
-     * Display second package design shortcode
+     * Display second package design shortcode – data from database, same design.
      */
     public function display_package_second_design($atts) {
         $atts = shortcode_atts(array(), $atts);
-        
+        $packages = self::get_packages_for_display();
+        $plugin_url = DHR_HOTEL_PLUGIN_URL;
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-second-design.php';
         return ob_get_clean();
     }
-    
+
     /**
-     * Display kids package design shortcode
+     * Display kids package design shortcode – data from database, same design.
      */
     public function display_package_kids_design($atts) {
         $atts = shortcode_atts(array(), $atts);
-        
+        $packages = self::get_packages_for_display();
+        $plugin_url = DHR_HOTEL_PLUGIN_URL;
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-kids-design.php';
         return ob_get_clean();
     }
-    
+
     /**
-     * Display early bird package design shortcode
+     * Display early bird package design shortcode – data from database, same design.
      */
     public function display_package_early_bird_design($atts) {
         $atts = shortcode_atts(array(), $atts);
-        
+        $packages = self::get_packages_for_display();
+        $plugin_url = DHR_HOTEL_PLUGIN_URL;
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/package-early-bird-design.php';
         return ob_get_clean();

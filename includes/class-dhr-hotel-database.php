@@ -190,6 +190,32 @@ class DHR_Hotel_Database {
             KEY valid_dates (valid_from, valid_to)
         ) $charset_collate;";
         dbDelta($sql_packages);
+
+        // Create package details table (SHR API response data per package)
+        $package_details_table = $wpdb->prefix . 'dhr_package_details';
+        $sql_package_details = "CREATE TABLE IF NOT EXISTS $package_details_table (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            package_id int(11) NOT NULL,
+            hotel_code varchar(50) NOT NULL,
+            package_code varchar(100) NOT NULL,
+            shr_product_id bigint(20) DEFAULT NULL,
+            name varchar(500) DEFAULT NULL,
+            description longtext,
+            images longtext,
+            policies longtext,
+            rate_code_id bigint(20) DEFAULT NULL,
+            begin_date datetime DEFAULT NULL,
+            end_date datetime DEFAULT NULL,
+            raw_response longtext,
+            last_synced_at datetime DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY package_id (package_id),
+            KEY hotel_code (hotel_code),
+            KEY package_code (package_code)
+        ) $charset_collate;";
+        dbDelta($sql_package_details);
         
         // Insert default map configurations if they don't exist
         self::create_default_map_configs();
@@ -350,6 +376,37 @@ class DHR_Hotel_Database {
                     'legend_lodges' => 'Lodges & Camps',
                     'legend_weddings' => 'Weddings & Conferences',
                     'show_list' => true
+                ))
+            ),
+            array(
+                'map_type' => 'conference',
+                'map_name' => 'Conference Map',
+                'shortcode' => 'dhr_conference_map',
+                'settings' => json_encode(array(
+                    'header_label' => 'CONFERENCES',
+                    'main_heading' => 'Find A Conference Venue For Your Next Event',
+                    'description' => 'From intimate boardroom meetings to large-scale conferences, our venues offer world-class facilities equipped with modern technology, flexible spaces, and dedicated event coordinators to ensure your business gathering is a resounding success.',
+                    'reservation_label' => 'RESERVATION BY PHONE',
+                    'reservation_phone' => '+27 (0)13 243 9401/2',
+                    'dropdown_placeholder' => 'Select a Venue',
+                    'book_now_text' => 'Get A Quote'
+                ))
+            ),
+            array(
+                'map_type' => 'where_to_find_us',
+                'map_name' => 'Where To Find Us Map',
+                'shortcode' => 'dhr_where_to_find_us_map',
+                'settings' => json_encode(array(
+                    'main_heading' => 'Where To Find Us',
+                    'address_text' => '',
+                    'phone_label' => '',
+                    'phone_number' => '',
+                    'email_address' => '',
+                    'gps_coordinates' => '',
+                    'enquire_text' => 'Enquire now',
+                    'enquire_url' => '',
+                    'logo_url' => '',
+                    'bg_color' => '#8FA7BF'
                 ))
             )
         );
@@ -882,6 +939,31 @@ class DHR_Hotel_Database {
         ));
     }
 
+    /**
+     * Packages that are active, within valid date range, and in the given category IDs.
+     *
+     * @param int[] $category_ids Array of category IDs (e.g. [1, 2, 3]). Empty = all (same as get_available_packages).
+     * @return object[]
+     */
+    public static function get_available_packages_by_category_ids($category_ids = array()) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_packages';
+        $cat_table = $wpdb->prefix . 'dhr_categories';
+        $now = current_time('mysql');
+        $category_ids = array_filter(array_map('intval', (array) $category_ids));
+        if (empty($category_ids)) {
+            return self::get_available_packages();
+        }
+        $placeholders = implode(',', array_fill(0, count($category_ids), '%d'));
+        $query = $wpdb->prepare(
+            "SELECT p.*, c.title AS category_title FROM $table p " .
+            "LEFT JOIN $cat_table c ON c.id = p.category_id AND c.is_active = 1 " .
+            "WHERE p.is_active = 1 AND p.valid_from <= %s AND p.valid_to >= %s AND p.category_id IN ($placeholders) ORDER BY p.valid_from DESC",
+            array_merge(array($now, $now), $category_ids)
+        );
+        return $wpdb->get_results($query);
+    }
+
     public static function insert_package($data) {
         global $wpdb;
         $table = $wpdb->prefix . 'dhr_packages';
@@ -919,7 +1001,112 @@ class DHR_Hotel_Database {
     public static function delete_package($id) {
         global $wpdb;
         $table = $wpdb->prefix . 'dhr_packages';
+        $details_table = $wpdb->prefix . 'dhr_package_details';
+        $wpdb->delete($details_table, array('package_id' => (int) $id), array('%d'));
         return $wpdb->delete($table, array('id' => (int) $id), array('%d')) !== false;
+    }
+
+    /**
+     * Save or update SHR package API response data for a package.
+     *
+     * @param int   $package_id   Package id from dhr_packages.
+     * @param array $api_result   Result from DHR_Hotel_API::fetch_shr_package_details (productDetails, raw_response).
+     * @param string $hotel_code   Hotel code (from form / package).
+     * @return int|false Insert id or updated package_id on success, false on failure.
+     */
+    public static function save_package_details($package_id, $api_result, $hotel_code = '') {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_package_details';
+        $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+        if (!$table_exists) {
+            self::create_tables();
+        }
+
+        $product = isset($api_result['productDetails']) && is_array($api_result['productDetails']) ? $api_result['productDetails'] : array();
+        $raw_response = isset($api_result['raw_response']) && is_array($api_result['raw_response']) ? $api_result['raw_response'] : array();
+
+        $name = isset($product['name']) ? sanitize_text_field($product['name']) : null;
+        $description = isset($product['description']) ? wp_kses_post($product['description']) : null;
+        $images = isset($product['images']) && is_array($product['images']) ? wp_json_encode($product['images']) : null;
+        $policies = isset($product['policies']) && is_array($product['policies']) ? wp_json_encode($product['policies']) : null;
+        $rate_code_id = isset($product['rateCodeId']) ? intval($product['rateCodeId']) : null;
+        $shr_product_id = isset($product['id']) ? intval($product['id']) : null;
+
+        $begin_date = null;
+        $end_date = null;
+        if (!empty($product['beginDate'])) {
+            $begin_date = str_replace('T', ' ', substr($product['beginDate'], 0, 19));
+            if (substr_count($begin_date, ':') === 1) $begin_date .= ':00';
+        }
+        if (!empty($product['endDate'])) {
+            $end_date = str_replace('T', ' ', substr($product['endDate'], 0, 19));
+            if (substr_count($end_date, ':') === 1) $end_date .= ':00';
+        }
+
+        $package_code = isset($product['code']) ? sanitize_text_field($product['code']) : '';
+        if ($hotel_code === '' && !empty($raw_response['requestInfo']['hotelCode'])) {
+            $hotel_code = sanitize_text_field($raw_response['requestInfo']['hotelCode']);
+        }
+
+        $row = array(
+            'package_id'      => (int) $package_id,
+            'hotel_code'       => $hotel_code,
+            'package_code'     => $package_code,
+            'shr_product_id'   => $shr_product_id,
+            'name'             => $name,
+            'description'      => $description,
+            'images'           => $images,
+            'policies'         => $policies,
+            'rate_code_id'     => $rate_code_id,
+            'begin_date'       => $begin_date,
+            'end_date'         => $end_date,
+            'raw_response'     => wp_json_encode($raw_response),
+            'last_synced_at'   => current_time('mysql'),
+        );
+
+        $existing = $wpdb->get_row($wpdb->prepare(
+            "SELECT id FROM $table WHERE package_id = %d",
+            (int) $package_id
+        ));
+
+        if ($existing) {
+            $result = $wpdb->update(
+                $table,
+                $row,
+                array('package_id' => (int) $package_id),
+                array('%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s'),
+                array('%d')
+            );
+            return $result !== false ? (int) $package_id : false;
+        }
+
+        $result = $wpdb->insert($table, $row, array('%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s'));
+        return $result !== false ? $wpdb->insert_id : false;
+    }
+
+    /**
+     * Get package details (SHR API response data) by package id.
+     *
+     * @param int $package_id
+     * @return object|null
+     */
+    public static function get_package_details($package_id) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'dhr_package_details';
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table WHERE package_id = %d",
+            (int) $package_id
+        ));
+        if ($row && $row->raw_response) {
+            $row->raw_response = json_decode($row->raw_response, true);
+        }
+        if ($row && $row->images) {
+            $row->images = json_decode($row->images, true);
+        }
+        if ($row && $row->policies) {
+            $row->policies = json_decode($row->policies, true);
+        }
+        return $row;
     }
 }
 
