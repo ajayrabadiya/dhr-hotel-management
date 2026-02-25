@@ -1279,6 +1279,11 @@ div:focus-visible {
     }
 }
 
+.bys-hotel-rooms .bys-rooms-two {
+    max-width: 1240px;
+    margin: 0 auto;
+}
+
 .bys-hotel-rooms .bys-room-card {
     background: transparent;
     border-radius: 0;
