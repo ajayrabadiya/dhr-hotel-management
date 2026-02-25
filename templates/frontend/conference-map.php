@@ -100,7 +100,8 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
 </div>
 <script>
 var dhrConferenceMapSettings = {
-    book_now_text: '<?php echo esc_js($book_now_text); ?>'
+    book_now_text: '<?php echo esc_js($book_now_text); ?>',
+    default_hotel_code: '<?php echo esc_js($default_hotel_code); ?>'
 };
 var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
@@ -341,22 +342,21 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
             });
 
             // Helper: activate default hotel marker by Book Your Stay hotel code (runs after map is ready)
+            // Use settings.default_hotel_code first (dynamic from PHP), then data attribute. Same for both maps.
             function activateDefaultHotelMarker() {
-                var defaultCode = (mapElement.getAttribute('data-default-hotel-code') || '').trim();
+                var defaultCode = ((typeof dhrConferenceMapSettings !== 'undefined' && dhrConferenceMapSettings.default_hotel_code) || mapElement.getAttribute('data-default-hotel-code') || '').trim();
                 if (!defaultCode) return;
                 defaultCode = defaultCode.toUpperCase();
                 for (var i = 0; i < validHotels.length; i++) {
-                    var hCode = (validHotels[i].hotel_code || '').trim().toUpperCase();
+                    var hCode = (String(validHotels[i].hotel_code || '')).trim().toUpperCase();
                     if (hCode && hCode === defaultCode) {
-                        var markerData = markers[i];
-                        if (markerData) {
-                            google.maps.event.trigger(markerData.marker, 'click');
-                            // Zoom and pan to selected hotel on first load so it is clearly in view
-                            var pos = markerData.marker.getPosition();
-                            if (pos) {
-                                map.panTo(pos);
-                                map.setZoom(Math.max(map.getZoom(), 9));
-                            }
+                        var m = markers[i];
+                        if (m) {
+                            (function (markerData) {
+                                setTimeout(function () {
+                                    google.maps.event.trigger(markerData.marker, 'click');
+                                }, 50);
+                            })(m);
                         }
                         break;
                     }
@@ -372,7 +372,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                     var center = bounds.getCenter();
                     var latSpan = ne.lat() - sw.lat();
                     var lngSpan = ne.lng() - sw.lng();
-                    var expandFactor = 0.88;
+                    var expandFactor = 0.88 * 1.08; /* 10% zoom out so all markers visible */
                     var expandedBounds = new google.maps.LatLngBounds(
                         new google.maps.LatLng(center.lat() - (latSpan * expandFactor) / 2, center.lng() - (lngSpan * expandFactor) / 2),
                         new google.maps.LatLng(center.lat() + (latSpan * expandFactor) / 2, center.lng() + (lngSpan * expandFactor) / 2)
@@ -383,13 +383,16 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                         if (mapDiv) {
                             var w = mapDiv.offsetWidth;
                             var h = mapDiv.offsetHeight;
-                            map.panBy(-Math.round(w * 0.14), Math.round(h * 0.06));
+                            map.panBy(-Math.round(w * 0.11), Math.round(h * 0.01));
                         }
                         // Activate default hotel marker after map has settled (so info window shows correctly)
                         activateDefaultHotelMarker();
+                        // Retry once later so default activates even when multiple maps on page
+                        setTimeout(activateDefaultHotelMarker, 500);
                     }, 450);
                 } else {
                     activateDefaultHotelMarker();
+                    setTimeout(activateDefaultHotelMarker, 500);
                 }
             });
 
