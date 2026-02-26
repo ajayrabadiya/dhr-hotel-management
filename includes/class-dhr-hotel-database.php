@@ -912,7 +912,7 @@ class DHR_Hotel_Database {
         $table = $wpdb->prefix . 'dhr_packages';
         $cat_table = $wpdb->prefix . 'dhr_categories';
         return $wpdb->get_results(
-            "SELECT p.*, c.title AS category_title FROM $table p " .
+            "SELECT p.*, c.title AS category_title, c.icon_url AS category_icon_url, c.icon_svg AS category_icon_svg, c.icon_type AS category_icon_type FROM $table p " .
             "LEFT JOIN $cat_table c ON c.id = p.category_id ORDER BY p.created_at DESC"
         );
     }
@@ -922,7 +922,7 @@ class DHR_Hotel_Database {
         $table = $wpdb->prefix . 'dhr_packages';
         $cat_table = $wpdb->prefix . 'dhr_categories';
         return $wpdb->get_row($wpdb->prepare(
-            "SELECT p.*, c.title AS category_title FROM $table p " .
+            "SELECT p.*, c.title AS category_title, c.icon_url AS category_icon_url, c.icon_svg AS category_icon_svg, c.icon_type AS category_icon_type FROM $table p " .
             "LEFT JOIN $cat_table c ON c.id = p.category_id WHERE p.id = %d",
             $id
         ));
@@ -935,7 +935,7 @@ class DHR_Hotel_Database {
         $cat_table = $wpdb->prefix . 'dhr_categories';
         $now = current_time('mysql');
         return $wpdb->get_results($wpdb->prepare(
-            "SELECT p.*, c.title AS category_title FROM $table p " .
+            "SELECT p.*, c.title AS category_title, c.icon_url AS category_icon_url, c.icon_svg AS category_icon_svg, c.icon_type AS category_icon_type FROM $table p " .
             "LEFT JOIN $cat_table c ON c.id = p.category_id AND c.is_active = 1 " .
             "WHERE p.is_active = 1 AND p.valid_from <= %s AND p.valid_to >= %s ORDER BY p.valid_from DESC",
             $now,
@@ -960,7 +960,7 @@ class DHR_Hotel_Database {
         }
         $placeholders = implode(',', array_fill(0, count($category_ids), '%d'));
         $query = $wpdb->prepare(
-            "SELECT p.*, c.title AS category_title FROM $table p " .
+            "SELECT p.*, c.title AS category_title, c.icon_url AS category_icon_url, c.icon_svg AS category_icon_svg, c.icon_type AS category_icon_type FROM $table p " .
             "LEFT JOIN $cat_table c ON c.id = p.category_id AND c.is_active = 1 " .
             "WHERE p.is_active = 1 AND p.valid_from <= %s AND p.valid_to >= %s AND p.category_id IN ($placeholders) ORDER BY p.valid_from DESC",
             array_merge(array($now, $now), $category_ids)
