@@ -86,24 +86,30 @@ $is_active = $is_edit ? (int) $category->is_active : 1;
 </div>
 <script>
 jQuery(function($) {
-    function openMedia(targetId, previewId) {
+    function openMedia(targetId, previewId, allowAllTypes) {
+        var libOpts = allowAllTypes ? {} : { type: 'image' };
         var frame = wp.media({
             title: '<?php echo esc_js(__('Select or Upload', 'dhr-hotel-management')); ?>',
-            library: { type: 'image' },
+            library: libOpts,
             multiple: false,
             button: { text: '<?php echo esc_js(__('Use this', 'dhr-hotel-management')); ?>' }
         });
         frame.on('select', function() {
             var att = frame.state().get('selection').first().toJSON();
             $('#' + targetId).val(att.url);
+            var isSvg = att.url && att.url.toLowerCase().match(/\.svgz?(\?|$)/);
             var imgStyle = (previewId === 'icon_preview') ? 'max-width: 64px; max-height: 64px; border: 1px solid #ccc;' : 'max-width: 200px; max-height: 150px; border: 1px solid #ccc;';
-            $('#' + previewId).html('<img src="' + att.url + '" alt="" style="' + imgStyle + '">');
+            if (isSvg) {
+                $('#' + previewId).html('<img src="' + att.url + '" alt="" style="' + imgStyle + ' background:#f9f9f9;">');
+            } else {
+                $('#' + previewId).html('<img src="' + att.url + '" alt="" style="' + imgStyle + '">');
+            }
             $('button[data-preview="' + previewId + '"]').removeClass('hidden');
         });
         frame.open();
     }
-    $('.dhr-upload-image').on('click', function() { openMedia('image_url', 'image_preview'); });
-    $('.dhr-upload-icon').on('click', function() { openMedia('icon_url', 'icon_preview'); });
+    $('.dhr-upload-image').on('click', function() { openMedia('image_url', 'image_preview', false); });
+    $('.dhr-upload-icon').on('click', function() { openMedia('icon_url', 'icon_preview', true); });
     $('.dhr-clear-image').on('click', function() {
         $('#image_url').val('');
         $('#image_preview').empty();
