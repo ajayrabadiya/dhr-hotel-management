@@ -332,36 +332,57 @@ class DHR_Hotel_Admin {
         
         $map_id = isset($_POST['map_id']) ? intval($_POST['map_id']) : 0;
         $settings = array();
+        $is_partner_portfolio = !empty($_POST['is_partner_portfolio']);
         
-        // Selected hotel IDs for this map (multi-select) - always store as sequential integer array for JSON [1,2,3]
-        // Collect from both array and indexed keys so all checked hotels are saved (avoids truncation)
-        $selected_ids = array();
-        if (isset($_POST['setting_selected_hotels']) && is_array($_POST['setting_selected_hotels'])) {
-            $selected_ids = array_merge($selected_ids, array_values(array_filter(array_map('intval', array_values($_POST['setting_selected_hotels'])))));
-        }
-        foreach ($_POST as $key => $value) {
-            if ($key === 'setting_selected_hotels' && is_array($value)) {
-                $selected_ids = array_merge($selected_ids, array_values(array_filter(array_map('intval', array_values($value)))));
-                break;
+        if ($is_partner_portfolio) {
+            // Partner Portfolio Map: two separate hotel groups
+            $cityblue_ids = array();
+            if (isset($_POST['setting_cityblue_hotels']) && is_array($_POST['setting_cityblue_hotels'])) {
+                $cityblue_ids = array_values(array_unique(array_filter(array_map('intval', $_POST['setting_cityblue_hotels']))));
             }
-            if (strpos($key, 'setting_selected_hotels[') === 0 && is_numeric(str_replace(array('setting_selected_hotels[', ']'), '', $key))) {
-                $selected_ids[] = intval($value);
+            $dream_ids = array();
+            if (isset($_POST['setting_dream_hotels']) && is_array($_POST['setting_dream_hotels'])) {
+                $dream_ids = array_values(array_unique(array_filter(array_map('intval', $_POST['setting_dream_hotels']))));
             }
+            $settings['selected_cityblue_hotel_ids'] = $cityblue_ids;
+            $settings['selected_dream_hotel_ids'] = $dream_ids;
+            // Combined for the generic filter
+            $settings['selected_hotel_ids'] = array_values(array_unique(array_merge($cityblue_ids, $dream_ids)));
+        } else {
+            // All other maps: single hotel selection
+            $selected_ids = array();
+            if (isset($_POST['setting_selected_hotels']) && is_array($_POST['setting_selected_hotels'])) {
+                $selected_ids = array_merge($selected_ids, array_values(array_filter(array_map('intval', array_values($_POST['setting_selected_hotels'])))));
+            }
+            foreach ($_POST as $key => $value) {
+                if ($key === 'setting_selected_hotels' && is_array($value)) {
+                    $selected_ids = array_merge($selected_ids, array_values(array_filter(array_map('intval', array_values($value)))));
+                    break;
+                }
+                if (strpos($key, 'setting_selected_hotels[') === 0 && is_numeric(str_replace(array('setting_selected_hotels[', ']'), '', $key))) {
+                    $selected_ids[] = intval($value);
+                }
+            }
+            $selected_ids = array_values(array_unique(array_filter($selected_ids)));
+            $settings['selected_hotel_ids'] = $selected_ids;
         }
-        $selected_ids = array_values(array_unique(array_filter($selected_ids)));
-        $settings['selected_hotel_ids'] = $selected_ids;
-
         
         // Get all POST data and build settings array
+        $skip_keys = array('selected_hotels', 'cityblue_hotels', 'dream_hotels');
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'setting_') !== 0) {
                 continue;
             }
             $setting_key = str_replace('setting_', '', $key);
-            // Never overwrite selected_hotel_ids from form fields; skip any selected_hotels key
-            if ($setting_key === 'selected_hotels' || strpos($setting_key, 'selected_hotels') === 0) {
-                continue;
+            // Skip hotel selection keys (handled above)
+            $skip = false;
+            foreach ($skip_keys as $sk) {
+                if ($setting_key === $sk || strpos($setting_key, $sk) === 0) {
+                    $skip = true;
+                    break;
+                }
             }
+            if ($skip) continue;
             // Handle different field types
             if (strpos($setting_key, 'description') !== false || strpos($setting_key, 'text') !== false) {
                 $settings[$setting_key] = sanitize_textarea_field($value);

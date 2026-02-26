@@ -329,7 +329,9 @@ class DHR_Hotel_Database {
                     'main_heading' => 'Our Partner Portfolio',
                     'description' => 'Together with CityBlue Hotels, we\'re crafting a unified hospitality experience that celebrates the rich cultures, stunning landscapes, and warm hospitality that Africa is known for. Whether you\'re seeking adventure, relaxation, or a blend of both, our properties are designed to connect you to the heart of Africa.',
                     'legend_cityblue' => 'CityBlue Hotels',
-                    'legend_dream' => 'Dream Hotels & Resorts'
+                    'legend_dream' => 'Dream Hotels & Resorts',
+                    'selected_cityblue_hotel_ids' => array(),
+                    'selected_dream_hotel_ids' => array()
                 ))
             ),
             array(

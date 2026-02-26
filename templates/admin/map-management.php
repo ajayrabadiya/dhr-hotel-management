@@ -218,13 +218,25 @@ jQuery(document).ready(function($) {
     function loadMapSettings(map) {
         var settings = JSON.parse(map.settings || '{}');
         var selectedIds = Array.isArray(settings.selected_hotel_ids) ? settings.selected_hotel_ids : [];
+        var isPartnerPortfolio = (map.map_type === 'partner_portfolio' || map.shortcode === 'dhr_partner_portfolio_map');
+        var selectedCityblueIds = Array.isArray(settings.selected_cityblue_hotel_ids) ? settings.selected_cityblue_hotel_ids : [];
+        var selectedDreamIds = Array.isArray(settings.selected_dream_hotel_ids) ? settings.selected_dream_hotel_ids : [];
+        var legendCityblue = settings.legend_cityblue || 'CityBlue Hotels';
+        var legendDream = settings.legend_dream || 'Dream Hotels & Resorts';
+
         $('#dhr-editing-map-name').text(map.map_name + ' → [' + (map.shortcode || '') + ']');
         var html = '<input type="hidden" name="map_name" value="' + escapeHtml(map.map_name) + '">';
+        if (isPartnerPortfolio) {
+            html += '<input type="hidden" name="is_partner_portfolio" value="1">';
+        }
         html += '<table class="form-table">';
         
+        // Skip keys that are handled separately
+        var skipKeys = ['selected_hotel_ids', 'selected_cityblue_hotel_ids', 'selected_dream_hotel_ids'];
+
         // Generate form fields based on map type
         for (var key in settings) {
-            if (key === 'selected_hotel_ids') continue;
+            if (skipKeys.indexOf(key) !== -1) continue;
             var value = settings[key] || '';
             var fieldName = 'setting_' + key;
             var label = key.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
@@ -238,7 +250,6 @@ jQuery(document).ready(function($) {
             } else if (key.includes('url') || key.includes('link')) {
                 html += '<input type="url" id="' + fieldName + '" name="' + fieldName + '" class="regular-text" value="' + escapeHtml(value) + '">';
             } else if (key === 'show_numbers' || key === 'show_list') {
-                // Boolean fields
                 html += '<label><input type="checkbox" id="' + fieldName + '" name="' + fieldName + '" value="1"' + (value == true || value == '1' ? ' checked' : '') + '> ' + label + '</label>';
             } else {
                 html += '<input type="text" id="' + fieldName + '" name="' + fieldName + '" class="regular-text" value="' + escapeHtml(value) + '">';
@@ -248,24 +259,30 @@ jQuery(document).ready(function($) {
             html += '</tr>';
         }
         
-        // Selected Hotels (multi-select for this map)
-        html += '<tr>';
-        html += '<th scope="row"><label>' + escapeHtml('<?php echo esc_js(__("Hotels on this map", "dhr-hotel-management")); ?>') + '</label></th>';
-        html += '<td><p class="description" style="margin-bottom: 10px;">' + escapeHtml('<?php echo esc_js(__("Select which hotels appear on this map only. Example: [dhr_hotel_map] can show 2 hotels and [dhr_head_office_map] can show 3 different hotels. Leave all unchecked to show all active hotels.", "dhr-hotel-management")); ?>') + '</p>';
-        html += '<div class="dhr-map-hotels-checkboxes" style="max-height: 220px; overflow-y: auto; border: 1px solid #8c8f94; padding: 10px; background: #fff;">';
-        if (dhrAllHotels && dhrAllHotels.length) {
-            dhrAllHotels.forEach(function(hotel) {
-                var checked = selectedIds.indexOf(parseInt(hotel.id, 10)) !== -1 ? ' checked' : '';
-                html += '<label style="display: block; margin-bottom: 6px;">';
-                html += '<input type="checkbox" name="setting_selected_hotels[]" value="' + parseInt(hotel.id, 10) + '"' + checked + '> ';
-                html += escapeHtml(hotel.name) + (hotel.hotel_code ? ' (' + escapeHtml(hotel.hotel_code) + ')' : '');
-                html += '</label>';
-            });
+        if (isPartnerPortfolio) {
+            // TWO separate hotel selection lists for Partner Portfolio Map
+            html += renderPartnerHotelCheckboxes(legendCityblue, 'setting_cityblue_hotels[]', selectedCityblueIds, '#0B5991');
+            html += renderPartnerHotelCheckboxes(legendDream, 'setting_dream_hotels[]', selectedDreamIds, '#4DB8FF');
         } else {
-            html += '<p>' + escapeHtml('<?php echo esc_js(__("No hotels yet. Add hotels from DHR Hotel Management first.", "dhr-hotel-management")); ?>') + '</p>';
+            // Single hotel selection list for all other maps
+            html += '<tr>';
+            html += '<th scope="row"><label>' + escapeHtml('<?php echo esc_js(__("Hotels on this map", "dhr-hotel-management")); ?>') + '</label></th>';
+            html += '<td><p class="description" style="margin-bottom: 10px;">' + escapeHtml('<?php echo esc_js(__("Select which hotels appear on this map only. Example: [dhr_hotel_map] can show 2 hotels and [dhr_head_office_map] can show 3 different hotels. Leave all unchecked to show all active hotels.", "dhr-hotel-management")); ?>') + '</p>';
+            html += '<div class="dhr-map-hotels-checkboxes" style="max-height: 220px; overflow-y: auto; border: 1px solid #8c8f94; padding: 10px; background: #fff;">';
+            if (dhrAllHotels && dhrAllHotels.length) {
+                dhrAllHotels.forEach(function(hotel) {
+                    var checked = selectedIds.indexOf(parseInt(hotel.id, 10)) !== -1 ? ' checked' : '';
+                    html += '<label style="display: block; margin-bottom: 6px;">';
+                    html += '<input type="checkbox" name="setting_selected_hotels[]" value="' + parseInt(hotel.id, 10) + '"' + checked + '> ';
+                    html += escapeHtml(hotel.name) + (hotel.hotel_code ? ' (' + escapeHtml(hotel.hotel_code) + ')' : '');
+                    html += '</label>';
+                });
+            } else {
+                html += '<p>' + escapeHtml('<?php echo esc_js(__("No hotels yet. Add hotels from DHR Hotel Management first.", "dhr-hotel-management")); ?>') + '</p>';
+            }
+            html += '</div></td>';
+            html += '</tr>';
         }
-        html += '</div></td>';
-        html += '</tr>';
         
         html += '</table>';
         
@@ -275,6 +292,30 @@ jQuery(document).ready(function($) {
         $('html, body').animate({
             scrollTop: $('#dhr-map-settings-panel').offset().top
         }, 500);
+    }
+
+    function renderPartnerHotelCheckboxes(groupLabel, inputName, selectedIds, badgeColor) {
+        var html = '<tr>';
+        html += '<th scope="row"><label style="display:flex;align-items:center;gap:8px;">';
+        html += '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + badgeColor + ';flex-shrink:0;"></span> ';
+        html += escapeHtml(groupLabel);
+        html += '</label></th>';
+        html += '<td><p class="description" style="margin-bottom: 10px;">' + escapeHtml('<?php echo esc_js(__("Select which hotels belong to this group on the map.", "dhr-hotel-management")); ?>') + '</p>';
+        html += '<div class="dhr-map-hotels-checkboxes" style="max-height: 220px; overflow-y: auto; border: 1px solid #8c8f94; padding: 10px; background: #fff;">';
+        if (dhrAllHotels && dhrAllHotels.length) {
+            dhrAllHotels.forEach(function(hotel) {
+                var checked = selectedIds.indexOf(parseInt(hotel.id, 10)) !== -1 ? ' checked' : '';
+                html += '<label style="display: block; margin-bottom: 6px;">';
+                html += '<input type="checkbox" name="' + inputName + '" value="' + parseInt(hotel.id, 10) + '"' + checked + '> ';
+                html += escapeHtml(hotel.name) + (hotel.hotel_code ? ' (' + escapeHtml(hotel.hotel_code) + ')' : '');
+                html += '</label>';
+            });
+        } else {
+            html += '<p>' + escapeHtml('<?php echo esc_js(__("No hotels yet. Add hotels from DHR Hotel Management first.", "dhr-hotel-management")); ?>') + '</p>';
+        }
+        html += '</div></td>';
+        html += '</tr>';
+        return html;
     }
     
     function escapeHtml(text) {

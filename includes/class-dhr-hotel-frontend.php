@@ -332,6 +332,9 @@ class DHR_Hotel_Frontend {
         $settings = self::get_map_settings($map_config);
         $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
+        $cityblue_hotel_ids = isset($settings['selected_cityblue_hotel_ids']) ? array_map('intval', (array) $settings['selected_cityblue_hotel_ids']) : array();
+        $dream_hotel_ids = isset($settings['selected_dream_hotel_ids']) ? array_map('intval', (array) $settings['selected_dream_hotel_ids']) : array();
+        
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/partner-portfolio-map.php';
         return ob_get_clean();
