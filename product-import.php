@@ -102,6 +102,24 @@ if (!empty($_FILES['file']['name'])) { // ||  !empty($_GET['myfile']) && $_GET['
             // Add/Update Term Meta
             update_term_meta($sub_sub_cat_id, 'category_listing_type', 'list');
 
+            /*
+             * Spreadsheet column mapping (0-based index):
+             * A=0: Product Number    -> part_number, post_title
+             * B=1: Specifications   -> specifications
+             * C=2: OD R X D          -> od_r_x_d
+             * D=3: Length of Cut L1  -> length_of_cut_l1
+             * E=4: Effective Length L2 -> effective_length_leff, length_of_cut_l2
+             * F=5: Neck Diameter     -> diameter
+             * G=6: Chamfer Angle     -> chamfer_angle
+             * H=7: Overall Length L  -> overall_length_l
+             * I=8: Type              -> type
+             * J=9: Shank d           -> shank_diameter_ds
+             * K=10: No. of Flutes    -> flutes
+             * L=11: Product Description -> post_content
+             * M=12: Series           -> series
+             * N=13: List Price       -> _price, _regular_price
+             * O=14: Image path       -> (optional) featured image
+             */
             $first_row = true; // Flag to skip header row
             foreach ($sheet->getRowIterator() as $row) {
                 $cells = $row->toArray();
@@ -130,7 +148,7 @@ if (!empty($_FILES['file']['name'])) { // ||  !empty($_GET['myfile']) && $_GET['
                     $post_id = wp_insert_post([
                         'post_title' => $product_title,
                         'post_type' => 'product',
-                        'post_content' => $cells[12] ?? '',
+                        'post_content' => $cells[11] ?? '', // L: Product Description
                         'post_status' => 'publish'
                     ]);
                 }
@@ -141,30 +159,33 @@ if (!empty($_FILES['file']['name'])) { // ||  !empty($_GET['myfile']) && $_GET['
                 // Product type
                 wp_set_object_terms($post_id, 'simple', 'product_type');
 
-                // Price
-                if (!empty($cells[15])) {
-                    $price = round(str_replace(search: '$', '', $cells[15]));
-                    update_post_meta($post_id, '_price', $price);
-                    update_post_meta($post_id, '_regular_price', $price);
+                // Price (N=13: List Price)
+                if (isset($cells[13]) && $cells[13] !== '') {
+                    $price = preg_replace('/[^0-9.]/', '', $cells[13]);
+                    if ($price !== '') {
+                        $price = round((float) $price, 2);
+                        update_post_meta($post_id, '_price', $price);
+                        update_post_meta($post_id, '_regular_price', $price);
+                    }
                 }
 
-                // ACF / Custom fields
+                // ACF / Custom fields – column indices match spreadsheet A–N
                 update_field('part_number', $product_title, $post_id);
-                update_field('specifications', $cells[1] ?? '', $post_id);
-                update_field('od_r_x_d', $cells[2] ?? '', $post_id);
-                update_field('length_of_cut_l1', $cells[3] ?? '', $post_id);
-                update_field('effective_length_leff', $cells[4] ?? '', $post_id);
-                update_field('diameter', $cells[5] ?? '', $post_id);
-                update_field('chamfer', $cells[6] ?? '', $post_id);
-                update_field('angle', $cells[7] ?? '', $post_id);
-                update_field('overall_length_l', $cells[8] ?? '', $post_id);
-                update_field('type', $cells[9] ?? '', $post_id);
-                update_field('shank_diameter_ds', $cells[10] ?? '', $post_id);
-                update_field('flutes', $cells[11] ?? '', $post_id);                
-                update_field('no_of_flutes', $cells[11] ?? '', $post_id);
-                update_field('series', $cells[13] ?? '', $post_id);
+                update_field('specifications', $cells[1] ?? '', $post_id);           // B
+                update_field('od_r_x_d', $cells[2] ?? '', $post_id);                  // C
+                update_field('length_of_cut_l1', $cells[3] ?? '', $post_id);          // D
+                update_field('effective_length_leff', $cells[4] ?? '', $post_id);    // E
+                update_field('length_of_cut_l2', $cells[4] ?? '', $post_id);          // E (same as Effective Length L2)
+                update_field('diameter', $cells[5] ?? '', $post_id);                  // F: Neck Diameter
+                update_field('chamfer_angle', $cells[6] ?? '', $post_id);             // G: Chamfer Angle
+                update_field('chamfer', $cells[6] ?? '', $post_id);                   // G (legacy ACF field name)
+                update_field('overall_length_l', $cells[7] ?? '', $post_id);          // H
+                update_field('type', $cells[8] ?? '', $post_id);                      // I
+                update_field('shank_diameter_ds', $cells[9] ?? '', $post_id);         // J: Shank d
+                update_field('flutes', $cells[10] ?? '', $post_id);                   // K: No. of Flutes
+                update_field('series', $cells[12] ?? '', $post_id);                   // M
 
-                // Set image
+                // Set image (optional column O=14)
                 if (!empty($cells[14])) {
                     $image_name = array_slice(explode('/', $cells[14]), -1)[0];
                     $upload_dir = wp_upload_dir();
