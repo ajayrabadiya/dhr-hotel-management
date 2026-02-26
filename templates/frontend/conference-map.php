@@ -15,10 +15,12 @@ if (!empty($hotels)) {
             'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
             'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
             'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active',
+            'hotel_code' => isset($h->hotel_code) ? $h->hotel_code : ''
         );
     }
 }
+$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
 
 $header_label = isset($settings['header_label']) ? $settings['header_label'] : 'CONFERENCES';
 $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : 'Find A Conference Venue For Your Next Event';
@@ -30,7 +32,7 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
 ?>
 
 <div class="all-maps conference-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
-    <div id="conference-map" class="conference-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
+    <div id="conference-map" class="conference-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>" data-default-hotel-code="<?php echo esc_attr($default_hotel_code); ?>"></div>
     <div class="conference-info-content">
         <div class="mobile-hotel-select" id="conference-mobile-hotel-select">
             <select id="conference-hotel-dropdown" class="hotel-dropdown">
@@ -98,7 +100,8 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
 </div>
 <script>
 var dhrConferenceMapSettings = {
-    book_now_text: '<?php echo esc_js($book_now_text); ?>'
+    book_now_text: '<?php echo esc_js($book_now_text); ?>',
+    default_hotel_code: '<?php echo esc_js($default_hotel_code); ?>'
 };
 var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
@@ -109,15 +112,17 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
         var map;
         var markers = [];
         var infoWindows = [];
-        var pulseOverlays = {};
-        var activeMarker = null;
-        var hoveredMarker = null;
-        var PulseOverlay;
+        var pulseOverlays = {}; // Store pulse overlay elements for each marker
+        var activeMarker = null; // Track currently active marker
+        var hoveredMarker = null; // Track currently hovered marker
+        var PulseOverlay; // Will be defined after Google Maps loads
 
+        // Detect if device is mobile
         function isMobileDevice() {
             return window.innerWidth <= 991;
         }
 
+        // Detect device type for responsive adjustments
         function getDeviceType() {
             var width = window.innerWidth;
             if (width < 768) {
@@ -129,7 +134,9 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
             }
         }
 
+        // Function to define PulseOverlay class (called after Google Maps loads)
         function definePulseOverlay() {
+            // Custom Overlay for Pulse Effect
             PulseOverlay = function (position, map, isActive) {
                 this.position = position;
                 this.map = map;
@@ -149,6 +156,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                     div.classList.add('dhr-marker-pulse-hover');
                 }
 
+                // Create SVG structure matching the EXACT marker design
                 var size = this.isActive ? 57 : 27;
                 var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 svg.setAttribute('width', size);
@@ -160,6 +168,8 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                 svg.style.display = 'block';
 
                 if (this.isActive) {
+                    // Active marker structure - EXACT match
+                    // Outer circle (pulsing)
                     var outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     outerCircle.setAttribute('cx', '28.314');
                     outerCircle.setAttribute('cy', '28.314');
@@ -169,6 +179,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                     outerCircle.classList.add('pulse-outer-circle');
                     svg.appendChild(outerCircle);
 
+                    // Middle circle (pulsing)
                     var middleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     middleCircle.setAttribute('cx', '27.8784');
                     middleCircle.setAttribute('cy', '28.7496');
@@ -178,6 +189,8 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                     middleCircle.classList.add('pulse-middle-circle');
                     svg.appendChild(middleCircle);
                 } else {
+                    // Normal marker structure - EXACT match
+                    // Outer circle (pulsing)
                     var outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     outerCircle.setAttribute('cx', '13.068');
                     outerCircle.setAttribute('cy', '13.068');
@@ -187,6 +200,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                     outerCircle.classList.add('pulse-outer-circle');
                     svg.appendChild(outerCircle);
 
+                    // Middle circle (pulsing)
                     var middleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     middleCircle.setAttribute('cx', '13.068');
                     middleCircle.setAttribute('cy', '13.0681');
@@ -203,6 +217,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                 var panes = this.getPanes();
                 panes.overlayLayer.appendChild(div);
 
+                // Force initial draw
                 this.draw();
             };
 
@@ -228,6 +243,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                     this.div.style.border = 'none';
                     this.div.style.outline = 'none';
 
+                    // Ensure the pulse animation continues
                     if (this.isActive && !this.div.classList.contains('dhr-marker-pulse-active')) {
                         this.div.classList.add('dhr-marker-pulse-active');
                     }
@@ -248,10 +264,13 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                 return;
             }
 
+            // Define PulseOverlay class now that Google Maps is loaded
             definePulseOverlay();
 
+            // Check if the map element exists
             var mapElement = document.getElementById('conference-map');
             if (!mapElement) {
+                // Map element doesn't exist, this script is not needed
                 return;
             }
 
@@ -273,6 +292,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                 return;
             }
 
+            // Filter to hotels with valid latitude/longitude so one bad entry does not break the map
             function isValidCoord(val) {
                 var n = parseFloat(val);
                 return isFinite(n) && n >= -90 && n <= 90;
@@ -290,6 +310,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
 
             var bounds = new google.maps.LatLngBounds();
             var deviceType = getDeviceType();
+            // South Africa default center and zoom (map set to South Africa)
             var southAfricaCenter = { lat: -26.2, lng: 28.5 };
             var southAfricaZoom = 4;
 
@@ -320,6 +341,29 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                 ]
             });
 
+            // Helper: activate default hotel marker by Book Your Stay hotel code (runs after map is ready)
+            // Use settings.default_hotel_code first (dynamic from PHP), then data attribute. Same for both maps.
+            function activateDefaultHotelMarker() {
+                var defaultCode = ((typeof dhrConferenceMapSettings !== 'undefined' && dhrConferenceMapSettings.default_hotel_code) || mapElement.getAttribute('data-default-hotel-code') || '').trim();
+                if (!defaultCode) return;
+                defaultCode = defaultCode.toUpperCase();
+                for (var i = 0; i < validHotels.length; i++) {
+                    var hCode = (String(validHotels[i].hotel_code || '')).trim().toUpperCase();
+                    if (hCode && hCode === defaultCode) {
+                        var m = markers[i];
+                        if (m) {
+                            (function (markerData) {
+                                setTimeout(function () {
+                                    google.maps.event.trigger(markerData.marker, 'click');
+                                }, 50);
+                            })(m);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // After map loads, fit to markers then activate default hotel if set
             google.maps.event.addListenerOnce(map, 'idle', function () {
                 if (validHotels.length > 0 && !bounds.isEmpty()) {
                     var padding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
@@ -328,7 +372,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                     var center = bounds.getCenter();
                     var latSpan = ne.lat() - sw.lat();
                     var lngSpan = ne.lng() - sw.lng();
-                    var expandFactor = 0.98;
+                    var expandFactor = 0.88 * 1.08; /* 10% zoom out so all markers visible */
                     var expandedBounds = new google.maps.LatLngBounds(
                         new google.maps.LatLng(center.lat() - (latSpan * expandFactor) / 2, center.lng() - (lngSpan * expandFactor) / 2),
                         new google.maps.LatLng(center.lat() + (latSpan * expandFactor) / 2, center.lng() + (lngSpan * expandFactor) / 2)
@@ -339,16 +383,25 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                         if (mapDiv) {
                             var w = mapDiv.offsetWidth;
                             var h = mapDiv.offsetHeight;
-                            map.panBy(-Math.round(w * 0.14), -Math.round(h * 0.0));
+                            map.panBy(-Math.round(w * 0.11), Math.round(h * 0.01));
                         }
-                    }, 400);
+                        // Activate default hotel marker after map has settled (so info window shows correctly)
+                        activateDefaultHotelMarker();
+                        // Retry once later so default activates even when multiple maps on page
+                        setTimeout(activateDefaultHotelMarker, 500);
+                    }, 450);
+                } else {
+                    activateDefaultHotelMarker();
+                    setTimeout(activateDefaultHotelMarker, 500);
                 }
             });
 
+            // Create markers for each valid hotel
             validHotels.forEach(function (hotel, index) {
                 createMarker(hotel, index);
             });
 
+            // Populate mobile hotel dropdown
             populateMobileHotelDropdown(validHotels);
         }
 
@@ -358,8 +411,10 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                 lng: parseFloat(hotel.longitude)
             };
 
+            // Create normal marker icon
             var normalIcon = createNormalMarkerIcon();
 
+            // Create marker
             var marker = new google.maps.Marker({
                 position: position,
                 map: map,
@@ -367,23 +422,30 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                 icon: normalIcon
             });
 
+            // Create info window content
             var infoWindowContent = getInfoWindowContent(hotel);
 
+            // Create info window
             var infoWindow = new google.maps.InfoWindow({
                 content: infoWindowContent
             });
 
+            // Add close listener to info window
             infoWindow.addListener('closeclick', function () {
+                // Remove active state from all markers when info window is closed
                 setAllMarkersToNormal();
-                
+
+                // Reset dropdown selection
                 var dropdown = document.getElementById('conference-hotel-dropdown');
                 if (dropdown) {
                     dropdown.value = '';
                 }
             });
 
+            // Add hover listeners for pulse effect
             marker.addListener('mouseover', function () {
                 hoveredMarker = marker;
+                // Only start pulse if not already active
                 if (activeMarker !== marker) {
                     startPulse(marker, false);
                 }
@@ -391,32 +453,40 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
 
             marker.addListener('mouseout', function () {
                 hoveredMarker = null;
+                // Only stop pulse if not active
                 if (activeMarker !== marker) {
                     stopPulse(marker);
                 }
             });
 
+            // Add click listener to marker
             marker.addListener('click', function () {
+                // Set all markers to normal
                 setAllMarkersToNormal();
 
+                // Set this marker to active
                 setMarkerToActive(marker);
                 activeMarker = marker;
 
+                // Close all other info windows
                 infoWindows.forEach(function (iw) {
                     iw.close();
                 });
 
+                // Open this info window
                 infoWindow.open(map, marker);
 
+                // Center map with mobile offset if needed
                 centerMapOnMarker(marker, infoWindow);
 
+                // Update dropdown selection
                 var dropdown = document.getElementById('conference-hotel-dropdown');
                 if (dropdown) {
                     dropdown.value = hotel.id;
                 }
             });
 
-
+            // Store marker and info window
             markers.push({
                 marker: marker,
                 infoWindow: infoWindow,
@@ -446,6 +516,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
         }
 
         function createNormalMarkerIcon() {
+            // Create SVG for normal map marker - conference venue with 3 lighter shades
             var svg = '<svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="13.068" cy="13.068" r="13.068" fill="#B5D4FF"/><circle opacity="0.3" cx="13.068" cy="13.0681" r="6.0984" fill="#8FB8FF"/><circle cx="13.068" cy="13.0681" r="6.0984" fill="#4B8BE5"/></svg>';
 
             return {
@@ -456,6 +527,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
         }
 
         function createActiveMarkerIcon() {
+            // Create SVG for active map marker (more visible) - conference venue with 3 lighter shades
             var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="28.314" cy="28.314" r="28.314" fill="#B5D4FF"/><circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#8FB8FF"/><circle cx="27.8784" cy="28.7498" r="6.0984" fill="#4B8BE5"/></svg>';
 
             return {
@@ -466,14 +538,17 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
         }
 
         function startPulse(marker, isActive) {
+            // Stop any existing pulse for this marker
             stopPulse(marker);
 
             var position = marker.getPosition();
             var pulseOverlay = new PulseOverlay(position, map, isActive);
 
+            // Store overlay
             var markerId = marker.getPosition().toString();
             pulseOverlays[markerId] = pulseOverlay;
 
+            // Ensure pulse continues by forcing a redraw after a short delay
             setTimeout(function () {
                 if (pulseOverlay && pulseOverlay.div) {
                     pulseOverlay.draw();
@@ -492,6 +567,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
         function setAllMarkersToNormal() {
             var normalIcon = createNormalMarkerIcon();
             markers.forEach(function (markerData) {
+                // Stop pulse for all markers
                 stopPulse(markerData.marker);
                 markerData.marker.setIcon(normalIcon);
             });
@@ -500,11 +576,13 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
         }
 
         function setMarkerToActive(marker) {
+            // Stop pulse first
             stopPulse(marker);
 
             var activeIcon = createActiveMarkerIcon();
             marker.setIcon(activeIcon);
 
+            // Start pulse for active marker
             activeMarker = marker;
             hoveredMarker = null;
             startPulse(marker, true);
@@ -521,15 +599,18 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
             return (text || '').replace(/[&<>"']/g, function (m) { return map[m]; });
         }
 
+        // Populate mobile hotel dropdown
         function populateMobileHotelDropdown(hotels) {
             var dropdown = document.getElementById('conference-hotel-dropdown');
             if (!dropdown) {
                 return;
             }
 
+            // Clear existing options except the first one
             var dropdownPlaceholder = '<?php echo esc_js($dropdown_placeholder); ?>';
             dropdown.innerHTML = '<option value="">' + dropdownPlaceholder + '</option>';
 
+            // Add hotels to dropdown
             hotels.forEach(function (hotel, index) {
                 var option = document.createElement('option');
                 option.value = hotel.id;
@@ -538,22 +619,26 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                 dropdown.appendChild(option);
             });
 
+            // Add change event listener
             dropdown.addEventListener('change', function () {
                 var selectedHotelId = this.value;
                 if (!selectedHotelId) {
                     return;
                 }
 
+                // Find the marker for this hotel
                 var markerData = markers.find(function (m) {
                     return m.hotelId == selectedHotelId;
                 });
 
                 if (markerData) {
+                    // Trigger marker click
                     google.maps.event.trigger(markerData.marker, 'click');
                 }
             });
         }
 
+        // Center map on marker with offset for mobile devices
         function centerMapOnMarker(marker, infoWindow) {
             var position = marker.getPosition();
 
@@ -587,17 +672,21 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
                     map.panTo(adjustedPosition);
                 }, 100);
             }
+            // Desktop (> 991px): Do not center map on marker click
         }
 
+        // Handle window resize for mobile devices
         var resizeTimeout;
         window.addEventListener('resize', function () {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(function () {
+                // If a marker is active and we're on mobile, recenter it
                 if (isMobileDevice() && activeMarker && map) {
                     var markerData = markers.find(function (m) {
                         return m.marker === activeMarker;
                     });
                     if (markerData && markerData.infoWindow) {
+                        // Check if info window is open
                         if (markerData.infoWindow.getMap()) {
                             centerMapOnMarker(activeMarker, markerData.infoWindow);
                         }
@@ -606,20 +695,25 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
             }, 250);
         });
 
+        // Initialize map when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function () {
+                // Wait for Google Maps API to load
                 if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
                     initConferenceMap();
                 } else {
+                    // Wait for Google Maps API
                     window.addEventListener('load', function () {
                         setTimeout(initConferenceMap, 1000);
                     });
                 }
             });
         } else {
+            // DOM already loaded
             if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
                 initConferenceMap();
             } else {
+                // Wait for Google Maps API
                 window.addEventListener('load', function () {
                     setTimeout(initConferenceMap, 1000);
                 });

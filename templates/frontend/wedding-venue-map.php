@@ -15,10 +15,12 @@ if (!empty($hotels)) {
             'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
             'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
             'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active',
+            'hotel_code' => isset($h->hotel_code) ? $h->hotel_code : ''
         );
     }
 }
+$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
 
 $header_label = isset($settings['header_label']) ? $settings['header_label'] : 'WEDDINGS';
 $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : 'Find A Wedding Venue For Your Dream Celebration';
@@ -30,7 +32,7 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
 ?>
 
 <div class="all-maps wedding-venue-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
-    <div id="wedding-venue-map" class="wedding-venue-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
+    <div id="wedding-venue-map" class="wedding-venue-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>" data-default-hotel-code="<?php echo esc_attr($default_hotel_code); ?>"></div>
     <div class="wedding-venue-info-content">
         <div class="mobile-hotel-select" id="wedding-mobile-hotel-select">
             <select id="wedding-hotel-dropdown" class="hotel-dropdown">
@@ -98,7 +100,8 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
 </div>
 <script>
 var dhrWeddingVenueMapSettings = {
-    book_now_text: '<?php echo esc_js($book_now_text); ?>'
+    book_now_text: '<?php echo esc_js($book_now_text); ?>',
+    default_hotel_code: '<?php echo esc_js($default_hotel_code); ?>'
 };
 var dhrWeddingVenueMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
@@ -338,7 +341,29 @@ var dhrWeddingVenueMapHotels = <?php echo json_encode($hotels_js); ?>;
                 ]
             });
 
-            // After map loads, fit to markers with 2% zoom-in and shift to right-bottom (same as dining-venue map)
+            // Helper: activate default hotel marker by Book Your Stay hotel code (runs after map is ready)
+            // Use settings.default_hotel_code first (dynamic from PHP), then data attribute. Same for both maps.
+            function activateDefaultHotelMarker() {
+                var defaultCode = ((typeof dhrWeddingVenueMapSettings !== 'undefined' && dhrWeddingVenueMapSettings.default_hotel_code) || mapElement.getAttribute('data-default-hotel-code') || '').trim();
+                if (!defaultCode) return;
+                defaultCode = defaultCode.toUpperCase();
+                for (var i = 0; i < validHotels.length; i++) {
+                    var hCode = (String(validHotels[i].hotel_code || '')).trim().toUpperCase();
+                    if (hCode && hCode === defaultCode) {
+                        var m = markers[i];
+                        if (m) {
+                            (function (markerData) {
+                                setTimeout(function () {
+                                    google.maps.event.trigger(markerData.marker, 'click');
+                                }, 50);
+                            })(m);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // After map loads, fit to markers then activate default hotel if set
             google.maps.event.addListenerOnce(map, 'idle', function () {
                 if (validHotels.length > 0 && !bounds.isEmpty()) {
                     var padding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
@@ -347,7 +372,7 @@ var dhrWeddingVenueMapHotels = <?php echo json_encode($hotels_js); ?>;
                     var center = bounds.getCenter();
                     var latSpan = ne.lat() - sw.lat();
                     var lngSpan = ne.lng() - sw.lng();
-                    var expandFactor = 0.98;
+                    var expandFactor = 0.88 * 1.08; /* 10% zoom out so all markers visible */
                     var expandedBounds = new google.maps.LatLngBounds(
                         new google.maps.LatLng(center.lat() - (latSpan * expandFactor) / 2, center.lng() - (lngSpan * expandFactor) / 2),
                         new google.maps.LatLng(center.lat() + (latSpan * expandFactor) / 2, center.lng() + (lngSpan * expandFactor) / 2)
@@ -358,9 +383,16 @@ var dhrWeddingVenueMapHotels = <?php echo json_encode($hotels_js); ?>;
                         if (mapDiv) {
                             var w = mapDiv.offsetWidth;
                             var h = mapDiv.offsetHeight;
-                            map.panBy(-Math.round(w * 0.14), -Math.round(h * 0.0));
+                            map.panBy(-Math.round(w * 0.11), Math.round(h * 0.01));
                         }
-                    }, 400);
+                        // Activate default hotel marker after map has settled (so info window shows correctly)
+                        activateDefaultHotelMarker();
+                        // Retry once later so default activates even when multiple maps on page
+                        setTimeout(activateDefaultHotelMarker, 500);
+                    }, 450);
+                } else {
+                    activateDefaultHotelMarker();
+                    setTimeout(activateDefaultHotelMarker, 500);
                 }
             });
 
@@ -678,7 +710,6 @@ var dhrWeddingVenueMapHotels = <?php echo json_encode($hotels_js); ?>;
                 }
             });
         } else {
-            // DOM already loaded
             if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
                 initWeddingVenueMap();
             } else {

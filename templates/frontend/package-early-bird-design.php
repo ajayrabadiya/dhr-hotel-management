@@ -16,6 +16,7 @@ $channel_id = (int) get_option('dhr_shr_channel_id', '30');
 
 <!-- Fourth Package Design (Early Bird) -->
 <div class="bys-packages">
+    <!-- <div class="early-bird-packages-grid"> -->
     <div class="early-bird-packages-grid">
         <?php if (empty($packages)) : ?>
             <p class="dhr-no-packages"><?php esc_html_e('No packages available at the moment.', 'dhr-hotel-management'); ?></p>

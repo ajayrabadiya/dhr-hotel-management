@@ -113,7 +113,8 @@ class DHR_Hotel_Frontend {
                             'website' => isset($hotel->website) ? esc_url_raw($hotel->website) : '',
                             'image_url' => isset($hotel->image_url) ? esc_url_raw($hotel->image_url) : '',
                             'google_maps_url' => isset($hotel->google_maps_url) ? esc_url_raw($hotel->google_maps_url) : '',
-                            'status' => isset($hotel->status) ? sanitize_text_field($hotel->status) : 'active'
+                            'status' => isset($hotel->status) ? sanitize_text_field($hotel->status) : 'active',
+                            'hotel_code' => isset($hotel->hotel_code) ? sanitize_text_field($hotel->hotel_code) : ''
                         );
                     } elseif (is_array($hotel)) {
                         // Already an array, just sanitize
@@ -132,7 +133,8 @@ class DHR_Hotel_Frontend {
                             'website' => isset($hotel['website']) ? esc_url_raw($hotel['website']) : '',
                             'image_url' => isset($hotel['image_url']) ? esc_url_raw($hotel['image_url']) : '',
                             'google_maps_url' => isset($hotel['google_maps_url']) ? esc_url_raw($hotel['google_maps_url']) : '',
-                            'status' => isset($hotel['status']) ? sanitize_text_field($hotel['status']) : 'active'
+                            'status' => isset($hotel['status']) ? sanitize_text_field($hotel['status']) : 'active',
+                            'hotel_code' => isset($hotel['hotel_code']) ? sanitize_text_field($hotel['hotel_code']) : ''
                         );
                     }
                 }
