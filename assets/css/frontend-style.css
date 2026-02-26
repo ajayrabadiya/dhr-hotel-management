@@ -1701,6 +1701,14 @@ div:focus-visible {
     }
 }
 
+.bys-packages .first-packages__design,
+.bys-packages .second-packages__design,
+.bys-packages .kids-packages__design,
+.bys-packages .bird-packages__design {
+    max-width: 1140px;
+    margin: 0 auto;
+}
+
 .bys-packages .bys-packages-card {
     display: flex;
     flex-direction: column;
@@ -1792,7 +1800,30 @@ div:focus-visible {
     font-weight: 300;
     line-height: 125%;
     color: #FFFFFF;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+@media (max-width: 991px) {
+    .bys-packages .package-overlay__main-title {
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 767px) {
+    .bys-packages .package-overlay__main-title {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 380px) {
+    .bys-packages .package-overlay__main-title {
+        font-size: 22px;
+    }
 }
 
 .bys-packages .package-overlay__title {
@@ -1813,7 +1844,7 @@ div:focus-visible {
 
 @media (max-width: 767px) {
     .package-overlay__content__inner .package-overlay__main-title {
-        transform: translateY(-20px);
+        /* transform: translateY(-20px); */
     }
 
     .package-overlay__content__inner .package-overlay__valid {
@@ -1821,7 +1852,7 @@ div:focus-visible {
     }
 
     .package-overlay__content__inner .package-overlay__description {
-        display: none !important;
+        margin-bottom: 15px;
     }
 }
 
@@ -1836,6 +1867,7 @@ div:focus-visible {
 }
 
 .bys-packages .package-overlay__valid {
+    display: block;
     font-size: 12px;
     font-weight: 600;
     line-height: 140%;
@@ -2310,7 +2342,7 @@ div:focus-visible {
     bottom: 0;
     background: linear-gradient(180deg, rgba(0, 0, 0, 0) 38.14%, rgba(0, 0, 0, 0.67) 83.57%);
     transition: all .25s ease-in-out;
-    z-index: -1;
+    z-index: 0;
 }
 
 .bys-packages .package-overlay__link {
@@ -2324,13 +2356,14 @@ div:focus-visible {
     height: 24px;
     position: relative;
     width: fit-content;
+    text-decoration: none;
 }
 
 .bys-packages .package-overlay__link::after {
     content: "";
     position: absolute;
     left: 0;
-    bottom: -5px;
+    bottom: -2px;
     width: 89px;
     height: 1px;
     background-color: #EFF8FD;

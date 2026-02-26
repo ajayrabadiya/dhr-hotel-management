@@ -92,7 +92,7 @@ $channel_id = (int) get_option('dhr_shr_channel_id', '30');
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
-        <div class="package-swiper-pagination"></div>
+        <div class="package-swiper-pagination second-package-pagination"></div>
     </div>
 </div>
 
@@ -111,7 +111,7 @@ $channel_id = (int) get_option('dhr_shr_channel_id', '30');
             },
             speed: 1500,
             pagination: {
-                el: '.package-swiper-pagination',
+                el: '.second-package-pagination',
                 clickable: true,
                 bulletClass: 'package-swiper-pagination-bullet',
                 bulletActiveClass: 'package-swiper-pagination-bullet-active',
