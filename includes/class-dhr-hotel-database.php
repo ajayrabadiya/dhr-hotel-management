@@ -377,7 +377,9 @@ class DHR_Hotel_Database {
                     'panel_title' => 'Lodges & Camps',
                     'legend_lodges' => 'Lodges & Camps',
                     'legend_weddings' => 'Weddings & Conferences',
-                    'show_list' => true
+                    'show_list' => true,
+                    'selected_lodges_hotel_ids' => array(),
+                    'selected_weddings_hotel_ids' => array()
                 ))
             ),
             array(

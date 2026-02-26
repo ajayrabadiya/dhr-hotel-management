@@ -8,14 +8,17 @@ if (!defined('ABSPATH')) {
 }
 
 $hotels_js = array();
+$lodges_ids_map = array_flip(isset($lodges_hotel_ids) ? $lodges_hotel_ids : array());
 if (!empty($hotels)) {
     foreach ($hotels as $h) {
+        $hid = (int) $h->id;
         $hotels_js[] = array(
-            'id' => (int) $h->id, 'name' => isset($h->name) ? $h->name : '', 'description' => isset($h->description) ? $h->description : '',
+            'id' => $hid, 'name' => isset($h->name) ? $h->name : '', 'description' => isset($h->description) ? $h->description : '',
             'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
             'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
             'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active',
+            'is_lodge' => isset($lodges_ids_map[$hid])
         );
     }
 }
@@ -383,8 +386,7 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
                 lng: parseFloat(hotel.longitude)
             };
 
-            // Determine if this is a lodge or wedding marker
-            var isLodge = index % 2 === 0;
+            var isLodge = !!hotel.is_lodge;
 
             // Create normal marker icon (blue for lodges, orange for weddings)
             var normalIcon = createNormalMarkerIcon(isLodge);

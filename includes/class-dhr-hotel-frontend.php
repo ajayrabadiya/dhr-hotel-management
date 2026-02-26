@@ -407,6 +407,9 @@ class DHR_Hotel_Frontend {
         $settings = self::get_map_settings($map_config);
         $hotels = self::filter_hotels_by_map_selection($hotels, $settings);
         
+        $lodges_hotel_ids = isset($settings['selected_lodges_hotel_ids']) ? array_map('intval', (array) $settings['selected_lodges_hotel_ids']) : array();
+        $weddings_hotel_ids = isset($settings['selected_weddings_hotel_ids']) ? array_map('intval', (array) $settings['selected_weddings_hotel_ids']) : array();
+        
         ob_start();
         include DHR_HOTEL_PLUGIN_PATH . 'templates/frontend/lodges-camps-map.php';
         return ob_get_clean();

@@ -333,6 +333,7 @@ class DHR_Hotel_Admin {
         $map_id = isset($_POST['map_id']) ? intval($_POST['map_id']) : 0;
         $settings = array();
         $is_partner_portfolio = !empty($_POST['is_partner_portfolio']);
+        $is_lodges_camps = !empty($_POST['is_lodges_camps']);
         
         if ($is_partner_portfolio) {
             // Partner Portfolio Map: two separate hotel groups
@@ -348,6 +349,19 @@ class DHR_Hotel_Admin {
             $settings['selected_dream_hotel_ids'] = $dream_ids;
             // Combined for the generic filter
             $settings['selected_hotel_ids'] = array_values(array_unique(array_merge($cityblue_ids, $dream_ids)));
+        } elseif ($is_lodges_camps) {
+            // Lodges & Camps Map: two separate hotel groups
+            $lodges_ids = array();
+            if (isset($_POST['setting_lodges_hotels']) && is_array($_POST['setting_lodges_hotels'])) {
+                $lodges_ids = array_values(array_unique(array_filter(array_map('intval', $_POST['setting_lodges_hotels']))));
+            }
+            $weddings_ids = array();
+            if (isset($_POST['setting_weddings_hotels']) && is_array($_POST['setting_weddings_hotels'])) {
+                $weddings_ids = array_values(array_unique(array_filter(array_map('intval', $_POST['setting_weddings_hotels']))));
+            }
+            $settings['selected_lodges_hotel_ids'] = $lodges_ids;
+            $settings['selected_weddings_hotel_ids'] = $weddings_ids;
+            $settings['selected_hotel_ids'] = array_values(array_unique(array_merge($lodges_ids, $weddings_ids)));
         } else {
             // All other maps: single hotel selection
             $selected_ids = array();
@@ -368,7 +382,7 @@ class DHR_Hotel_Admin {
         }
         
         // Get all POST data and build settings array
-        $skip_keys = array('selected_hotels', 'cityblue_hotels', 'dream_hotels');
+        $skip_keys = array('selected_hotels', 'cityblue_hotels', 'dream_hotels', 'lodges_hotels', 'weddings_hotels');
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'setting_') !== 0) {
                 continue;

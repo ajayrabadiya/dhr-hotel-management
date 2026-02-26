@@ -219,20 +219,28 @@ jQuery(document).ready(function($) {
         var settings = JSON.parse(map.settings || '{}');
         var selectedIds = Array.isArray(settings.selected_hotel_ids) ? settings.selected_hotel_ids : [];
         var isPartnerPortfolio = (map.map_type === 'partner_portfolio' || map.shortcode === 'dhr_partner_portfolio_map');
+        var isLodgesCamps = (map.map_type === 'lodges_camps' || map.shortcode === 'dhr_lodges_camps_map');
         var selectedCityblueIds = Array.isArray(settings.selected_cityblue_hotel_ids) ? settings.selected_cityblue_hotel_ids : [];
         var selectedDreamIds = Array.isArray(settings.selected_dream_hotel_ids) ? settings.selected_dream_hotel_ids : [];
+        var selectedLodgesIds = Array.isArray(settings.selected_lodges_hotel_ids) ? settings.selected_lodges_hotel_ids : [];
+        var selectedWeddingsIds = Array.isArray(settings.selected_weddings_hotel_ids) ? settings.selected_weddings_hotel_ids : [];
         var legendCityblue = settings.legend_cityblue || 'CityBlue Hotels';
         var legendDream = settings.legend_dream || 'Dream Hotels & Resorts';
+        var legendLodges = settings.legend_lodges || 'Lodges & Camps';
+        var legendWeddings = settings.legend_weddings || 'Weddings & Conferences';
 
         $('#dhr-editing-map-name').text(map.map_name + ' → [' + (map.shortcode || '') + ']');
         var html = '<input type="hidden" name="map_name" value="' + escapeHtml(map.map_name) + '">';
         if (isPartnerPortfolio) {
             html += '<input type="hidden" name="is_partner_portfolio" value="1">';
         }
+        if (isLodgesCamps) {
+            html += '<input type="hidden" name="is_lodges_camps" value="1">';
+        }
         html += '<table class="form-table">';
         
         // Skip keys that are handled separately
-        var skipKeys = ['selected_hotel_ids', 'selected_cityblue_hotel_ids', 'selected_dream_hotel_ids'];
+        var skipKeys = ['selected_hotel_ids', 'selected_cityblue_hotel_ids', 'selected_dream_hotel_ids', 'selected_lodges_hotel_ids', 'selected_weddings_hotel_ids'];
 
         // Generate form fields based on map type
         for (var key in settings) {
@@ -263,6 +271,10 @@ jQuery(document).ready(function($) {
             // TWO separate hotel selection lists for Partner Portfolio Map
             html += renderPartnerHotelCheckboxes(legendCityblue, 'setting_cityblue_hotels[]', selectedCityblueIds, '#0B5991');
             html += renderPartnerHotelCheckboxes(legendDream, 'setting_dream_hotels[]', selectedDreamIds, '#4DB8FF');
+        } else if (isLodgesCamps) {
+            // TWO separate hotel selection lists for Lodges & Camps Map
+            html += renderPartnerHotelCheckboxes(legendLodges, 'setting_lodges_hotels[]', selectedLodgesIds, '#44B9F8');
+            html += renderPartnerHotelCheckboxes(legendWeddings, 'setting_weddings_hotels[]', selectedWeddingsIds, '#D3AA74');
         } else {
             // Single hotel selection list for all other maps
             html += '<tr>';
