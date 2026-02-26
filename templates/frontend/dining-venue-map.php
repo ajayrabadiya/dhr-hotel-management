@@ -15,10 +15,12 @@ if (!empty($hotels)) {
             'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
             'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
             'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active',
+            'hotel_code' => isset($h->hotel_code) ? $h->hotel_code : ''
         );
     }
 }
+$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
 
 $overview_label = isset($settings['overview_label']) ? $settings['overview_label'] : 'Weddings';
 $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : 'Find A Dining Venue';
@@ -30,7 +32,7 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
 ?>
 
 <div class="all-maps dining-venue-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
-    <div id="dining-venue-map" class="dining-venue-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
+    <div id="dining-venue-map" class="dining-venue-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>" data-default-hotel-code="<?php echo esc_attr($default_hotel_code); ?>"></div>
     <div class="dining-venue-info-content">
         <div class="mobile-hotel-select" id="dining-mobile-hotel-select">
             <select id="dining-hotel-dropdown" class="hotel-dropdown">
@@ -100,7 +102,8 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
 
 <script>
     var dhrDiningVenueMapSettings = {
-        book_now_text: '<?php echo esc_js($book_now_text); ?>'
+        book_now_text: '<?php echo esc_js($book_now_text); ?>',
+        default_hotel_code: '<?php echo esc_js($default_hotel_code); ?>'
     };
     var dhrDiningVenueMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
@@ -342,6 +345,26 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
                 ]
             });
 
+            function activateDefaultHotelMarker() {
+                var defaultCode = ((typeof dhrDiningVenueMapSettings !== 'undefined' && dhrDiningVenueMapSettings.default_hotel_code) || mapElement.getAttribute('data-default-hotel-code') || '').trim();
+                if (!defaultCode) return;
+                defaultCode = defaultCode.toUpperCase();
+                for (var i = 0; i < validHotels.length; i++) {
+                    var hCode = (String(validHotels[i].hotel_code || '')).trim().toUpperCase();
+                    if (hCode && hCode === defaultCode) {
+                        var m = markers[i];
+                        if (m) {
+                            (function (markerData) {
+                                setTimeout(function () {
+                                    google.maps.event.trigger(markerData.marker, 'click');
+                                }, 50);
+                            })(m);
+                        }
+                        break;
+                    }
+                }
+            }
+
             // After map loads, fit to markers with zoom-in and shift to right-bottom (same as partner-portfolio map)
             google.maps.event.addListenerOnce(map, 'idle', function () {
                 if (validHotels.length > 0 && !bounds.isEmpty()) {
@@ -366,7 +389,12 @@ $book_now_text = isset($settings['book_now_text']) ? $settings['book_now_text'] 
                             var h = mapDiv.offsetHeight;
                             map.panBy(-Math.round(w * 0.14), -Math.round(h * 0.00));
                         }
+                        activateDefaultHotelMarker();
+                        setTimeout(activateDefaultHotelMarker, 500);
                     }, 400);
+                } else {
+                    activateDefaultHotelMarker();
+                    setTimeout(activateDefaultHotelMarker, 500);
                 }
             });
 

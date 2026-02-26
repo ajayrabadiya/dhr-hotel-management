@@ -18,10 +18,12 @@ if (!empty($hotels)) {
             'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
             'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
             'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active',
+            'hotel_code' => isset($h->hotel_code) ? $h->hotel_code : '',
             'is_lodge' => isset($lodges_ids_map[$hid])
         );
     }
 }
+$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
 
 $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Lodges & Camps';
 $legend_lodges = isset($settings['legend_lodges']) ? $settings['legend_lodges'] : 'Lodges & Camps';
@@ -30,7 +32,7 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
 ?>
 
 <div class="lodges-camps-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
-    <div id="lodges-camps-map" class="lodges-camps-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
+    <div id="lodges-camps-map" class="lodges-camps-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>" data-default-hotel-code="<?php echo esc_attr($default_hotel_code); ?>"></div>
     <?php if ($show_list && !empty($hotels)): ?>
         <div class="lodges-camps-panel">
             <div class="lodges-camps-panel__icon lodges-camps-panel__toggle" style="cursor: pointer;">
@@ -65,6 +67,7 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
 </div>
 
 <script>
+    var dhrLodgesCampsMapSettings = { default_hotel_code: '<?php echo esc_js($default_hotel_code); ?>' };
     var dhrLodgesCampsMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
 <script>
@@ -310,6 +313,26 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
                 ]
             });
 
+            function activateDefaultHotelMarker() {
+                var defaultCode = ((typeof dhrLodgesCampsMapSettings !== 'undefined' && dhrLodgesCampsMapSettings.default_hotel_code) || mapElement.getAttribute('data-default-hotel-code') || '').trim();
+                if (!defaultCode) return;
+                defaultCode = defaultCode.toUpperCase();
+                for (var i = 0; i < validHotels.length; i++) {
+                    var hCode = (String(validHotels[i].hotel_code || '')).trim().toUpperCase();
+                    if (hCode && hCode === defaultCode) {
+                        var m = markers[i];
+                        if (m) {
+                            (function (markerData) {
+                                setTimeout(function () {
+                                    google.maps.event.trigger(markerData.marker, 'click');
+                                }, 50);
+                            })(m);
+                        }
+                        break;
+                    }
+                }
+            }
+
             // After map loads, fit to markers with 2% zoom-in and shift to right-bottom (same as dining-venue map)
             google.maps.event.addListenerOnce(map, 'idle', function () {
                 if (validHotels.length > 0 && !bounds.isEmpty()) {
@@ -332,7 +355,12 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
                             var h = mapDiv.offsetHeight;
                             map.panBy(-Math.round(w * 0.14), -Math.round(h * 0.0));
                         }
+                        activateDefaultHotelMarker();
+                        setTimeout(activateDefaultHotelMarker, 500);
                     }, 400);
+                } else {
+                    activateDefaultHotelMarker();
+                    setTimeout(activateDefaultHotelMarker, 500);
                 }
             });
 

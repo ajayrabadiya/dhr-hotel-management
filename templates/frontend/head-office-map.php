@@ -15,10 +15,12 @@ if (!empty($hotels)) {
             'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
             'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
             'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active',
+            'hotel_code' => isset($h->hotel_code) ? $h->hotel_code : ''
         );
     }
 }
+$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
 
 $title = isset($settings['title']) ? $settings['title'] : 'Head Office';
 $address = isset($settings['address']) ? $settings['address'] : '310 Main Road, Bryanston 2021, Gauteng, South Africa';
@@ -33,7 +35,7 @@ $google_maps_url = isset($settings['google_maps_url']) ? $settings['google_maps_
 
 <div class="all-maps head-office-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
     <div class="head-office-map-area">
-        <div id="head-office-map" class="head-office-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
+        <div id="head-office-map" class="head-office-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>" data-default-hotel-code="<?php echo esc_attr($default_hotel_code); ?>"></div>
     </div>
 </div>
 
@@ -63,6 +65,7 @@ $google_maps_url = isset($settings['google_maps_url']) ? $settings['google_maps_
 </div>
 
 <script>
+    var dhrHeadOfficeMapSettings = { default_hotel_code: '<?php echo esc_js($default_hotel_code); ?>' };
     var dhrHeadOfficeMapHotels = <?php echo wp_json_encode($hotels_js); ?>;
 </script>
 <script>
@@ -289,6 +292,36 @@ $google_maps_url = isset($settings['google_maps_url']) ? $settings['google_maps_
                     map.fitBounds(bounds, padding);
                 };
             }
+
+            function activateDefaultHotelMarker() {
+                var defaultCode = ((typeof dhrHeadOfficeMapSettings !== 'undefined' && dhrHeadOfficeMapSettings.default_hotel_code) || mapElement.getAttribute('data-default-hotel-code') || '').trim();
+                if (!defaultCode) return;
+                defaultCode = defaultCode.toUpperCase();
+                for (var i = 0; i < validHotels.length; i++) {
+                    var hCode = (String(validHotels[i].hotel_code || '')).trim().toUpperCase();
+                    if (hCode && hCode === defaultCode) {
+                        var m = markers[i];
+                        if (m) {
+                            (function (markerData) {
+                                setTimeout(function () {
+                                    google.maps.event.trigger(markerData.marker, 'click');
+                                }, 50);
+                            })(m);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            google.maps.event.addListenerOnce(map, 'idle', function () {
+                if (validHotels.length > 0 && !bounds.isEmpty()) {
+                    activateDefaultHotelMarker();
+                    setTimeout(activateDefaultHotelMarker, 500);
+                } else {
+                    activateDefaultHotelMarker();
+                    setTimeout(activateDefaultHotelMarker, 500);
+                }
+            });
 
             validHotels.forEach(function (hotel, index) {
                 createMarker(hotel, index);

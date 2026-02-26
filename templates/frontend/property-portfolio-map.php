@@ -15,16 +15,18 @@ if (!empty($hotels)) {
             'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
             'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
             'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',
-            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active'
+            'image_url' => isset($h->image_url) ? $h->image_url : '', 'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '', 'status' => isset($h->status) ? $h->status : 'active',
+            'hotel_code' => isset($h->hotel_code) ? $h->hotel_code : ''
         );
     }
 }
+$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
 
 $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Ownership Property Portfolio';
 ?>
 
 <div class="all-maps property-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
-    <div id="property-map" class="property-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
+    <div id="property-map" class="property-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>" data-default-hotel-code="<?php echo esc_attr($default_hotel_code); ?>"></div>
     <div class="property-panel">
         <div class="property-panel__icon property-panel__toggle" style="cursor: pointer;">
             <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" style="transition: transform 0.3s ease;">
@@ -50,6 +52,7 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
 </div>
 
 <script>
+    var dhrPropertyPortfolioMapSettings = { default_hotel_code: '<?php echo esc_js($default_hotel_code); ?>' };
     var dhrPropertyPortfolioMapHotels = <?php echo json_encode($hotels_js); ?>;
 </script>
 <script>
@@ -300,6 +303,26 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
                 ]
             });
 
+            function activateDefaultHotelMarker() {
+                var defaultCode = ((typeof dhrPropertyPortfolioMapSettings !== 'undefined' && dhrPropertyPortfolioMapSettings.default_hotel_code) || mapElement.getAttribute('data-default-hotel-code') || '').trim();
+                if (!defaultCode) return;
+                defaultCode = defaultCode.toUpperCase();
+                for (var i = 0; i < validHotels.length; i++) {
+                    var hCode = (String(validHotels[i].hotel_code || '')).trim().toUpperCase();
+                    if (hCode && hCode === defaultCode) {
+                        var m = markers[i];
+                        if (m) {
+                            (function (markerData) {
+                                setTimeout(function () {
+                                    google.maps.event.trigger(markerData.marker, 'click');
+                                }, 50);
+                            })(m);
+                        }
+                        break;
+                    }
+                }
+            }
+
             // After map loads, fit to markers with 2% zoom-in and shift to left-bottom (same zoom as other maps, content starts left and bottom)
             google.maps.event.addListenerOnce(map, 'idle', function () {
                 if (validHotels.length > 0 && !bounds.isEmpty()) {
@@ -323,7 +346,12 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
                             // Pan so content sits toward left and bottom (opposite of right-bottom: pan right + up)
                             map.panBy(Math.round(w * 0.12), -Math.round(h * 0.12));
                         }
+                        activateDefaultHotelMarker();
+                        setTimeout(activateDefaultHotelMarker, 500);
                     }, 400);
+                } else {
+                    activateDefaultHotelMarker();
+                    setTimeout(activateDefaultHotelMarker, 500);
                 }
             });
 

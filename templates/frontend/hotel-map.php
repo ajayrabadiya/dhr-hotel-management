@@ -24,14 +24,16 @@ if (!empty($hotels)) {
             'website' => isset($h->website) ? $h->website : '',
             'image_url' => isset($h->image_url) ? $h->image_url : '',
             'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '',
-            'status' => isset($h->status) ? $h->status : 'active'
+            'status' => isset($h->status) ? $h->status : 'active',
+            'hotel_code' => isset($h->hotel_code) ? $h->hotel_code : ''
         );
     }
 }
+$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
 ?>
 
 <div class="all-maps hotel-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
-    <div id="hotel-map" class="hotel-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>"></div>
+    <div id="hotel-map" class="hotel-map" data-hotels="<?php echo esc_attr(wp_json_encode($hotels_js)); ?>" data-default-hotel-code="<?php echo esc_attr($default_hotel_code); ?>"></div>
     <div class="hotel-info-content">
         <?php
         $location_heading = isset($settings['location_heading']) ? $settings['location_heading'] : 'LOCATED IN THE WESTERN CAPE';
@@ -158,7 +160,8 @@ if (!empty($hotels)) {
 </div>
 <script>
     var dhrHotelMapSettings = {
-        book_now_text: '<?php echo esc_js($book_now_text); ?>'
+        book_now_text: '<?php echo esc_js($book_now_text); ?>',
+        default_hotel_code: '<?php echo esc_js($default_hotel_code); ?>'
     };
     var dhrHotelMapHotels = <?php echo wp_json_encode($hotels_js); ?>;
 </script>
@@ -472,12 +475,37 @@ if (!empty($hotels)) {
                 }
             };
 
+            function activateDefaultHotelMarker() {
+                var defaultCode = ((typeof dhrHotelMapSettings !== 'undefined' && dhrHotelMapSettings.default_hotel_code) || mapElement.getAttribute('data-default-hotel-code') || '').trim();
+                if (!defaultCode) return;
+                defaultCode = defaultCode.toUpperCase();
+                for (var i = 0; i < validHotels.length; i++) {
+                    var hCode = (String(validHotels[i].hotel_code || '')).trim().toUpperCase();
+                    if (hCode && hCode === defaultCode) {
+                        var m = markers[i];
+                        if (m) {
+                            (function (markerData) {
+                                setTimeout(function () {
+                                    google.maps.event.trigger(markerData.marker, 'click');
+                                }, 50);
+                            })(m);
+                        }
+                        break;
+                    }
+                }
+            }
+
             // Create markers with staggered drop animation (pin arrive dynamic)
             validHotels.forEach(function (hotel, index) {
                 setTimeout(function () {
                     createMarker(hotel, index);
                 }, index * 120);
             });
+            // Activate default hotel marker after all markers have been created
+            setTimeout(function () {
+                activateDefaultHotelMarker();
+                setTimeout(activateDefaultHotelMarker, 500);
+            }, (validHotels.length || 1) * 120 + 600);
         }
 
         function createMarker(hotel, index) {
