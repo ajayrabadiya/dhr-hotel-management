@@ -1,7 +1,17 @@
 <?php
+/**
+ * Template Name: Product Import
+ * Load WordPress when file is run directly (e.g. from theme or plugin).
+ */
+if (!function_exists('term_exists')) {
+    $wp_load = dirname(__FILE__) . '/../../../wp-load.php';
+    if (is_file($wp_load)) {
+        require_once $wp_load;
+    }
+}
 set_time_limit(0);
 ini_set('max_execution_time', 0);
-get_header(); /* Template Name: Product Import */
+get_header();
 
 /**
  * Upload remote image and attach to product
