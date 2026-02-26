@@ -118,43 +118,43 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
                 svg.style.height = '100%';
                 svg.style.display = 'block';
 
+                // Marker anchor center (same as marker icon anchor for proper alignment)
+                var cx = 27.8784;
+                var cy = 28.7498;
+
                 if (this.isActive) {
-                    // Active marker structure - EXACT match
-                    // Outer circle (pulsing)
+                    // Active pulse: circles centered on marker so pulse aligns with numbered circle
                     var outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    outerCircle.setAttribute('cx', '28.314');
-                    outerCircle.setAttribute('cy', '28.314');
+                    outerCircle.setAttribute('cx', cx);
+                    outerCircle.setAttribute('cy', cy);
                     outerCircle.setAttribute('r', '28.314');
                     outerCircle.setAttribute('fill', '#44B9F8');
                     outerCircle.setAttribute('opacity', '0.1');
                     outerCircle.classList.add('pulse-outer-circle');
                     svg.appendChild(outerCircle);
 
-                    // Middle circle (pulsing)
                     var middleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    middleCircle.setAttribute('cx', '27.8784');
-                    middleCircle.setAttribute('cy', '28.7496');
+                    middleCircle.setAttribute('cx', cx);
+                    middleCircle.setAttribute('cy', cy);
                     middleCircle.setAttribute('r', '20.9088');
                     middleCircle.setAttribute('fill', '#44B9F8');
                     middleCircle.setAttribute('opacity', '0.3');
                     middleCircle.classList.add('pulse-middle-circle');
                     svg.appendChild(middleCircle);
                 } else {
-                    // Hover marker structure - smaller pulse circles but same 57x57 container
-                    // Outer circle (pulsing) - centered at marker center (27.8784, 28.7498)
+                    // Hover pulse: same center so pulse aligns with marker
                     var outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    outerCircle.setAttribute('cx', '27.8784');
-                    outerCircle.setAttribute('cy', '28.7498');
+                    outerCircle.setAttribute('cx', cx);
+                    outerCircle.setAttribute('cy', cy);
                     outerCircle.setAttribute('r', '13.068');
                     outerCircle.setAttribute('fill', '#44B9F8');
                     outerCircle.setAttribute('opacity', '0.1');
                     outerCircle.classList.add('pulse-outer-circle');
                     svg.appendChild(outerCircle);
 
-                    // Middle circle (pulsing)
                     var middleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    middleCircle.setAttribute('cx', '27.8784');
-                    middleCircle.setAttribute('cy', '28.7498');
+                    middleCircle.setAttribute('cx', cx);
+                    middleCircle.setAttribute('cy', cy);
                     middleCircle.setAttribute('r', '6.0984');
                     middleCircle.setAttribute('fill', '#44B9F8');
                     middleCircle.setAttribute('opacity', '0.3');
@@ -165,6 +165,7 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
                 div.appendChild(svg);
                 this.div = div;
 
+                // Use overlayLayer so pulse is visible (mapLayer is behind map tiles and pulse never shows)
                 var panes = this.getPanes();
                 panes.overlayLayer.appendChild(div);
 
@@ -520,7 +521,7 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
                 '<circle opacity="0.5" cx="28.314" cy="28.314" r="28.314" fill="#B8E3FF"/>' +
                 '<circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#7BC9FF"/>' +
                 '<circle cx="27.8784" cy="28.7498" r="20" fill="#062943"/>' +
-                '<text x="27.8784" y="33.5" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">' + number + '</text>' +
+                '<text x="27.8784" y="28.7498" font-family="Arial, sans-serif" font-size="16" font-weight="400" fill="#fafafa" text-anchor="middle" dominant-baseline="middle" style="line-height:1;">' + number + '</text>' +
                 '</svg>';
 
             return {
@@ -530,12 +531,13 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
             };
         }
 
-        function createActiveMarkerIcon() {
-            // Create SVG for active map marker (more visible) - no number shown when active
+        function createActiveMarkerIcon(number) {
+            // Active marker: same numbered circle as normal; pulse overlay shows active state
             var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-                '<circle opacity="0.1" cx="28.314" cy="28.314" r="28.314" fill="#062943"/>' +
-                '<circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#062943"/>' +
-                '<circle cx="27.8784" cy="28.7498" r="6.0984" fill="#0B5991"/>' +
+                '<circle opacity="0.5" cx="28.314" cy="28.314" r="28.314" fill="#B8E3FF"/>' +
+                '<circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#7BC9FF"/>' +
+                '<circle cx="27.8784" cy="28.7498" r="20" fill="#062943"/>' +
+                '<text x="27.8784" y="28.7498" font-family="Arial, sans-serif" font-size="16" font-weight="400" fill="#fafafa" text-anchor="middle" dominant-baseline="middle" style="line-height:1;">' + number + '</text>' +
                 '</svg>';
 
             return {
@@ -599,8 +601,9 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
             // Stop pulse first
             stopPulse(marker);
 
-            // Set icon to active (no number shown when active)
-            var activeIcon = createActiveMarkerIcon();
+            // Set icon to active: same number, pulse overlay shows active state
+            var number = marker.markerNumber || '01';
+            var activeIcon = createActiveMarkerIcon(number);
             marker.setIcon(activeIcon);
 
             // Start pulse for active marker

@@ -438,7 +438,7 @@ class DHR_Hotel_Frontend {
      */
     public function display_where_to_find_us_map($atts) {
         $atts = shortcode_atts(array(
-            'height' => '450px'
+            'height' => '550px'
         ), $atts);
         
         $hotels = DHR_Hotel_Database::get_all_hotels('active');

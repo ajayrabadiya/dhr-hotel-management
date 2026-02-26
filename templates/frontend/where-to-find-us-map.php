@@ -42,77 +42,108 @@ if (empty($email_address) && !empty($hotel->email)) {
 
 $lat = isset($hotel->latitude) ? floatval($hotel->latitude) : 0;
 $lng = isset($hotel->longitude) ? floatval($hotel->longitude) : 0;
+// South Africa default center (same as other maps)
+$default_center_lat = -26.2;
+$default_center_lng = 28.5;
+$has_valid_coords = ($lat && $lng && $lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180);
 $hotel_name = isset($hotel->name) ? $hotel->name : '';
 $hotel_image = isset($hotel->image_url) ? $hotel->image_url : '';
 $google_maps_url = isset($hotel->google_maps_url) ? $hotel->google_maps_url : '';
 if (empty($google_maps_url) && $lat && $lng) {
     $google_maps_url = 'https://www.google.com/maps?q=' . $lat . ',' . $lng;
 }
+$left_bg_image = !empty($hotel_image) ? $hotel_image : DHR_HOTEL_PLUGIN_URL . 'assets/images/default-hotel.jpg';
+$hotel_city = isset($hotel->city) ? $hotel->city : '';
+$hotel_province = isset($hotel->province) ? $hotel->province : '';
+$book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
 ?>
 
-<div class="dhr-wtfu-wrapper" style="height: <?php echo esc_attr($atts['height']); ?>;">
-    <div class="dhr-wtfu-map-side">
-        <div id="dhr-wtfu-gmap" class="dhr-wtfu-gmap"
-             data-lat="<?php echo esc_attr($lat); ?>"
-             data-lng="<?php echo esc_attr($lng); ?>"
-             data-name="<?php echo esc_attr($hotel_name); ?>"></div>
+<div id="wtfu-info-window-template" style="display: none;">
+    <div class="info-window">
+        <div class="info-window-content">
+            <h3 class="info-window-title">{name}</h3>
+            <p class="info-window-location">{city} | {province}</p>
+            <div class="info-window-actions">
+                <a href="{google_maps_url}" target="_blank" class="btn-info">
+                    <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.4544 1.95996C5.77085 1.95996 1.96021 5.77061 1.96021 10.4542C1.96021 15.1377 5.77085 18.9484 10.4544 18.9484C15.138 18.9484 18.9486 15.1377 18.9486 10.4542C18.9486 5.77061 15.138 1.95996 10.4544 1.95996ZM10.4544 3.26676C14.431 3.26676 17.6418 6.47761 17.6418 10.4542C17.6418 14.4307 14.431 17.6416 10.4544 17.6416C6.47785 17.6416 3.26701 14.4307 3.26701 10.4542C3.26701 6.47761 6.47785 3.26676 10.4544 3.26676ZM9.80101 6.53376V7.84056H11.1078V6.53376H9.80101ZM9.80101 9.14736V14.3746H11.1078V9.14736H9.80101Z" fill="#0B5991"/>
+                    </svg>
+                </a>
+                <a href="tel:{phone}" class="btn-book">{book_now_text}</a>
+            </div>
+        </div>
     </div>
+</div>
+<script>
+    var dhrWtfuHotel = <?php echo wp_json_encode(array(
+        'name' => $hotel_name,
+        'city' => $hotel_city,
+        'province' => $hotel_province,
+        'image_url' => $hotel_image,
+        'google_maps_url' => $google_maps_url,
+        'phone' => $phone_number,
+        'book_now_text' => $book_now_text
+    )); ?>;
+    var dhrWtfuPluginUrl = <?php echo wp_json_encode(DHR_HOTEL_PLUGIN_URL); ?>;
+</script>
 
-    <div class="dhr-wtfu-info-side" style="background-color: <?php echo esc_attr($bg_color); ?>;">
-        <div class="dhr-wtfu-hotel-card">
-            <?php if (!empty($hotel_image)): ?>
-                <div class="dhr-wtfu-hotel-image">
-                    <img src="<?php echo esc_url($hotel_image); ?>" alt="<?php echo esc_attr($hotel_name); ?>"
-                         onerror="this.onerror=null; this.src='<?php echo esc_url(DHR_HOTEL_PLUGIN_URL); ?>assets/images/default-hotel.jpg';">
-                </div>
-            <?php endif; ?>
+<div class="all-maps wtfu-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
+    <div id="wtfu-map" class="wtfu-map" data-lat="<?php echo esc_attr($lat); ?>" data-lng="<?php echo esc_attr($lng); ?>" data-name="<?php echo esc_attr($hotel_name); ?>" data-default-lat="<?php echo esc_attr($default_center_lat); ?>" data-default-lng="<?php echo esc_attr($default_center_lng); ?>" data-has-coords="<?php echo $has_valid_coords ? '1' : '0'; ?>"></div>
+    <div class="wtfu-info-content">
+        <div class="wtfu-info-content__left" style="background-image: url('<?php echo esc_url($left_bg_image); ?>');">
             <?php if (!empty($logo_url)): ?>
-                <div class="dhr-wtfu-hotel-logo">
-                    <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($hotel_name); ?> Logo">
+                <div class="wtfu-info__logo">
+                    <img src="<?php echo esc_url($logo_url); ?>" width="227" height="164" alt="<?php echo esc_attr($hotel_name); ?> Logo">
                 </div>
             <?php endif; ?>
             <?php if (!empty($enquire_text)): ?>
-                <a class="dhr-wtfu-enquire-btn"
-                   href="<?php echo !empty($enquire_url) ? esc_url($enquire_url) : '#'; ?>"
-                   <?php echo !empty($enquire_url) ? 'target="_blank"' : ''; ?>>
+                <a class="wtfu-info__enq-btn" href="<?php echo !empty($enquire_url) ? esc_url($enquire_url) : '#'; ?>" <?php echo !empty($enquire_url) ? 'target="_blank"' : ''; ?>>
                     <?php echo esc_html($enquire_text); ?>
                 </a>
             <?php endif; ?>
         </div>
 
-        <div class="dhr-wtfu-contact-panel">
-            <h2 class="dhr-wtfu-heading"><?php echo esc_html($heading); ?></h2>
-
+        <div class="wtfu-info-content__right">
+            <h2 class="map-title"><?php echo esc_html($heading); ?></h2>
             <?php if (!empty($address_text)): ?>
-                <p class="dhr-wtfu-address"><?php echo esc_html($address_text); ?></p>
+                <p class="map-description"><?php echo esc_html($address_text); ?></p>
             <?php endif; ?>
 
             <?php if (!empty($phone_number)): ?>
-                <p class="dhr-wtfu-phone">
-                    <?php if (!empty($phone_label)): ?>
-                        <span class="dhr-wtfu-phone-label"><?php echo esc_html($phone_label); ?></span>
-                    <?php endif; ?>
+                <p class="map-phone">
                     <a href="tel:<?php echo esc_attr($phone_number); ?>"><?php echo esc_html($phone_number); ?></a>
+                    <?php if (!empty($phone_label)): ?>
+                        <span><?php echo esc_html($phone_label); ?></span>
+                    <?php endif; ?>
                 </p>
             <?php endif; ?>
 
             <?php if (!empty($email_address)): ?>
-                <p class="dhr-wtfu-email">
+                <p class="map-description">
                     <a href="mailto:<?php echo esc_attr($email_address); ?>"><?php echo esc_html($email_address); ?></a>
                 </p>
             <?php endif; ?>
 
             <?php if (!empty($gps_coordinates)): ?>
-                <p class="dhr-wtfu-gps">GPS: <?php echo esc_html($gps_coordinates); ?></p>
+                <p class="map-description">GPS: <?php echo esc_html($gps_coordinates); ?></p>
             <?php endif; ?>
 
             <?php if (!empty($google_maps_url)): ?>
-                <a class="dhr-wtfu-gmaps-btn" href="<?php echo esc_url($google_maps_url); ?>" target="_blank">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 0C5.69 0 3 2.69 3 6c0 4.5 6 12 6 12s6-7.5 6-12c0-3.31-2.69-6-6-6zm0 8.5c-1.38 0-2.5-1.12-2.5-2.5S7.62 3.5 9 3.5s2.5 1.12 2.5 2.5S10.38 8.5 9 8.5z" fill="currentColor"/>
-                    </svg>
-                    Google Maps
-                </a>
+                <div class="map-btn">
+                    <a class="map-btn__link" href="<?php echo esc_url($google_maps_url); ?>" target="_blank">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_4637_2271)">
+                                <path d="M23.4059 10.1507L23.2848 9.63696H12.1184V14.363H18.7902C18.0975 17.6523 14.8832 19.3837 12.2577 19.3837C10.3473 19.3837 8.33357 18.5802 7.00071 17.2886C6.2975 16.5962 5.73774 15.772 5.3535 14.863C4.96925 13.9541 4.76805 12.9782 4.76143 11.9914C4.76143 10.0007 5.65607 8.00946 6.95786 6.69964C8.25964 5.38982 10.2257 4.65696 12.1805 4.65696C14.4193 4.65696 16.0237 5.84571 16.6237 6.38786L19.9821 3.04714C18.997 2.18143 16.2905 0 12.0723 0C8.81786 0 5.69732 1.24661 3.41625 3.52018C1.16518 5.75893 0 8.99625 0 12C0 15.0038 1.1025 18.0793 3.28393 20.3357C5.61482 22.7421 8.91589 24 12.315 24C15.4077 24 18.3391 22.7882 20.4284 20.5896C22.4823 18.4254 23.5446 15.4307 23.5446 12.2914C23.5446 10.9698 23.4118 10.185 23.4059 10.1507Z" fill="currentColor"></path>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_4637_2271">
+                                    <rect width="24" height="24" fill="white"></rect>
+                                </clipPath>
+                            </defs>
+                        </svg>
+                        Google Maps
+                    </a>
+                </div>
             <?php endif; ?>
         </div>
     </div>
@@ -122,25 +153,163 @@ if (empty($google_maps_url) && $lat && $lng) {
 (function () {
     'use strict';
 
-    function initWhereToFindUsMap() {
-        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-            return;
-        }
+    var map;
+    var marker;
+    var pulseOverlays = {};
+    var PulseOverlay;
 
-        var mapEl = document.getElementById('dhr-wtfu-gmap');
+    function createNormalMarkerIcon() {
+        var svg = '<svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="13.068" cy="13.068" r="13.068" fill="#44B9F8"/><circle opacity="0.3" cx="13.068" cy="13.0681" r="6.0984" fill="#44B9F8"/><circle cx="13.068" cy="13.0681" r="6.0984" fill="#062943"/></svg>';
+        return {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+            scaledSize: new google.maps.Size(27, 27),
+            anchor: new google.maps.Point(13.068, 13.0681)
+        };
+    }
+
+    function createActiveMarkerIcon() {
+        var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="28.314" cy="28.314" r="28.314" fill="#44B9F8"/><circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#44B9F8"/><circle cx="27.8784" cy="28.7498" r="6.0984" fill="#062943"/></svg>';
+        return {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+            scaledSize: new google.maps.Size(57, 57),
+            anchor: new google.maps.Point(27.8784, 28.7498)
+        };
+    }
+
+    function definePulseOverlay() {
+        PulseOverlay = function (position, mapInstance, isActive) {
+            this.position = position;
+            this.map = mapInstance;
+            this.isActive = isActive;
+            this.div = null;
+            this.setMap(mapInstance);
+        };
+        PulseOverlay.prototype = new google.maps.OverlayView();
+        PulseOverlay.prototype.onAdd = function () {
+            var div = document.createElement('div');
+            div.className = 'dhr-marker-pulse';
+            if (this.isActive) div.classList.add('dhr-marker-pulse-active');
+            else div.classList.add('dhr-marker-pulse-hover');
+            var size = this.isActive ? 57 : 27;
+            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', size);
+            svg.setAttribute('height', size);
+            svg.setAttribute('viewBox', this.isActive ? '0 0 57 57' : '0 0 27 27');
+            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.style.display = 'block';
+            if (this.isActive) {
+                var oc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                oc.setAttribute('cx', '28.314'); oc.setAttribute('cy', '28.314'); oc.setAttribute('r', '28.314');
+                oc.setAttribute('fill', '#44B9F8'); oc.setAttribute('opacity', '0.1'); oc.classList.add('pulse-outer-circle');
+                var mc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                mc.setAttribute('cx', '27.8784'); mc.setAttribute('cy', '28.7496'); mc.setAttribute('r', '20.9088');
+                mc.setAttribute('fill', '#44B9F8'); mc.setAttribute('opacity', '0.3'); mc.classList.add('pulse-middle-circle');
+                svg.appendChild(oc); svg.appendChild(mc);
+            } else {
+                var oc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                oc.setAttribute('cx', '13.068'); oc.setAttribute('cy', '13.068'); oc.setAttribute('r', '13.068');
+                oc.setAttribute('fill', '#44B9F8'); oc.setAttribute('opacity', '0.1'); oc.classList.add('pulse-outer-circle');
+                var mc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                mc.setAttribute('cx', '13.068'); mc.setAttribute('cy', '13.0681'); mc.setAttribute('r', '6.0984');
+                mc.setAttribute('fill', '#44B9F8'); mc.setAttribute('opacity', '0.3'); mc.classList.add('pulse-middle-circle');
+                svg.appendChild(oc); svg.appendChild(mc);
+            }
+            div.appendChild(svg);
+            this.div = div;
+            this.getPanes().overlayLayer.appendChild(div);
+            this.draw();
+        };
+        PulseOverlay.prototype.draw = function () {
+            var proj = this.getProjection();
+            if (!proj || !this.div) return;
+            var pos = proj.fromLatLngToDivPixel(this.position);
+            var size = this.isActive ? 57 : 27;
+            var ax = this.isActive ? 27.8784 : 13.068, ay = this.isActive ? 28.7498 : 13.0681;
+            this.div.style.left = (pos.x - ax) + 'px';
+            this.div.style.top = (pos.y - ay) + 'px';
+            this.div.style.width = size + 'px';
+            this.div.style.height = size + 'px';
+            this.div.style.margin = '0';
+            this.div.style.padding = '0';
+            this.div.style.border = 'none';
+            this.div.style.outline = 'none';
+            if (this.isActive && !this.div.classList.contains('dhr-marker-pulse-active')) this.div.classList.add('dhr-marker-pulse-active');
+        };
+        PulseOverlay.prototype.onRemove = function () {
+            if (this.div && this.div.parentNode) this.div.parentNode.removeChild(this.div);
+            this.div = null;
+        };
+    }
+
+    function startPulse(m, isActive) {
+        var id = m.getPosition().toString();
+        if (pulseOverlays[id]) { pulseOverlays[id].setMap(null); delete pulseOverlays[id]; }
+        var overlay = new PulseOverlay(m.getPosition(), map, isActive);
+        pulseOverlays[id] = overlay;
+        setTimeout(function () { if (overlay && overlay.div) overlay.draw(); }, 100);
+    }
+
+    function stopPulse(m) {
+        var id = m.getPosition().toString();
+        if (pulseOverlays[id]) { pulseOverlays[id].setMap(null); delete pulseOverlays[id]; }
+    }
+
+    function setMarkerToActive(m) {
+        stopPulse(m);
+        m.setIcon(createActiveMarkerIcon());
+        startPulse(m, true);
+    }
+
+    function escapeHtml(text) {
+        var map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return (text || '').replace(/[&<>"']/g, function (ch) { return map[ch]; });
+    }
+
+    function getInfoWindowContent(hotel) {
+        var templateEl = document.getElementById('wtfu-info-window-template');
+        if (!templateEl) return '<div class="info-window-content"><h3 class="info-window-title">' + escapeHtml(hotel.name) + '</h3></div>';
+        var template = templateEl.innerHTML;
+        var pluginUrl = (typeof dhrWtfuPluginUrl !== 'undefined') ? dhrWtfuPluginUrl : '';
+        var imgUrl = hotel.image_url || (pluginUrl + 'assets/images/default-hotel.jpg');
+        var gmUrl = hotel.google_maps_url || ('https://www.google.com/maps?q=' + (mapEl.getAttribute('data-lat') || '') + ',' + (mapEl.getAttribute('data-lng') || ''));
+        return template
+            .replace(/{name}/g, escapeHtml(hotel.name))
+            .replace(/{city}/g, escapeHtml(hotel.city || ''))
+            .replace(/{province}/g, escapeHtml(hotel.province || ''))
+            .replace(/{image_url}/g, imgUrl)
+            .replace(/{plugin_url}/g, pluginUrl)
+            .replace(/{google_maps_url}/g, gmUrl)
+            .replace(/{phone}/g, escapeHtml(hotel.phone || ''))
+            .replace(/{book_now_text}/g, escapeHtml(hotel.book_now_text || 'Book Now'));
+    }
+
+    var mapEl;
+
+    function initWhereToFindUsMap() {
+        if (typeof google === 'undefined' || typeof google.maps === 'undefined') return;
+        mapEl = document.getElementById('wtfu-map');
         if (!mapEl) return;
 
         var lat = parseFloat(mapEl.getAttribute('data-lat')) || 0;
         var lng = parseFloat(mapEl.getAttribute('data-lng')) || 0;
+        var defaultLat = parseFloat(mapEl.getAttribute('data-default-lat')) || -26.2;
+        var defaultLng = parseFloat(mapEl.getAttribute('data-default-lng')) || 28.5;
+        var hasCoords = mapEl.getAttribute('data-has-coords') === '1';
         var name = mapEl.getAttribute('data-name') || '';
 
-        if (lat === 0 && lng === 0) return;
+        var southAfricaCenter = { lat: defaultLat, lng: defaultLng };
+        var initialCenter = hasCoords ? { lat: lat, lng: lng } : southAfricaCenter;
+        var initialZoom = hasCoords ? 14 : 5;
 
-        var position = { lat: lat, lng: lng };
+        definePulseOverlay();
 
-        var map = new google.maps.Map(mapEl, {
-            zoom: 14,
-            center: position,
+        map = new google.maps.Map(mapEl, {
+            zoom: initialZoom,
+            center: initialCenter,
+            minZoom: 2,
+            maxZoom: 18,
             disableDefaultUI: false,
             zoomControl: true,
             mapTypeControl: false,
@@ -154,290 +323,33 @@ if (empty($google_maps_url) && $lat && $lng) {
             ]
         });
 
-        var marker = new google.maps.Marker({
-            position: position,
-            map: map,
-            title: name,
-            icon: {
-                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
-                    '<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-                    '<circle opacity="0.15" cx="18" cy="18" r="18" fill="#4A6F8F"/>' +
-                    '<circle opacity="0.3" cx="18" cy="18" r="12" fill="#4A6F8F"/>' +
-                    '<circle cx="18" cy="18" r="6" fill="#2C5F8A"/>' +
-                    '</svg>'
-                ),
-                scaledSize: new google.maps.Size(36, 36),
-                anchor: new google.maps.Point(18, 18)
-            }
-        });
-
-        var infoWindow = new google.maps.InfoWindow({ content: '<div style="font-size:14px;font-weight:600;padding:4px 0;">' + name + '</div>' });
-        marker.addListener('click', function () { infoWindow.open(map, marker); });
+        if (hasCoords) {
+            var position = { lat: lat, lng: lng };
+            marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                title: name,
+                icon: createActiveMarkerIcon()
+            });
+            startPulse(marker, true);
+            var hotel = (typeof dhrWtfuHotel !== 'undefined') ? dhrWtfuHotel : { name: name, city: '', province: '', image_url: '', google_maps_url: '', phone: '', book_now_text: 'Book Now' };
+            var infoWindowContent = getInfoWindowContent(hotel);
+            var infoWindow = new google.maps.InfoWindow({ content: infoWindowContent });
+            marker.addListener('click', function () { infoWindow.open(map, marker); });
+            google.maps.event.addListenerOnce(map, 'idle', function () {
+                infoWindow.open(map, marker);
+            });
+        }
     }
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
-            if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
-                initWhereToFindUsMap();
-            } else {
-                window.addEventListener('load', function () { setTimeout(initWhereToFindUsMap, 1000); });
-            }
+            if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') initWhereToFindUsMap();
+            else window.addEventListener('load', function () { setTimeout(initWhereToFindUsMap, 1000); });
         });
     } else {
-        if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
-            initWhereToFindUsMap();
-        } else {
-            window.addEventListener('load', function () { setTimeout(initWhereToFindUsMap, 1000); });
-        }
+        if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') initWhereToFindUsMap();
+        else window.addEventListener('load', function () { setTimeout(initWhereToFindUsMap, 1000); });
     }
 })();
 </script>
-
-<style>
-.dhr-wtfu-wrapper {
-    display: flex;
-    width: 100%;
-    position: relative;
-    overflow: hidden;
-    min-height: 400px;
-}
-
-.dhr-wtfu-map-side {
-    flex: 0 0 50%;
-    position: relative;
-}
-
-.dhr-wtfu-gmap {
-    width: 100%;
-    height: 100%;
-    min-height: 400px;
-}
-
-.dhr-wtfu-info-side {
-    flex: 0 0 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    padding: 40px 50px;
-    position: relative;
-}
-
-.dhr-wtfu-hotel-card {
-    position: absolute;
-    left: -80px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 260px;
-    background: #fff;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-    overflow: hidden;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.dhr-wtfu-hotel-image {
-    width: 100%;
-    height: 180px;
-    overflow: hidden;
-}
-
-.dhr-wtfu-hotel-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.dhr-wtfu-hotel-logo {
-    padding: 20px;
-    text-align: center;
-}
-
-.dhr-wtfu-hotel-logo img {
-    max-width: 120px;
-    max-height: 70px;
-    object-fit: contain;
-}
-
-.dhr-wtfu-enquire-btn {
-    display: block;
-    width: 100%;
-    padding: 14px 20px;
-    background-color: #5A7D9A;
-    color: #fff !important;
-    text-align: center;
-    text-decoration: none !important;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    transition: background-color 0.3s ease;
-}
-
-.dhr-wtfu-enquire-btn:hover {
-    background-color: #4A6A85;
-    color: #fff !important;
-}
-
-.dhr-wtfu-contact-panel {
-    margin-left: 200px;
-    max-width: 380px;
-    color: #1a1a2e;
-}
-
-.dhr-wtfu-heading {
-    font-size: 28px;
-    font-weight: 600;
-    color: #1a1a2e;
-    margin: 0 0 20px 0;
-    line-height: 1.3;
-    font-family: inherit;
-}
-
-.dhr-wtfu-address {
-    font-size: 15px;
-    line-height: 1.6;
-    color: #333;
-    margin: 0 0 16px 0;
-}
-
-.dhr-wtfu-phone {
-    margin: 0 0 8px 0;
-    font-size: 15px;
-}
-
-.dhr-wtfu-phone-label {
-    display: block;
-    font-weight: 600;
-    color: #2C5F8A;
-    font-size: 14px;
-}
-
-.dhr-wtfu-phone a {
-    color: #2C5F8A;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-}
-
-.dhr-wtfu-phone a:hover {
-    text-decoration: underline;
-}
-
-.dhr-wtfu-email {
-    margin: 0 0 12px 0;
-}
-
-.dhr-wtfu-email a {
-    color: #333;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.dhr-wtfu-email a:hover {
-    text-decoration: underline;
-}
-
-.dhr-wtfu-gps {
-    font-size: 13px;
-    color: #555;
-    margin: 0 0 20px 0;
-}
-
-.dhr-wtfu-gmaps-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 24px;
-    border: 2px solid #2C5F8A;
-    color: #2C5F8A !important;
-    text-decoration: none !important;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 2px;
-    transition: all 0.3s ease;
-    background: #fff;
-}
-
-.dhr-wtfu-gmaps-btn:hover {
-    background: #2C5F8A;
-    color: #fff !important;
-}
-
-.dhr-wtfu-gmaps-btn svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-}
-
-/* Tablet */
-@media (max-width: 1024px) {
-    .dhr-wtfu-info-side {
-        padding: 30px 30px;
-    }
-
-    .dhr-wtfu-hotel-card {
-        left: -60px;
-        width: 220px;
-    }
-
-    .dhr-wtfu-hotel-image {
-        height: 150px;
-    }
-
-    .dhr-wtfu-contact-panel {
-        margin-left: 170px;
-    }
-
-    .dhr-wtfu-heading {
-        font-size: 24px;
-    }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-    .dhr-wtfu-wrapper {
-        flex-direction: column;
-        height: auto !important;
-    }
-
-    .dhr-wtfu-map-side {
-        flex: none;
-        height: 300px;
-    }
-
-    .dhr-wtfu-gmap {
-        min-height: 300px;
-    }
-
-    .dhr-wtfu-info-side {
-        flex: none;
-        flex-direction: column;
-        padding: 30px 20px;
-        gap: 20px;
-    }
-
-    .dhr-wtfu-hotel-card {
-        position: relative;
-        left: auto;
-        top: auto;
-        transform: none;
-        width: 100%;
-        max-width: 300px;
-        margin: -60px auto 0;
-        z-index: 10;
-    }
-
-    .dhr-wtfu-contact-panel {
-        margin-left: 0;
-        text-align: center;
-        max-width: 100%;
-    }
-
-    .dhr-wtfu-gmaps-btn {
-        justify-content: center;
-    }
-}
-</style>
