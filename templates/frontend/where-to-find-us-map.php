@@ -8,9 +8,44 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
+
 $hotel = null;
 if (!empty($hotels) && is_array($hotels)) {
-    $hotel = reset($hotels);
+    // Try to match the "Book Your Stay" / default hotel code first (same logic as wedding-venue-map)
+    if ($default_hotel_code !== '') {
+        foreach ($hotels as $h) {
+            $code = isset($h->hotel_code) ? trim((string) $h->hotel_code) : '';
+            if ($code !== '' && strcasecmp($code, $default_hotel_code) === 0) {
+                $hotel = $h;
+                break;
+            }
+        }
+    }
+
+    // Fallback: if no code match, just use the first hotel
+    if (!$hotel) {
+        $hotel = reset($hotels);
+    }
+}
+
+// Build JS-friendly hotel list for multi-marker map (all selected hotels on this map)
+$wtfu_hotels_js = array();
+if (!empty($hotels) && is_array($hotels)) {
+    foreach ($hotels as $h) {
+        $wtfu_hotels_js[] = array(
+            'id'          => isset($h->id) ? (int) $h->id : 0,
+            'name'        => isset($h->name) ? $h->name : '',
+            'city'        => isset($h->city) ? $h->city : '',
+            'province'    => isset($h->province) ? $h->province : '',
+            'latitude'    => isset($h->latitude) ? floatval($h->latitude) : 0,
+            'longitude'   => isset($h->longitude) ? floatval($h->longitude) : 0,
+            'phone'       => isset($h->phone) ? $h->phone : '',
+            'image_url'   => isset($h->image_url) ? $h->image_url : '',
+            'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '',
+            'hotel_code'  => isset($h->hotel_code) ? $h->hotel_code : '',
+        );
+    }
 }
 
 if (!$hotel) {
@@ -85,6 +120,10 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
         'book_now_text' => $book_now_text
     )); ?>;
     var dhrWtfuPluginUrl = <?php echo wp_json_encode(DHR_HOTEL_PLUGIN_URL); ?>;
+    var dhrWtfuMapSettings = {
+        default_hotel_code: '<?php echo isset($default_hotel_code) ? esc_js($default_hotel_code) : ''; ?>'
+    };
+    var dhrWtfuMapHotels = <?php echo wp_json_encode($wtfu_hotels_js); ?>;
 </script>
 
 <div class="all-maps wtfu-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
@@ -154,8 +193,10 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
     'use strict';
 
     var map;
-    var marker;
+    var markers = [];
+    var infoWindows = [];
     var pulseOverlays = {};
+    var activeMarker = null;
     var PulseOverlay;
 
     function createNormalMarkerIcon() {
@@ -243,23 +284,43 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
         };
     }
 
-    function startPulse(m, isActive) {
-        var id = m.getPosition().toString();
-        if (pulseOverlays[id]) { pulseOverlays[id].setMap(null); delete pulseOverlays[id]; }
-        var overlay = new PulseOverlay(m.getPosition(), map, isActive);
+    function startPulse(marker, isActive) {
+        var id = marker.getPosition().toString();
+        if (pulseOverlays[id]) {
+            pulseOverlays[id].setMap(null);
+            delete pulseOverlays[id];
+        }
+        var overlay = new PulseOverlay(marker.getPosition(), map, isActive);
         pulseOverlays[id] = overlay;
-        setTimeout(function () { if (overlay && overlay.div) overlay.draw(); }, 100);
+        setTimeout(function () {
+            if (overlay && overlay.div) {
+                overlay.draw();
+            }
+        }, 100);
     }
 
-    function stopPulse(m) {
-        var id = m.getPosition().toString();
-        if (pulseOverlays[id]) { pulseOverlays[id].setMap(null); delete pulseOverlays[id]; }
+    function stopPulse(marker) {
+        var id = marker.getPosition().toString();
+        if (pulseOverlays[id]) {
+            pulseOverlays[id].setMap(null);
+            delete pulseOverlays[id];
+        }
     }
 
-    function setMarkerToActive(m) {
-        stopPulse(m);
-        m.setIcon(createActiveMarkerIcon());
-        startPulse(m, true);
+    function setAllMarkersToNormal() {
+        var normalIcon = createNormalMarkerIcon();
+        markers.forEach(function (markerData) {
+            stopPulse(markerData.marker);
+            markerData.marker.setIcon(normalIcon);
+        });
+        activeMarker = null;
+    }
+
+    function setMarkerToActive(marker) {
+        stopPulse(marker);
+        marker.setIcon(createActiveMarkerIcon());
+        startPulse(marker, true);
+        activeMarker = marker;
     }
 
     function escapeHtml(text) {
@@ -292,22 +353,96 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
         mapEl = document.getElementById('wtfu-map');
         if (!mapEl) return;
 
-        var lat = parseFloat(mapEl.getAttribute('data-lat')) || 0;
-        var lng = parseFloat(mapEl.getAttribute('data-lng')) || 0;
         var defaultLat = parseFloat(mapEl.getAttribute('data-default-lat')) || -26.2;
         var defaultLng = parseFloat(mapEl.getAttribute('data-default-lng')) || 28.5;
-        var hasCoords = mapEl.getAttribute('data-has-coords') === '1';
-        var name = mapEl.getAttribute('data-name') || '';
 
-        var southAfricaCenter = { lat: defaultLat, lng: defaultLng };
-        var initialCenter = hasCoords ? { lat: lat, lng: lng } : southAfricaCenter;
-        var initialZoom = hasCoords ? 14 : 5;
+        // Prefer full hotel list (all checked hotels on this map). Fallback to single marker if needed.
+        var hotels = [];
+        try {
+            if (Array.isArray(dhrWtfuMapHotels) && dhrWtfuMapHotels.length) {
+                hotels = dhrWtfuMapHotels;
+            }
+        } catch (e) {
+            hotels = [];
+        }
+
+        var hasMultipleHotels = hotels && hotels.length > 0;
+
+        // If no hotel list is available, keep legacy single-marker behaviour.
+        if (!hasMultipleHotels) {
+            var lat = parseFloat(mapEl.getAttribute('data-lat')) || 0;
+            var lng = parseFloat(mapEl.getAttribute('data-lng')) || 0;
+            var hasCoords = mapEl.getAttribute('data-has-coords') === '1';
+            var name = mapEl.getAttribute('data-name') || '';
+
+            var southAfricaCenter = { lat: defaultLat, lng: defaultLng };
+            var initialCenter = hasCoords ? { lat: lat, lng: lng } : southAfricaCenter;
+            var initialZoom = hasCoords ? 14 : 5;
+
+            definePulseOverlay();
+
+            map = new google.maps.Map(mapEl, {
+                zoom: initialZoom,
+                center: initialCenter,
+                minZoom: 2,
+                maxZoom: 18,
+                disableDefaultUI: false,
+                zoomControl: true,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+                styles: [
+                    { featureType: 'all', elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
+                    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#A0B6CB' }] },
+                    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+                    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] }
+                ]
+            });
+
+            if (hasCoords) {
+                var position = { lat: lat, lng: lng };
+                var singleMarker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: name,
+                    icon: createActiveMarkerIcon()
+                });
+                startPulse(singleMarker, true);
+                var hotel = (typeof dhrWtfuHotel !== 'undefined') ? dhrWtfuHotel : { name: name, city: '', province: '', image_url: '', google_maps_url: '', phone: '', book_now_text: 'Book Now' };
+                var infoWindowContent = getInfoWindowContent(hotel);
+                var infoWindow = new google.maps.InfoWindow({ content: infoWindowContent });
+                singleMarker.addListener('click', function () { infoWindow.open(map, singleMarker); });
+                google.maps.event.addListenerOnce(map, 'idle', function () {
+                    infoWindow.open(map, singleMarker);
+                });
+            }
+
+            return;
+        }
+
+        // Multi-marker behaviour (similar to wedding-venue-map)
+        function isValidLat(val) {
+            var n = parseFloat(val);
+            return isFinite(n) && n >= -90 && n <= 90;
+        }
+
+        function isValidLng(val) {
+            var n = parseFloat(val);
+            return isFinite(n) && n >= -180 && n <= 180;
+        }
+
+        var validHotels = hotels.filter(function (hotel) {
+            return isValidLat(hotel.latitude) && isValidLng(hotel.longitude);
+        });
+
+        var southAfricaCenterMulti = { lat: defaultLat, lng: defaultLng };
+        var southAfricaZoom = 4;
 
         definePulseOverlay();
 
         map = new google.maps.Map(mapEl, {
-            zoom: initialZoom,
-            center: initialCenter,
+            zoom: southAfricaZoom,
+            center: southAfricaCenterMulti,
             minZoom: 2,
             maxZoom: 18,
             disableDefaultUI: false,
@@ -323,23 +458,88 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
             ]
         });
 
-        if (hasCoords) {
-            var position = { lat: lat, lng: lng };
-            marker = new google.maps.Marker({
+        var bounds = new google.maps.LatLngBounds();
+        validHotels.forEach(function (hotel) {
+            var latLng = new google.maps.LatLng(parseFloat(hotel.latitude), parseFloat(hotel.longitude));
+            bounds.extend(latLng);
+        });
+
+        // Create markers and info windows
+        validHotels.forEach(function (hotel, index) {
+            var position = {
+                lat: parseFloat(hotel.latitude),
+                lng: parseFloat(hotel.longitude)
+            };
+
+            var marker = new google.maps.Marker({
                 position: position,
                 map: map,
-                title: name,
-                icon: createActiveMarkerIcon()
+                title: hotel.name,
+                icon: createNormalMarkerIcon()
             });
-            startPulse(marker, true);
-            var hotel = (typeof dhrWtfuHotel !== 'undefined') ? dhrWtfuHotel : { name: name, city: '', province: '', image_url: '', google_maps_url: '', phone: '', book_now_text: 'Book Now' };
+
             var infoWindowContent = getInfoWindowContent(hotel);
             var infoWindow = new google.maps.InfoWindow({ content: infoWindowContent });
-            marker.addListener('click', function () { infoWindow.open(map, marker); });
-            google.maps.event.addListenerOnce(map, 'idle', function () {
+
+            infoWindow.addListener('closeclick', function () {
+                setAllMarkersToNormal();
+            });
+
+            marker.addListener('click', function () {
+                setAllMarkersToNormal();
+                setMarkerToActive(marker);
+
+                infoWindows.forEach(function (iw) {
+                    iw.close();
+                });
+
                 infoWindow.open(map, marker);
             });
+
+            markers.push({
+                marker: marker,
+                infoWindow: infoWindow,
+                hotel: hotel
+            });
+            infoWindows.push(infoWindow);
+        });
+
+        function activateDefaultHotelMarker() {
+            var defaultCode = '';
+            if (typeof dhrWtfuMapSettings !== 'undefined' && dhrWtfuMapSettings.default_hotel_code) {
+                defaultCode = String(dhrWtfuMapSettings.default_hotel_code || '').trim();
+            }
+            if (!defaultCode) return;
+            defaultCode = defaultCode.toUpperCase();
+
+            for (var i = 0; i < validHotels.length; i++) {
+                var hCode = String(validHotels[i].hotel_code || '').trim().toUpperCase();
+                if (hCode && hCode === defaultCode) {
+                    var m = markers[i];
+                    if (m && m.marker) {
+                        (function (markerData) {
+                            setTimeout(function () {
+                                google.maps.event.trigger(markerData.marker, 'click');
+                            }, 50);
+                        })(m);
+                    }
+                    break;
+                }
+            }
         }
+
+        google.maps.event.addListenerOnce(map, 'idle', function () {
+            if (validHotels.length > 0 && !bounds.isEmpty()) {
+                map.fitBounds(bounds);
+                setTimeout(function () {
+                    activateDefaultHotelMarker();
+                    setTimeout(activateDefaultHotelMarker, 500);
+                }, 300);
+            } else {
+                activateDefaultHotelMarker();
+                setTimeout(activateDefaultHotelMarker, 500);
+            }
+        });
     }
 
     if (document.readyState === 'loading') {
