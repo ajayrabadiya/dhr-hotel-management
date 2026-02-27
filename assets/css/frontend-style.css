@@ -1959,6 +1959,17 @@ div:focus-visible {
     object-fit: contain;
 }
 
+.bys-packages .top-left__icon--svg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bys-packages .top-left__icon--svg svg {
+    width: 64px;
+    height: 64px;
+}
+
 .bys-packages .bys-packages-card__frature-img {
     position: absolute;
     left: 0;
@@ -2433,6 +2444,17 @@ div:focus-visible {
     width: 64px;
     height: 64px;
     object-fit: contain;
+}
+
+.bys-packages .top-left__icon--svg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bys-packages .top-left__icon--svg svg {
+    width: 64px;
+    height: 64px;
 }
 
 .bys-packages .bird-packages-card__frature-img {

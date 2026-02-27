@@ -25,6 +25,31 @@ class DHR_Hotel_Admin {
         // SHR WS Shop API (REST) sync actions
         add_action('admin_post_dhr_sync_shr_hotel', array($this, 'sync_shr_hotel'));
         add_action('wp_ajax_dhr_sync_shr_hotel_ajax', array($this, 'sync_shr_hotel_ajax'));
+
+        add_filter('upload_mimes', array($this, 'allow_svg_upload'));
+        add_filter('wp_check_filetype_and_ext', array($this, 'fix_svg_filetype'), 10, 5);
+    }
+
+    public function allow_svg_upload($mimes) {
+        $mimes['svg']  = 'image/svg+xml';
+        $mimes['svgz'] = 'image/svg+xml';
+        return $mimes;
+    }
+
+    public function fix_svg_filetype($data, $file, $filename, $mimes, $real_mime = '') {
+        if (!empty($data['ext']) && !empty($data['type'])) {
+            return $data;
+        }
+        $filetype = wp_check_filetype($filename, array(
+            'svg'  => 'image/svg+xml',
+            'svgz' => 'image/svg+xml',
+        ));
+        if ($filetype['ext']) {
+            $data['ext']             = $filetype['ext'];
+            $data['type']            = $filetype['type'];
+            $data['proper_filename'] = $filename;
+        }
+        return $data;
     }
     
     /**

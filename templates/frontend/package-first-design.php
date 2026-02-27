@@ -59,7 +59,15 @@ $channel_id = (int) get_option('dhr_shr_channel_id', '30');
                         <div class="bys-packages-card__top">
                             <div class="bys-packages-card__frature-img" style="background-image: url('<?php echo esc_url($img_url); ?>')"></div>
                             <div class="card__top-content">
-                                <img class="top-left__icon" src="<?php echo esc_url($plugin_url . 'assets/images/icons/experience-icon.svg'); ?>" alt="">
+                                <?php
+                                $pkg_icon_type = isset($pkg->category_icon_type) ? $pkg->category_icon_type : 'url';
+                                if ($pkg_icon_type === 'svg' && !empty($pkg->category_icon_svg)) : ?>
+                                    <span class="top-left__icon top-left__icon--svg"><?php echo $pkg->category_icon_svg; ?></span>
+                                <?php elseif (!empty($pkg->category_icon_url)) : ?>
+                                    <img class="top-left__icon" src="<?php echo esc_url($pkg->category_icon_url); ?>" alt="">
+                                <?php else : ?>
+                                    <img class="top-left__icon" src="<?php echo esc_url($plugin_url . 'assets/images/icons/experience-icon.svg'); ?>" alt="">
+                                <?php endif; ?>
                             </div>
                             <div class="package-overlay">
                                 <span class="package-overlay__label"><?php echo esc_html($category_label); ?></span>

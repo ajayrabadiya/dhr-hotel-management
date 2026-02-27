@@ -32,6 +32,18 @@ $accordion_svg = '<path d="M20.8359 15.9141L21.9141 14.8359L12.5391 5.46094L12 4
                     </div>
                 <?php endif; ?>
                 <div class="bird-packages-grid__card__info">
+                    <?php
+                    $cat_icon_type = isset($cat->icon_type) ? $cat->icon_type : 'url';
+                    $has_icon = ($cat_icon_type === 'svg' && !empty($cat->icon_svg)) || ($cat_icon_type === 'url' && !empty($cat->icon_url));
+                    if ($has_icon): ?>
+                        <span class="bird-packages__content__icon" style="display:inline-block; width:40px; height:40px; margin-bottom:8px;">
+                            <?php if ($cat_icon_type === 'svg' && !empty($cat->icon_svg)): ?>
+                                <?php echo $cat->icon_svg; ?>
+                            <?php else: ?>
+                                <img src="<?php echo esc_url($cat->icon_url); ?>" alt="" style="width:40px; height:40px; object-fit:contain;">
+                            <?php endif; ?>
+                        </span>
+                    <?php endif; ?>
                     <span class="bird-packages__content__label"><?php echo esc_html(!empty($cat->subtitle) ? $cat->subtitle : strtoupper($cat->title)); ?></span>
                     <div class="bird-packages__content__title__tag">
                         <h3 class="bird-packages__content__title"><?php echo esc_html($cat->title); ?></h3>
