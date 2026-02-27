@@ -393,7 +393,7 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
                 fullscreenControl: false,
                 styles: [
                     { featureType: 'all', elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
-                    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#A0B6CB' }] },
+                    { featureType: 'water', elemaddListenerOnceentType: 'geometry', stylers: [{ color: '#A0B6CB' }] },
                     { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
                     { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] }
                 ]
@@ -507,34 +507,71 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
         function activateDefaultHotelMarker() {
             var defaultCode = '';
             if (typeof dhrWtfuMapSettings !== 'undefined' && dhrWtfuMapSettings.default_hotel_code) {
-                defaultCode = String(dhrWtfuMapSettings.default_hotel_code || '').trim();
+                defaultCode = String(dhrWtfuMapSettings.default_hotel_code || '').trim().toUpperCase();
             }
-            if (!defaultCode) return;
-            defaultCode = defaultCode.toUpperCase();
 
-            for (var i = 0; i < validHotels.length; i++) {
-                var hCode = String(validHotels[i].hotel_code || '').trim().toUpperCase();
-                if (hCode && hCode === defaultCode) {
-                    var m = markers[i];
-                    if (m && m.marker) {
-                        (function (markerData) {
-                            setTimeout(function () {
-                                google.maps.event.trigger(markerData.marker, 'click');
-                            }, 50);
-                        })(m);
+            var markerToActivate = null;
+
+            if (defaultCode) {
+                for (var i = 0; i < validHotels.length; i++) {
+                    var hCode = String(validHotels[i].hotel_code || '').trim().toUpperCase();
+                    if (hCode && hCode === defaultCode) {
+                        var m = markers[i];
+                        if (m && m.marker) markerToActivate = m;
+                        break;
                     }
-                    break;
                 }
+            }
+
+            // If no default match, activate first hotel so one marker is always active (same as other map types)
+            if (!markerToActivate && markers.length > 0 && markers[0].marker) {
+                markerToActivate = markers[0];
+            }
+
+            if (markerToActivate) {
+                (function (markerData) {
+                    setTimeout(function () {
+                        google.maps.event.trigger(markerData.marker, 'click');
+                    }, 50);
+                })(markerToActivate);
             }
         }
 
+        // Device type for padding (same as property-portfolio-map)
+        function getDeviceType() {
+            var width = window.innerWidth;
+            if (width < 768) return 'mobile';
+            if (width < 991) return 'tablet';
+            return 'desktop';
+        }
+        var deviceType = getDeviceType();
+
+        // After map loads, fit to markers with 2% zoom-in and shift to left-bottom (same as property-portfolio-map)
         google.maps.event.addListenerOnce(map, 'idle', function () {
             if (validHotels.length > 0 && !bounds.isEmpty()) {
-                map.fitBounds(bounds);
+                var padding = deviceType === 'mobile' ? 40 : (deviceType === 'tablet' ? 60 : 80);
+                var ne = bounds.getNorthEast();
+                var sw = bounds.getSouthWest();
+                var center = bounds.getCenter();
+                var latSpan = ne.lat() - sw.lat();
+                var lngSpan = ne.lng() - sw.lng();
+                var expandFactor = 0.99;
+                var expandedBounds = new google.maps.LatLngBounds(
+                    new google.maps.LatLng(center.lat() - (latSpan * expandFactor) / 2, center.lng() - (lngSpan * expandFactor) / 2),
+                    new google.maps.LatLng(center.lat() + (latSpan * expandFactor) / 2, center.lng() + (lngSpan * expandFactor) / 2)
+                );
+                map.fitBounds(expandedBounds, padding);
                 setTimeout(function () {
+                    var mapDiv = document.getElementById('wtfu-map');
+                    if (mapDiv) {
+                        var w = mapDiv.offsetWidth;
+                        var h = mapDiv.offsetHeight;
+                        // Pan so content sits toward left and bottom (opposite of right-bottom: pan right + up)
+                        map.panBy(Math.round(w * 0.30), -Math.round(h * 0.14));
+                    }
                     activateDefaultHotelMarker();
                     setTimeout(activateDefaultHotelMarker, 500);
-                }, 300);
+                }, 400);
             } else {
                 activateDefaultHotelMarker();
                 setTimeout(activateDefaultHotelMarker, 500);
