@@ -23,7 +23,13 @@ if (!empty($hotels)) {
         );
     }
 }
-$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
+// Map-wise default hotel: use map settings first, then fall back to global Book Your Stay code.
+$default_hotel_code = '';
+if (isset($settings['default_hotel_code']) && $settings['default_hotel_code'] !== '') {
+    $default_hotel_code = trim((string) $settings['default_hotel_code']);
+} else {
+    $default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
+}
 
 $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Lodges & Camps';
 $legend_lodges = isset($settings['legend_lodges']) ? $settings['legend_lodges'] : 'Lodges & Camps';

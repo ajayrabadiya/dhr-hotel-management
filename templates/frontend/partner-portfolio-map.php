@@ -23,7 +23,13 @@ if (!empty($hotels)) {
         );
     }
 }
-$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
+// Map-wise default hotel: use map settings first, then fall back to global Book Your Stay code.
+$default_hotel_code = '';
+if (isset($settings['default_hotel_code']) && $settings['default_hotel_code'] !== '') {
+    $default_hotel_code = trim((string) $settings['default_hotel_code']);
+} else {
+    $default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
+}
 
 $overview_label = isset($settings['overview_label']) ? $settings['overview_label'] : 'DISCOVER AFRICA';
 $main_heading = isset($settings['main_heading']) ? $settings['main_heading'] : 'Our Partner Portfolio';
