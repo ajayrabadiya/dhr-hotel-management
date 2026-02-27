@@ -1245,7 +1245,7 @@ div:focus-visible {
 /* ============================================
    Map 8: Conference Map Styles (same layout as Wedding Venue Map)
    ============================================ */
-   .conference-map-container {
+.conference-map-container {
     position: relative;
     width: 100%;
     background: #A0B6CB;
@@ -1339,6 +1339,220 @@ div:focus-visible {
 .conference-map-container .hotel-phone-number {
     color: #ffffff;
 }
+
+/* ============================================
+   Map 9: Where To Find Us Map Styles
+   ============================================ */
+
+.wtfu-map-container {
+    position: relative;
+    width: 100%;
+    background: #93ADC3;
+}
+
+@media (max-width: 991px) {
+    .wtfu-map-container {
+        height: 100% !important;
+    }
+}
+
+.wtfu-map-container .wtfu-map {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}
+
+@media (max-width: 991px) {
+    .wtfu-map-container .wtfu-map {
+        height: 500px;
+    }
+}
+
+.wtfu-map-container .wtfu-info-content {
+    position: absolute;
+    width: 879px;
+    height: auto;
+    right: calc(10% - 20px);
+    top: 50%;
+    z-index: 1;
+    background-color: #fafafa;
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: 372px 1fr;
+    align-items: center;
+    box-shadow: 10px 10px 40px 0px #041C4133;
+    transform: translateY(-50%);
+}
+
+/* @media (max-width: 1280px) {
+    .wtfu-map-container .conference-info-content {
+        width: 410px;
+        left: calc(6% - 20px);
+    }
+}
+
+@media (max-width: 1199px) {
+    .wtfu-map-container .conference-info-content {
+        left: 10px;
+    }
+}
+
+@media (max-width: 991px) {
+    .wtfu-map-container .conference-info-content {
+        position: unset;
+        width: 100%;
+        padding: 20px 35px 40px;
+        background-color: #A0B6CB;
+    }
+} */
+
+.wtfu-map-container .wtfu-info-content__right {
+    padding: 40px 80px;   
+}
+
+.wtfu-map-container .map-title {
+    color: #0B5991;
+}
+
+@media (max-width: 768px) {
+    .wtfu-map-container .map-title {
+        font-weight: 400;
+    }
+}
+
+.wtfu-map-container .map-description {
+    color: #676B6D;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 140%;
+}
+
+@media (max-width: 991px) {
+    .wtfu-map-container .map-description {
+        max-width: 100%;
+    }
+}
+
+.wtfu-map-container .map-description a {
+    color: #676B6D;
+    text-decoration: none;
+}
+
+.wtfu-map-container .map-description a:hover {
+    color: #0B5991;
+}
+
+.wtfu-map-container .map-phone {
+    margin-bottom: 10px;
+}
+
+.wtfu-map-container .map-phone, 
+.wtfu-map-container .map-phone span, 
+.wtfu-map-container .map-phone a {
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 140%;
+    color: #1473B7;
+    text-decoration: none;
+}
+
+.wtfu-map-container .map-phone span {
+    color: #9EA1A3;
+}
+
+.wtfu-map-container .map-btn {
+    margin-top: 20px;
+}
+
+.wtfu-map-container .map-btn__link {
+    min-width: 194px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 10px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    background-color: transparent;
+    border: 1px solid #0B5991;
+    color: #0B5991;
+    padding: 10px 20px;
+    transition: all .25s ease-in-out;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+@media (max-width:480px) {
+    .wtfu-map-container .map-btn__link {
+        display: flex;
+    }
+}
+
+.wtfu-map-container .map-btn__link:hover {
+    background-color: #0B5991;
+    color: #ffffff;
+}
+
+.wtfu-map-container .wtfu-info-content__left {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.wtfu-map-container .wtfu-info__logo {
+    width: 227px;
+    height: auto;
+    max-height: 164px;
+    object-fit: contain;
+    object-position: center;
+}
+
+.wtfu-map-container .wtfu-info__enq-btn {
+    min-width: 160px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 10px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    background-color: #CEDEE9;
+    color: #062943;
+    padding: 10px 20px;
+    transition: all .25s ease-in-out;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+
+
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
 
 
 /* ============================================
