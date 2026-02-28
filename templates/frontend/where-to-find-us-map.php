@@ -135,7 +135,7 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
 <div class="all-maps wtfu-map-container" style="height: <?php echo esc_attr($atts['height']); ?>;">
     <div id="wtfu-map" class="wtfu-map" data-lat="<?php echo esc_attr($lat); ?>" data-lng="<?php echo esc_attr($lng); ?>" data-name="<?php echo esc_attr($hotel_name); ?>" data-default-lat="<?php echo esc_attr($default_center_lat); ?>" data-default-lng="<?php echo esc_attr($default_center_lng); ?>" data-has-coords="<?php echo $has_valid_coords ? '1' : '0'; ?>"></div>
     <div class="wtfu-info-content">
-        <div class="wtfu-info-content__left" style="background-image: url('<?php echo esc_url($left_bg_image); ?>');">
+        <div id="wtfu-info-content-left" class="wtfu-info-content__left" style="background-image: url('<?php echo esc_url($left_bg_image); ?>');">
             <?php if (!empty($logo_url)): ?>
                 <div class="wtfu-info__logo">
                     <img src="<?php echo esc_url($logo_url); ?>" width="227" height="164" alt="<?php echo esc_attr($hotel_name); ?> Logo">
@@ -352,6 +352,14 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
             .replace(/{book_now_text}/g, escapeHtml(hotel.book_now_text || 'Book Now'));
     }
 
+    function updateLeftPanelForHotel(hotel) {
+        var leftEl = document.getElementById('wtfu-info-content-left');
+        if (!leftEl || !hotel) return;
+        var pluginUrl = (typeof dhrWtfuPluginUrl !== 'undefined') ? dhrWtfuPluginUrl : '';
+        var imgUrl = (hotel.image_url && hotel.image_url.trim()) ? hotel.image_url : (pluginUrl + 'assets/images/default-hotel.jpg');
+        leftEl.style.backgroundImage = 'url("' + String(imgUrl).replace(/"/g, '\\"') + '")';
+    }
+
     var mapEl;
 
     function initWhereToFindUsMap() {
@@ -500,6 +508,9 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
                 });
 
                 infoWindow.open(map, marker);
+
+                // Update left panel to show active marker hotel image
+                updateLeftPanelForHotel(hotel);
             });
 
             markers.push({
