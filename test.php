@@ -51,6 +51,7 @@ class SubscriptionController
 
             $planIds = $payload['planIds'];
             $userData = $payload['userData'];
+            $debugSkip = !empty($payload['debug_skip_cost_calc']);
 
             // REFACTOR: Centralized auth check; fail fast with 401 if no session user.
             $user = $this->getAuthenticatedUser();
@@ -61,10 +62,8 @@ class SubscriptionController
             $this->validatePlansExistAndMatch($planIds, $plans);
             $this->validatePlanShape($plans);
 
-            // Legacy: skip cost calculation when debug_skip_cost_calc is set in payload.
-            $totalCost = !empty($payload['debug_skip_cost_calc'])
-                ? 0.0
-                : $this->calculateTotalCostWithTax($plans);
+            // Legacy: when debug_skip_cost_calc is set, totalCost = 0 and status = auto_approve.
+            $totalCost = $debugSkip ? 0.0 : $this->calculateTotalCostWithTax($plans);
 
             // REFACTOR: Grace period uses a clone of the end date so we never
             // mutate the user's stored end date by reference (legacy bug).
@@ -74,7 +73,7 @@ class SubscriptionController
             $this->updateUserProfileFromPayload($user, $userData);
             $user->save();
 
-            $status = $this->resolveUpgradeStatus($totalCost);
+            $status = $debugSkip ? 'auto_approve' : $this->resolveUpgradeStatus($totalCost);
 
             $this->sendSuccessResponse(
                 status: $status,
