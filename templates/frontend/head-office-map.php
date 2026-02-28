@@ -20,7 +20,13 @@ if (!empty($hotels)) {
         );
     }
 }
-$default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
+// Map-wise default hotel: use map settings first, then fall back to global Book Your Stay code.
+$default_hotel_code = '';
+if (isset($settings['default_hotel_code']) && $settings['default_hotel_code'] !== '') {
+    $default_hotel_code = trim((string) $settings['default_hotel_code']);
+} else {
+    $default_hotel_code = trim((string) get_option('bys_hotel_code', ''));
+}
 
 $title = isset($settings['title']) ? $settings['title'] : 'Head Office';
 $address = isset($settings['address']) ? $settings['address'] : '310 Main Road, Bryanston 2021, Gauteng, South Africa';

@@ -228,6 +228,18 @@ jQuery(document).ready(function($) {
         var legendDream = settings.legend_dream || 'Dream Hotels & Resorts';
         var legendLodges = settings.legend_lodges || 'Lodges & Camps';
         var legendWeddings = settings.legend_weddings || 'Weddings & Conferences';
+        var defaultHotelCode = settings.default_hotel_code || '';
+
+        // Build list of hotel IDs that are available on this map (used for default dropdown)
+        var availableIds = [];
+        if (isPartnerPortfolio) {
+            availableIds = (selectedCityblueIds || []).concat(selectedDreamIds || []);
+        } else if (isLodgesCamps) {
+            availableIds = (selectedLodgesIds || []).concat(selectedWeddingsIds || []);
+        } else {
+            availableIds = selectedIds || [];
+        }
+        availableIds = Array.from(new Set((availableIds || []).map(function (id) { return parseInt(id, 10); }).filter(function (id) { return id > 0; })));
 
         $('#dhr-editing-map-name').text(map.map_name + ' → [' + (map.shortcode || '') + ']');
         var html = '<input type="hidden" name="map_name" value="' + escapeHtml(map.map_name) + '">';
@@ -296,11 +308,19 @@ jQuery(document).ready(function($) {
             html += '</tr>';
         }
         
+        // Default hotel for this map (marker opened first)
+        html += renderDefaultHotelSelect(availableIds, defaultHotelCode);
+        
         html += '</table>';
         
         $('#dhr-map-id').val(map.id);
         $('#dhr-map-settings-content').html(html);
         $('#dhr-map-settings-panel').show();
+
+        // Attach live filtering so "Default hotel on this map" only shows selected hotels
+        // (do NOT rebuild immediately, so previously saved default stays selected on page load)
+        attachDefaultHotelLiveFilter();
+
         $('html, body').animate({
             scrollTop: $('#dhr-map-settings-panel').offset().top
         }, 500);
@@ -328,6 +348,101 @@ jQuery(document).ready(function($) {
         html += '</div></td>';
         html += '</tr>';
         return html;
+    }
+    
+    function renderDefaultHotelSelect(availableIds, defaultHotelCode) {
+        var html = '<tr>';
+        html += '<th scope="row"><label>' + escapeHtml('<?php echo esc_js(__("Default hotel on this map", "dhr-hotel-management")); ?>') + '</label></th>';
+        html += '<td>';
+        html += '<p class="description" style="margin-bottom: 8px;">' + escapeHtml('<?php echo esc_js(__("Optional. Choose which hotel\'s marker opens by default on this map. If left empty, no marker opens automatically.", "dhr-hotel-management")); ?>') + '</p>';
+        html += '<select name="setting_default_hotel_code" style="min-width:260px;">';
+        html += '<option value="">' + escapeHtml('<?php echo esc_js(__("— No default (open on click) —", "dhr-hotel-management")); ?>') + '</option>';
+
+        var useFilter = Array.isArray(availableIds) && availableIds.length > 0;
+        if (dhrAllHotels && dhrAllHotels.length) {
+            dhrAllHotels.forEach(function (hotel) {
+                var id = parseInt(hotel.id, 10);
+                if (useFilter && availableIds.indexOf(id) === -1) {
+                    return;
+                }
+                var code = hotel.hotel_code ? String(hotel.hotel_code) : '';
+                var selected = '';
+                if (code && defaultHotelCode && code.toUpperCase() === String(defaultHotelCode).toUpperCase()) {
+                    selected = ' selected';
+                }
+                var label = escapeHtml(hotel.name) + (code ? ' (' + escapeHtml(code) + ')' : '');
+                html += '<option value="' + escapeHtml(code) + '"' + selected + '>' + label + '</option>';
+            });
+        }
+
+        html += '</select>';
+        html += '</td>';
+        html += '</tr>';
+        return html;
+    }
+    
+    // Live-update the default-hotel dropdown based on selected checkboxes (no page reload)
+    function attachDefaultHotelLiveFilter() {
+        var $panel = $('#dhr-map-settings-content');
+        if (!$panel.length) return;
+
+        // Rebuild whenever any map-hotel checkbox is toggled
+        $panel.off('change.dhrDefaultHotel').on('change.dhrDefaultHotel',
+            'input[type="checkbox"][name="setting_selected_hotels[]"],' +
+            'input[type="checkbox"][name="setting_cityblue_hotels[]"],' +
+            'input[type="checkbox"][name="setting_dream_hotels[]"],' +
+            'input[type="checkbox"][name="setting_lodges_hotels[]"],' +
+            'input[type="checkbox"][name="setting_weddings_hotels[]"]',
+            function () {
+                rebuildDefaultHotelSelect();
+            }
+        );
+    }
+
+    function rebuildDefaultHotelSelect() {
+        var $select = $('select[name="setting_default_hotel_code"]');
+        if (!$select.length) return;
+
+        var $panel = $('#dhr-map-settings-content');
+        var selectedIds = [];
+
+        // Collect all hotel IDs that are currently checked for this map (all map types)
+        $panel.find('input[type="checkbox"][name="setting_selected_hotels[]"],' +
+                    'input[type="checkbox"][name="setting_cityblue_hotels[]"],' +
+                    'input[type="checkbox"][name="setting_dream_hotels[]"],' +
+                    'input[type="checkbox"][name="setting_lodges_hotels[]"],' +
+                    'input[type="checkbox"][name="setting_weddings_hotels[]"]')
+            .each(function () {
+                if (this.checked) {
+                    var id = parseInt(this.value, 10);
+                    if (id > 0) {
+                        selectedIds.push(id);
+                    }
+                }
+            });
+
+        // Build options so default list always reflects live selection
+        var optionsHtml = '';
+        optionsHtml += '<option value="">' + escapeHtml('<?php echo esc_js(__("— No default (open on click) —", "dhr-hotel-management")); ?>') + '</option>';
+
+        if (dhrAllHotels && dhrAllHotels.length && selectedIds.length) {
+            var idsSet = {};
+            selectedIds.forEach(function (id) { idsSet[id] = true; });
+
+            dhrAllHotels.forEach(function (hotel) {
+                var id = parseInt(hotel.id, 10);
+                if (!idsSet[id]) {
+                    return;
+                }
+                var code = hotel.hotel_code ? String(hotel.hotel_code) : '';
+                var label = escapeHtml(hotel.name) + (code ? ' (' + escapeHtml(code) + ')' : '');
+                optionsHtml += '<option value="' + escapeHtml(code) + '">' + label + '</option>';
+            });
+        }
+
+        // Replace options; clear current selection so admin explicitly chooses again if needed
+        $select.html(optionsHtml);
+        $select.val('');
     }
     
     function escapeHtml(text) {

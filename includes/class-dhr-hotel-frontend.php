@@ -218,9 +218,11 @@ class DHR_Hotel_Frontend {
      * Normalizes selected_hotel_ids from array, object, comma-separated string, or single value.
      */
     public static function filter_hotels_by_map_selection($hotels, $settings) {
-        if (!isset($settings['selected_hotel_ids']) || $settings['selected_hotel_ids'] === null || empty($settings['selected_hotel_ids'])) {
-            return [];
+        // No selection configured at all => show all hotels
+        if (!isset($settings['selected_hotel_ids']) || $settings['selected_hotel_ids'] === null) {
+            return $hotels;
         }
+
         $raw = $settings['selected_hotel_ids'];
 
         $ids = array();
@@ -230,6 +232,7 @@ class DHR_Hotel_Frontend {
             $ids = array_values(array_map('intval', (array) $raw));
         } elseif (is_string($raw)) {
             $trimmed = trim($raw);
+            // Empty or serialized-empty values mean "no selection" => show all
             if ($trimmed === '' || $trimmed === '[]' || $trimmed === '{}') {
                 return $hotels;
             }
