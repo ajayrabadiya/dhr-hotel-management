@@ -7,7 +7,8 @@
  * for security, clarity, and maintainability. See inline REFACTOR comments for
  * what changed and why—useful when onboarding new developers.
  *
- * 
+ * Legacy: when debug_skip_cost_calc is true in the request payload, cost calculation
+ * is skipped and totalCost is treated as 0 (e.g. for testing or legacy clients).
  */
 
 declare(strict_types=1);
@@ -57,9 +58,13 @@ class SubscriptionController
             // REFACTOR: Load plans through a dedicated method so we can validate
             // planIds (type, count, existence) and avoid modifying ORM objects in place.
             $plans = $this->loadPlansForIds($planIds);
+            $this->validatePlansExistAndMatch($planIds, $plans);
+            $this->validatePlanShape($plans);
 
-            // REFACTOR: Cost calculation is isolated; tax and total are explicit.
-            $totalCost = $this->calculateTotalCostWithTax($plans);
+            // Legacy: skip cost calculation when debug_skip_cost_calc is set in payload.
+            $totalCost = !empty($payload['debug_skip_cost_calc'])
+                ? 0.0
+                : $this->calculateTotalCostWithTax($plans);
 
             // REFACTOR: Grace period uses a clone of the end date so we never
             // mutate the user's stored end date by reference (legacy bug).
@@ -132,7 +137,12 @@ class SubscriptionController
             throw new InvalidRequestException('userData must be an array');
         }
 
-        return ['planIds' => $planIds, 'userData' => $userData];
+        $debugSkipCostCalc = $payload['debug_skip_cost_calc'] ?? false;
+        return [
+            'planIds' => $planIds,
+            'userData' => $userData,
+            'debug_skip_cost_calc' => (bool) $debugSkipCostCalc,
+        ];
     }
 
     /**
@@ -172,6 +182,40 @@ class SubscriptionController
             return [];
         }
         return array_values($plans);
+    }
+
+    /**
+     * Ensures the number of loaded plans matches the requested plan IDs.
+     * Fails with 400 when one or more plan IDs do not exist or are not returned.
+     */
+    private function validatePlansExistAndMatch(array $planIds, array $plans): void
+    {
+        if (count($plans) !== count($planIds)) {
+            throw new InvalidRequestException('One or more plan IDs do not exist or are invalid');
+        }
+        $loadedIds = array_map(fn($p) => isset($p->id) ? (int) $p->id : 0, $plans);
+        $requestedSet = array_fill_keys($planIds, true);
+        foreach ($loadedIds as $id) {
+            if (!isset($requestedSet[$id])) {
+                throw new InvalidRequestException('One or more plan IDs do not exist or are invalid');
+            }
+        }
+    }
+
+    /**
+     * Validates that each plan has a valid price (numeric and >= 0).
+     * Plans without a price or with invalid price are treated as invalid data; throws 400.
+     */
+    private function validatePlanShape(array $plans): void
+    {
+        foreach ($plans as $plan) {
+            if (!isset($plan->price) || $plan->price === '' || $plan->price === null) {
+                throw new InvalidRequestException('One or more plans have missing or invalid price');
+            }
+            if (!is_numeric($plan->price) || (float) $plan->price < 0) {
+                throw new InvalidRequestException('One or more plans have invalid price');
+            }
+        }
     }
 
     /**
@@ -247,10 +291,11 @@ class SubscriptionController
      * REFACTOR: Response shape is explicit; 's' -> status, 'c' -> totalCost,
      * 'u' -> userId for readability and API docs. Backward compatibility: if
      * the frontend expects s/c/u, keep them as documented here.
+     * JSON encoding errors are guarded; on failure we send 500 and exit.
      */
     private function sendSuccessResponse(string $status, float $totalCost, int $userId): void
     {
-        echo json_encode([
+        $payload = [
             'status' => $status,
             'totalCost' => $totalCost,
             'userId' => $userId,
@@ -258,7 +303,8 @@ class SubscriptionController
             's' => $status,
             'c' => $totalCost,
             'u' => $userId,
-        ], JSON_THROW_ON_ERROR);
+        ];
+        $this->sendJson($payload);
     }
 
     /**
@@ -266,11 +312,27 @@ class SubscriptionController
      *
      * REFACTOR: Single place for error format; we set response code and body
      * together so we never send 200 with an error payload.
+     * JSON encoding errors are guarded; on failure we send 500 and exit.
      */
     private function sendErrorResponse(int $httpCode, string $message): void
     {
         http_response_code($httpCode);
-        echo json_encode(['error' => $message], JSON_THROW_ON_ERROR);
+        $this->sendJson(['error' => $message]);
+    }
+
+    /**
+     * Encodes payload as JSON and outputs it. Avoids JSON_THROW_ON_ERROR so we
+     * can handle encode failures without uncaught exceptions; on failure sends 500.
+     */
+    private function sendJson(array $payload): void
+    {
+        $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if ($json === false && json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(500);
+            echo '{"error":"Internal Server Error"}';
+            return;
+        }
+        echo $json;
     }
 }
 
