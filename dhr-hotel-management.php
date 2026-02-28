@@ -83,7 +83,14 @@ class DHR_Hotel_Management {
             DHR_Hotel_Database::maybe_upgrade_dhr_hotels_table($table_name);
         }
         $categories_table = $wpdb->prefix . 'dhr_categories';
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $categories_table)) !== $categories_table) {
+        $packages_table = $wpdb->prefix . 'dhr_packages';
+        $package_details_table = $wpdb->prefix . 'dhr_package_details';
+        $missing_tables = (
+            $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $categories_table)) !== $categories_table ||
+            $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $packages_table)) !== $packages_table ||
+            $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $package_details_table)) !== $package_details_table
+        );
+        if ($missing_tables) {
             DHR_Hotel_Database::create_tables();
         } else {
             DHR_Hotel_Database::maybe_upgrade_dhr_categories_table($categories_table);

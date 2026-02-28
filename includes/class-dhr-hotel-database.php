@@ -160,6 +160,8 @@ class DHR_Hotel_Database {
             description text,
             image_url varchar(500) DEFAULT NULL,
             icon_url varchar(500) DEFAULT NULL,
+            icon_svg text DEFAULT NULL,
+            icon_type varchar(20) DEFAULT 'url',
             is_active tinyint(1) NOT NULL DEFAULT 1,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             created_by bigint(20) DEFAULT NULL,
@@ -282,6 +284,12 @@ class DHR_Hotel_Database {
         }
         if (!in_array('subtitle', $existing, true)) {
             $wpdb->query("ALTER TABLE `$table_name` ADD COLUMN subtitle varchar(255) DEFAULT NULL AFTER title");
+        }
+        if (!in_array('icon_svg', $existing, true)) {
+            $wpdb->query("ALTER TABLE `$table_name` ADD COLUMN icon_svg text DEFAULT NULL AFTER icon_url");
+        }
+        if (!in_array('icon_type', $existing, true)) {
+            $wpdb->query("ALTER TABLE `$table_name` ADD COLUMN icon_type varchar(20) DEFAULT 'url' AFTER icon_svg");
         }
     }
 
