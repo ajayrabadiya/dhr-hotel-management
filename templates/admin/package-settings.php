@@ -64,7 +64,7 @@ $designs = array(
                                         <span class="dashicons dashicons-category" style="font-size:16px; width:16px; height:16px; color:#2271b1;"></span>
                                     <?php endif; ?>
                                 </span>
-                                <span style="font-size:13px; font-weight:500; color:#1d2327;"><?php echo esc_html($cat->title); ?></span>
+                                <span style="font-size:13px; font-weight:500; color:#1d2327;"><?php echo esc_html(wp_unslash((string) ($cat->title ?? ''))); ?></span>
                                 <?php if ($cat->is_active) : ?>
                                     <span style="margin-left:auto; font-size:10px; padding:2px 6px; background:#d4edda; color:#155724; border-radius:3px; font-weight:600; text-transform:uppercase;"><?php esc_html_e('Active', 'dhr-hotel-management'); ?></span>
                                 <?php else : ?>

@@ -208,21 +208,21 @@ class DHR_Hotel_Admin {
         }
         
         $data = array(
-            'hotel_code' => isset($_POST['hotel_code']) ? $_POST['hotel_code'] : '',
-            'name' => isset($_POST['name']) ? $_POST['name'] : '',
-            'description' => isset($_POST['description']) ? $_POST['description'] : '',
-            'address' => isset($_POST['address']) ? $_POST['address'] : '',
-            'city' => isset($_POST['city']) ? $_POST['city'] : '',
-            'province' => isset($_POST['province']) ? $_POST['province'] : '',
-            'country' => isset($_POST['country']) ? $_POST['country'] : 'South Africa',
-            'latitude' => isset($_POST['latitude']) ? $_POST['latitude'] : '',
-            'longitude' => isset($_POST['longitude']) ? $_POST['longitude'] : '',
-            'phone' => isset($_POST['phone']) ? $_POST['phone'] : '',
-            'email' => isset($_POST['email']) ? $_POST['email'] : '',
-            'website' => isset($_POST['website']) ? $_POST['website'] : '',
-            'image_url' => isset($_POST['image_url']) ? $_POST['image_url'] : '',
-            'google_maps_url' => isset($_POST['google_maps_url']) ? $_POST['google_maps_url'] : '',
-            'status' => isset($_POST['status']) ? $_POST['status'] : 'active'
+            'hotel_code' => isset($_POST['hotel_code']) ? sanitize_text_field(wp_unslash($_POST['hotel_code'])) : '',
+            'name' => isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '',
+            'description' => isset($_POST['description']) ? sanitize_textarea_field(wp_unslash($_POST['description'])) : '',
+            'address' => isset($_POST['address']) ? sanitize_text_field(wp_unslash($_POST['address'])) : '',
+            'city' => isset($_POST['city']) ? sanitize_text_field(wp_unslash($_POST['city'])) : '',
+            'province' => isset($_POST['province']) ? sanitize_text_field(wp_unslash($_POST['province'])) : '',
+            'country' => isset($_POST['country']) ? sanitize_text_field(wp_unslash($_POST['country'])) : 'South Africa',
+            'latitude' => isset($_POST['latitude']) ? sanitize_text_field(wp_unslash($_POST['latitude'])) : '',
+            'longitude' => isset($_POST['longitude']) ? sanitize_text_field(wp_unslash($_POST['longitude'])) : '',
+            'phone' => isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '',
+            'email' => isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '',
+            'website' => isset($_POST['website']) ? esc_url_raw(wp_unslash($_POST['website'])) : '',
+            'image_url' => isset($_POST['image_url']) ? esc_url_raw($_POST['image_url']) : '',
+            'google_maps_url' => isset($_POST['google_maps_url']) ? esc_url_raw($_POST['google_maps_url']) : '',
+            'status' => isset($_POST['status']) ? sanitize_text_field(wp_unslash($_POST['status'])) : 'active'
         );
         
         $result = DHR_Hotel_Database::update_hotel($hotel_id, $data);
@@ -422,22 +422,22 @@ class DHR_Hotel_Admin {
                 }
             }
             if ($skip) continue;
-            // Handle different field types
+            // Handle different field types (wp_unslash to avoid storing escaped apostrophes)
             if (strpos($setting_key, 'description') !== false || strpos($setting_key, 'text') !== false) {
-                $settings[$setting_key] = sanitize_textarea_field($value);
+                $settings[$setting_key] = sanitize_textarea_field(wp_unslash($value));
             } elseif (strpos($setting_key, 'url') !== false || strpos($setting_key, 'link') !== false) {
                 $settings[$setting_key] = esc_url_raw($value);
             } elseif ($setting_key === 'show_numbers' || $setting_key === 'show_list') {
                 $settings[$setting_key] = isset($_POST[$key]) && ($value == '1' || $value == true) ? true : false;
             } else {
-                $settings[$setting_key] = sanitize_text_field($value);
+                $settings[$setting_key] = sanitize_text_field(wp_unslash($value));
             }
         }
         
         $data = array(
-            'map_name' => isset($_POST['map_name']) ? sanitize_text_field($_POST['map_name']) : '',
+            'map_name' => isset($_POST['map_name']) ? sanitize_text_field(wp_unslash($_POST['map_name'])) : '',
             'settings' => $settings,
-            'status' => isset($_POST['status']) ? sanitize_text_field($_POST['status']) : 'active'
+            'status' => isset($_POST['status']) ? sanitize_text_field(wp_unslash($_POST['status'])) : 'active'
         );
         
         $result = DHR_Hotel_Database::update_map_config($map_id, $data);
@@ -498,9 +498,9 @@ class DHR_Hotel_Admin {
         check_admin_referer('dhr_category_nonce');
         $id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
         $data = array(
-            'title'            => isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '',
-            'subtitle'         => isset($_POST['subtitle']) ? sanitize_text_field($_POST['subtitle']) : '',
-            'description'      => isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '',
+            'title'            => isset($_POST['title']) ? sanitize_text_field(wp_unslash($_POST['title'])) : '',
+            'subtitle'         => isset($_POST['subtitle']) ? sanitize_text_field(wp_unslash($_POST['subtitle'])) : '',
+            'description'      => isset($_POST['description']) ? sanitize_textarea_field(wp_unslash($_POST['description'])) : '',
             'image_url'        => isset($_POST['image_url']) ? esc_url_raw($_POST['image_url']) : '',
             'icon_url'         => isset($_POST['icon_url']) ? esc_url_raw($_POST['icon_url']) : '',
             'view_package_url' => isset($_POST['view_package_url']) ? esc_url_raw($_POST['view_package_url']) : '',

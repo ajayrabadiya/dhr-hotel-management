@@ -61,7 +61,7 @@ function format_room_description($room)
 {
     // Use API shortDescription when available
     if (!empty($room->description)) {
-        return $room->description;
+        return wp_unslash((string) $room->description);
     }
 
     $parts = array();

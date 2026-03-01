@@ -100,40 +100,40 @@ class DHR_Hotel_Frontend {
                     if (is_object($hotel)) {
                         $hotels_array[] = array(
                             'id' => isset($hotel->id) ? intval($hotel->id) : 0,
-                            'name' => isset($hotel->name) ? sanitize_text_field($hotel->name) : '',
-                            'description' => isset($hotel->description) ? sanitize_text_field($hotel->description) : '',
-                            'address' => isset($hotel->address) ? sanitize_text_field($hotel->address) : '',
-                            'city' => isset($hotel->city) ? sanitize_text_field($hotel->city) : '',
-                            'province' => isset($hotel->province) ? sanitize_text_field($hotel->province) : '',
-                            'country' => isset($hotel->country) ? sanitize_text_field($hotel->country) : '',
+                            'name' => isset($hotel->name) ? sanitize_text_field(wp_unslash((string) $hotel->name)) : '',
+                            'description' => isset($hotel->description) ? sanitize_text_field(wp_unslash((string) $hotel->description)) : '',
+                            'address' => isset($hotel->address) ? sanitize_text_field(wp_unslash((string) $hotel->address)) : '',
+                            'city' => isset($hotel->city) ? sanitize_text_field(wp_unslash((string) $hotel->city)) : '',
+                            'province' => isset($hotel->province) ? sanitize_text_field(wp_unslash((string) $hotel->province)) : '',
+                            'country' => isset($hotel->country) ? sanitize_text_field(wp_unslash((string) $hotel->country)) : '',
                             'latitude' => isset($hotel->latitude) ? floatval($hotel->latitude) : 0,
                             'longitude' => isset($hotel->longitude) ? floatval($hotel->longitude) : 0,
-                            'phone' => isset($hotel->phone) ? sanitize_text_field($hotel->phone) : '',
+                            'phone' => isset($hotel->phone) ? sanitize_text_field(wp_unslash((string) $hotel->phone)) : '',
                             'email' => isset($hotel->email) ? sanitize_email($hotel->email) : '',
                             'website' => isset($hotel->website) ? esc_url_raw($hotel->website) : '',
                             'image_url' => isset($hotel->image_url) ? esc_url_raw($hotel->image_url) : '',
                             'google_maps_url' => isset($hotel->google_maps_url) ? esc_url_raw($hotel->google_maps_url) : '',
-                            'status' => isset($hotel->status) ? sanitize_text_field($hotel->status) : 'active',
+                            'status' => isset($hotel->status) ? sanitize_text_field(wp_unslash((string) $hotel->status)) : 'active',
                             'hotel_code' => isset($hotel->hotel_code) ? sanitize_text_field($hotel->hotel_code) : ''
                         );
                     } elseif (is_array($hotel)) {
                         // Already an array, just sanitize
                         $hotels_array[] = array(
                             'id' => isset($hotel['id']) ? intval($hotel['id']) : 0,
-                            'name' => isset($hotel['name']) ? sanitize_text_field($hotel['name']) : '',
-                            'description' => isset($hotel['description']) ? sanitize_text_field($hotel['description']) : '',
-                            'address' => isset($hotel['address']) ? sanitize_text_field($hotel['address']) : '',
-                            'city' => isset($hotel['city']) ? sanitize_text_field($hotel['city']) : '',
-                            'province' => isset($hotel['province']) ? sanitize_text_field($hotel['province']) : '',
-                            'country' => isset($hotel['country']) ? sanitize_text_field($hotel['country']) : '',
+                            'name' => isset($hotel['name']) ? sanitize_text_field(wp_unslash((string) ($hotel['name'] ?? ''))) : '',
+                            'description' => isset($hotel['description']) ? sanitize_text_field(wp_unslash((string) ($hotel['description'] ?? ''))) : '',
+                            'address' => isset($hotel['address']) ? sanitize_text_field(wp_unslash((string) ($hotel['address'] ?? ''))) : '',
+                            'city' => isset($hotel['city']) ? sanitize_text_field(wp_unslash((string) ($hotel['city'] ?? ''))) : '',
+                            'province' => isset($hotel['province']) ? sanitize_text_field(wp_unslash((string) ($hotel['province'] ?? ''))) : '',
+                            'country' => isset($hotel['country']) ? sanitize_text_field(wp_unslash((string) ($hotel['country'] ?? ''))) : '',
                             'latitude' => isset($hotel['latitude']) ? floatval($hotel['latitude']) : 0,
                             'longitude' => isset($hotel['longitude']) ? floatval($hotel['longitude']) : 0,
-                            'phone' => isset($hotel['phone']) ? sanitize_text_field($hotel['phone']) : '',
+                            'phone' => isset($hotel['phone']) ? sanitize_text_field(wp_unslash((string) ($hotel['phone'] ?? ''))) : '',
                             'email' => isset($hotel['email']) ? sanitize_email($hotel['email']) : '',
                             'website' => isset($hotel['website']) ? esc_url_raw($hotel['website']) : '',
                             'image_url' => isset($hotel['image_url']) ? esc_url_raw($hotel['image_url']) : '',
                             'google_maps_url' => isset($hotel['google_maps_url']) ? esc_url_raw($hotel['google_maps_url']) : '',
-                            'status' => isset($hotel['status']) ? sanitize_text_field($hotel['status']) : 'active',
+                            'status' => isset($hotel['status']) ? sanitize_text_field(wp_unslash((string) ($hotel['status'] ?? ''))) : 'active',
                             'hotel_code' => isset($hotel['hotel_code']) ? sanitize_text_field($hotel['hotel_code']) : ''
                         );
                     }

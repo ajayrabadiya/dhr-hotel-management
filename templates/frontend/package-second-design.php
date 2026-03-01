@@ -29,7 +29,7 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
                     $details = $item['details'];
                     $hotel = $item['hotel'];
                     $title = $details && !empty($details->name) ? $details->name : $pkg->package_code;
-                    $desc = $details && !empty($details->description) ? wp_kses_post($details->description) : '';
+                    $desc = $details && !empty($details->description) ? wp_kses_post(wp_unslash((string) $details->description)) : '';
                     $short_desc = $desc ? wp_trim_words(wp_strip_all_tags($desc), 25) : '';
                     $img_url = $plugin_url . 'assets/images/package/1.png';
                     if ($details && !empty($details->images) && is_array($details->images)) {
@@ -42,11 +42,11 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
                     }
                     $hotel_name = $hotel && !empty($hotel->name) ? $hotel->name : $pkg->hotel_code;
                     $location_line = $hotel ? trim($hotel->city . ($hotel->province ? ', ' . $hotel->province : '') . ($hotel->country ? ', ' . $hotel->country : '')) : '';
-                    $category_label = !empty($pkg->category_title) ? $pkg->category_title : __('Package Experience', 'dhr-hotel-management');
+                    $category_label = !empty($pkg->category_title) ? wp_unslash((string) $pkg->category_title) : __('Package Experience', 'dhr-hotel-management');
                     $booking_url = !empty($pkg->hotel_code) ? add_query_arg(array('hotel_code' => $pkg->hotel_code, 'channel_id' => $channel_id), home_url('/')) : '#';
                     $included_list = array();
                     if ($details && !empty($details->description)) {
-                        $text = wp_strip_all_tags($details->description);
+                        $text = wp_strip_all_tags(wp_unslash((string) $details->description));
                         $lines = preg_split('/\n|\r\n?|\.\s+/', $text, 5, PREG_SPLIT_NO_EMPTY);
                         $included_list = array_slice(array_filter(array_map('trim', $lines)), 0, 4);
                     }
@@ -81,16 +81,16 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
                                         <h6><?php echo esc_html($hotel_name); ?></h6>
                                         <p><?php echo esc_html($location_line); ?></p>
                                     </div>
-                                    <div class="mobile-view-package-button">
-                                        <a href="javascript:void(0)" class="bys-package-button bys-book-now-link"
-                                            data-hotel-code="<?php echo esc_attr($pkg->hotel_code); ?>"
-                                            data-channel-id="<?php echo esc_attr($channel_id); ?>"
-                                            data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
-                                            data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
-                                            data-adults="2"
-                                            data-children="0"
-                                            data-rooms="1"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
-                                    </div>
+                                </div>
+                                <div class="mobile-view-package-button">
+                                    <a href="javascript:void(0)" class="bys-package-button bys-book-now-link"
+                                        data-hotel-code="<?php echo esc_attr($pkg->hotel_code); ?>"
+                                        data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                                        data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
+                                        data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
+                                        data-adults="2"
+                                        data-children="0"
+                                        data-rooms="1"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
                                 </div>
                             </div>
                         </div>

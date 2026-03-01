@@ -58,7 +58,7 @@ if (empty($categories)) {
                         <option value=""><?php _e('— Select Category —', 'dhr-hotel-management'); ?></option>
                         <?php foreach ($categories as $c): ?>
                             <option value="<?php echo esc_attr($c->id); ?>" <?php selected($category_id, $c->id); ?>>
-                                <?php echo esc_html($c->title); ?>
+                                <?php echo esc_html(wp_unslash((string) ($c->title ?? ''))); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

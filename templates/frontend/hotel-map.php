@@ -11,9 +11,9 @@ if (!empty($hotels)) {
     foreach ($hotels as $h) {
         $hotels_js[] = array(
             'id' => (int) $h->id,
-            'name' => isset($h->name) ? $h->name : '',
-            'description' => isset($h->description) ? $h->description : '',
-            'address' => isset($h->address) ? $h->address : '',
+            'name' => isset($h->name) ? wp_unslash((string) $h->name) : '',
+            'description' => isset($h->description) ? wp_unslash((string) $h->description) : '',
+            'address' => isset($h->address) ? wp_unslash((string) $h->address) : '',
             'city' => isset($h->city) ? $h->city : '',
             'province' => isset($h->province) ? $h->province : '',
             'country' => isset($h->country) ? $h->country : '',

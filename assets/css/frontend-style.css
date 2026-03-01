@@ -1923,6 +1923,10 @@ div:focus-visible {
     margin: 0 auto;
 }
 
+.package-design-grid .bys-packages {
+    background-color: #FFFFFF;
+}
+
 .package-design-grid .bys-packages--grid .swiper-wrapper {
     display: grid;
     gap: 32px;
@@ -1945,6 +1949,8 @@ div:focus-visible {
 @media (max-width: 767px) {
     .package-design-grid .bys-packages--grid .swiper-wrapper {
         grid-template-columns: repeat(1, 1fr);
+        width: calc(100% - 40px);
+        margin: auto;
     }
 }
 

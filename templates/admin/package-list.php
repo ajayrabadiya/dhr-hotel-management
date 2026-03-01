@@ -48,7 +48,7 @@ $messages = array(
                         <td><?php echo esc_html($pkg->id); ?></td>
                         <td><strong><?php echo esc_html($pkg->package_code); ?></strong></td>
                         <td><?php echo esc_html($pkg->hotel_code); ?></td>
-                        <td><?php echo esc_html(isset($pkg->category_title) ? $pkg->category_title : '&ndash;'); ?></td>
+                        <td><?php echo esc_html(isset($pkg->category_title) ? wp_unslash((string) $pkg->category_title) : '&ndash;'); ?></td>
                         <td><?php echo esc_html($pkg->valid_from); ?></td>
                         <td><?php echo esc_html($pkg->valid_to); ?></td>
                         <td>

@@ -44,15 +44,15 @@ $accordion_svg = '<path d="M20.8359 15.9141L21.9141 14.8359L12.5391 5.46094L12 4
                             <?php endif; ?>
                         </span>
                     <?php endif; ?>
-                    <span class="bird-packages__content__label"><?php echo esc_html(!empty($cat->subtitle) ? $cat->subtitle : strtoupper($cat->title)); ?></span>
+                    <span class="bird-packages__content__label"><?php echo esc_html(!empty($cat->subtitle) ? wp_unslash((string) $cat->subtitle) : strtoupper(wp_unslash((string) ($cat->title ?? '')))); ?></span>
                     <div class="bird-packages__content__title__tag">
-                        <h3 class="bird-packages__content__title"><?php echo esc_html($cat->title); ?></h3>
+                        <h3 class="bird-packages__content__title"><?php echo esc_html(wp_unslash((string) ($cat->title ?? ''))); ?></h3>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <?php echo $accordion_svg; ?>
                         </svg>
                     </div>
                     <div class="bird-packages__content__description-wrapper">
-                        <div class="bird-packages__content__description"><?php echo wp_kses_post(wpautop($cat->description ? $cat->description : '')); ?></div>
+                        <div class="bird-packages__content__description"><?php echo wp_kses_post(wpautop($cat->description ? wp_unslash((string) $cat->description) : '')); ?></div>
                     </div>
                     <div class="bys-packages">
                         <a href="<?php echo !empty($cat->view_package_url) ? esc_url($cat->view_package_url) : '#'; ?>"<?php echo !empty($cat->view_package_url) ? ' target="_blank" rel="noopener noreferrer"' : ''; ?> class="bys-package-button button--theme-2"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
