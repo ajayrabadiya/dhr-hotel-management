@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
 $plugin_url = isset($plugin_url) ? $plugin_url : DHR_HOTEL_PLUGIN_URL;
 $packages = isset($packages) ? $packages : array();
 $channel_id = (int) get_option('dhr_shr_channel_id', '30');
+$book_now_checkin = function_exists('wp_date') ? wp_date('Y-m-d') : date('Y-m-d', current_time('timestamp'));
+$book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time('timestamp') + 2 * DAY_IN_SECONDS) : date('Y-m-d', strtotime('+2 days', current_time('timestamp')));
 ?>
 
 <!-- Third Package Design (Kids) -->
@@ -69,7 +71,14 @@ $channel_id = (int) get_option('dhr_shr_channel_id', '30');
                                     </div>
                                 </div>
                                 <div class="package-overlay__btn-grp">
-                                    <a href="<?php echo esc_url($booking_url); ?>" class="bys-package-button button--theme-3"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
+                                    <a href="javascript:void(0)" class="bys-package-button button--theme-3 bys-book-now-link"
+                                        data-hotel-code="<?php echo esc_attr($pkg->hotel_code); ?>"
+                                        data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                                        data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
+                                        data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
+                                        data-adults="2"
+                                        data-children="0"
+                                        data-rooms="1"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
                                 </div>
                             </div>
                         </div>

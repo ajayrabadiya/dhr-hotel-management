@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
 $plugin_url = isset($plugin_url) ? $plugin_url : DHR_HOTEL_PLUGIN_URL;
 $packages = isset($packages) ? $packages : array();
 $channel_id = (int) get_option('dhr_shr_channel_id', '30');
+$book_now_checkin = function_exists('wp_date') ? wp_date('Y-m-d') : date('Y-m-d', current_time('timestamp'));
+$book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time('timestamp') + 2 * DAY_IN_SECONDS) : date('Y-m-d', strtotime('+2 days', current_time('timestamp')));
 ?>
 
 <!-- Fourth Package Design (Early Bird) -->
@@ -64,7 +66,14 @@ $channel_id = (int) get_option('dhr_shr_channel_id', '30');
                             <?php if ($short_desc) : ?><p class="package-overlay__description"><?php echo esc_html($short_desc); ?></p><?php endif; ?>
                             <?php if ($valid_text) : ?><span class="package-overlay__valid"><?php echo esc_html($valid_text); ?></span><?php endif; ?>
                         </div>
-                        <a href="<?php echo esc_url($booking_url); ?>" class="package-overlay__link">
+                        <a href="javascript:void(0)" class="package-overlay__link bys-book-now-link"
+                            data-hotel-code="<?php echo esc_attr($pkg->hotel_code); ?>"
+                            data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                            data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
+                            data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
+                            data-adults="2"
+                            data-children="0"
+                            data-rooms="1">
                             <?php esc_html_e('View Package', 'dhr-hotel-management'); ?>
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.67578 1.87305L5.04688 2.50195L9.54492 7L5.04688 11.498L5.67578 12.127L10.4883 7.31445L10.7891 7L10.4883 6.68555L5.67578 1.87305Z" fill="#EFF8FD" /><path d="M5.67578 1.87305L6.38289 1.16594L5.67578 0.458833L4.96867 1.16594L5.67578 1.87305Z" fill="#D3AA74" /></svg>
                         </a>
