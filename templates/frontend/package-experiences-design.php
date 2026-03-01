@@ -55,7 +55,7 @@ $accordion_svg = '<path d="M20.8359 15.9141L21.9141 14.8359L12.5391 5.46094L12 4
                         <div class="bird-packages__content__description"><?php echo wp_kses_post(wpautop($cat->description ? $cat->description : '')); ?></div>
                     </div>
                     <div class="bys-packages">
-                        <a href="#" class="bys-package-button button--theme-2"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
+                        <a href="<?php echo !empty($cat->view_package_url) ? esc_url($cat->view_package_url) : '#'; ?>"<?php echo !empty($cat->view_package_url) ? ' target="_blank" rel="noopener noreferrer"' : ''; ?> class="bys-package-button button--theme-2"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
                     </div>
                 </div>
                 <?php if (!$is_image_first) : ?>

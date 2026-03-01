@@ -12,6 +12,7 @@ $cat_subtitle = $is_edit ? (isset($category->subtitle) ? $category->subtitle : '
 $cat_description = $is_edit ? $category->description : '';
 $image_url = $is_edit ? $category->image_url : '';
 $icon_url = $is_edit ? $category->icon_url : '';
+$view_package_url = $is_edit ? (isset($category->view_package_url) ? $category->view_package_url : '') : '';
 $is_active = $is_edit ? (int) $category->is_active : 1;
 ?>
 <div class="wrap dhr-hotel-admin">
@@ -68,6 +69,13 @@ $is_active = $is_edit ? (int) $category->is_active : 1;
                             <img src="<?php echo esc_url($icon_url); ?>" alt="" style="max-width: 64px; max-height: 64px; border: 1px solid #ccc;">
                         <?php endif; ?>
                     </div>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="view_package_url"><?php _e('View Package Page URL', 'dhr-hotel-management'); ?></label></th>
+                <td>
+                    <input type="url" id="view_package_url" name="view_package_url" class="regular-text" value="<?php echo esc_attr($view_package_url); ?>" placeholder="<?php esc_attr_e('https://example.com/packages', 'dhr-hotel-management'); ?>">
+                    <p class="description"><?php _e('URL for the "View Package" button. Opens in a new tab on the frontend.', 'dhr-hotel-management'); ?></p>
                 </td>
             </tr>
             <tr>

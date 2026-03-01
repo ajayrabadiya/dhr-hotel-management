@@ -498,12 +498,13 @@ class DHR_Hotel_Admin {
         check_admin_referer('dhr_category_nonce');
         $id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
         $data = array(
-            'title'      => isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '',
-            'subtitle'   => isset($_POST['subtitle']) ? sanitize_text_field($_POST['subtitle']) : '',
-            'description' => isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '',
-            'image_url'  => isset($_POST['image_url']) ? esc_url_raw($_POST['image_url']) : '',
-            'icon_url'   => isset($_POST['icon_url']) ? esc_url_raw($_POST['icon_url']) : '',
-            'is_active'  => isset($_POST['is_active']) ? 1 : 0,
+            'title'            => isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '',
+            'subtitle'         => isset($_POST['subtitle']) ? sanitize_text_field($_POST['subtitle']) : '',
+            'description'      => isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '',
+            'image_url'        => isset($_POST['image_url']) ? esc_url_raw($_POST['image_url']) : '',
+            'icon_url'         => isset($_POST['icon_url']) ? esc_url_raw($_POST['icon_url']) : '',
+            'view_package_url' => isset($_POST['view_package_url']) ? esc_url_raw($_POST['view_package_url']) : '',
+            'is_active'        => isset($_POST['is_active']) ? 1 : 0,
         );
         if ($id > 0) {
             $result = DHR_Hotel_Database::update_category($id, $data);

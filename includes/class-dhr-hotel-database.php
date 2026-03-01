@@ -162,6 +162,7 @@ class DHR_Hotel_Database {
             icon_url varchar(500) DEFAULT NULL,
             icon_svg text DEFAULT NULL,
             icon_type varchar(20) DEFAULT 'url',
+            view_package_url varchar(500) DEFAULT NULL,
             is_active tinyint(1) NOT NULL DEFAULT 1,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             created_by bigint(20) DEFAULT NULL,
@@ -290,6 +291,9 @@ class DHR_Hotel_Database {
         }
         if (!in_array('icon_type', $existing, true)) {
             $wpdb->query("ALTER TABLE `$table_name` ADD COLUMN icon_type varchar(20) DEFAULT 'url' AFTER icon_svg");
+        }
+        if (!in_array('view_package_url', $existing, true)) {
+            $wpdb->query("ALTER TABLE `$table_name` ADD COLUMN view_package_url varchar(500) DEFAULT NULL AFTER icon_type");
         }
     }
 
@@ -879,16 +883,17 @@ class DHR_Hotel_Database {
         $table = $wpdb->prefix . 'dhr_categories';
         $user_id = get_current_user_id();
         $row = array(
-            'title'       => sanitize_text_field($data['title']),
-            'subtitle'    => sanitize_text_field(isset($data['subtitle']) ? $data['subtitle'] : ''),
-            'description' => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
-            'image_url'   => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
-            'icon_url'    => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
-            'is_active'   => isset($data['is_active']) ? (int) $data['is_active'] : 1,
-            'created_by'  => $user_id ? $user_id : null,
-            'updated_by'  => $user_id ? $user_id : null,
+            'title'             => sanitize_text_field($data['title']),
+            'subtitle'          => sanitize_text_field(isset($data['subtitle']) ? $data['subtitle'] : ''),
+            'description'       => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
+            'image_url'         => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
+            'icon_url'          => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
+            'view_package_url'  => esc_url_raw(isset($data['view_package_url']) ? $data['view_package_url'] : ''),
+            'is_active'         => isset($data['is_active']) ? (int) $data['is_active'] : 1,
+            'created_by'        => $user_id ? $user_id : null,
+            'updated_by'        => $user_id ? $user_id : null,
         );
-        $result = $wpdb->insert($table, $row, array('%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d'));
+        $result = $wpdb->insert($table, $row, array('%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d'));
         return $result !== false ? $wpdb->insert_id : false;
     }
 
@@ -897,15 +902,16 @@ class DHR_Hotel_Database {
         $table = $wpdb->prefix . 'dhr_categories';
         $user_id = get_current_user_id();
         $row = array(
-            'title'       => sanitize_text_field($data['title']),
-            'subtitle'    => sanitize_text_field(isset($data['subtitle']) ? $data['subtitle'] : ''),
-            'description' => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
-            'image_url'   => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
-            'icon_url'    => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
-            'is_active'   => isset($data['is_active']) ? (int) $data['is_active'] : 1,
-            'updated_by'  => $user_id ? $user_id : null,
+            'title'             => sanitize_text_field($data['title']),
+            'subtitle'          => sanitize_text_field(isset($data['subtitle']) ? $data['subtitle'] : ''),
+            'description'       => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
+            'image_url'         => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
+            'icon_url'          => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
+            'view_package_url'  => esc_url_raw(isset($data['view_package_url']) ? $data['view_package_url'] : ''),
+            'is_active'         => isset($data['is_active']) ? (int) $data['is_active'] : 1,
+            'updated_by'        => $user_id ? $user_id : null,
         );
-        return $wpdb->update($table, $row, array('id' => (int) $id), array('%s', '%s', '%s', '%s', '%s', '%d', '%d'), array('%d')) !== false;
+        return $wpdb->update($table, $row, array('id' => (int) $id), array('%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d'), array('%d')) !== false;
     }
 
     public static function delete_category($id) {
