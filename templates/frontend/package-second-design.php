@@ -1,8 +1,9 @@
 <?php
 /**
  * Second Package Design Template
- * Shortcode: [dhr_package_second_design]
- * Displays packages from database with same design (swiper).
+ * Shortcode: [dhr_packages categories="1,2,3,..." design="second_design"]
+ * Slider: use shortcode as-is. Grid: wrap in <div class="package-design-grid">[dhr_packages ...]</div>
+ * JS adds .bys-packages--grid when inside .package-design-grid; CSS styles grid via that nested class.
  */
 
 if (!defined('ABSPATH')) {
@@ -14,7 +15,7 @@ $packages = isset($packages) ? $packages : array();
 $channel_id = (int) get_option('dhr_shr_channel_id', '30');
 ?>
 
-<!-- Second Package Design -->
+<!-- Second Package Design (slider by default; grid when inside .package-design-grid) -->
 <div class="bys-packages">
     <div class="second-packages__design swiper package-swiper">
         <div class="swiper-wrapper">
@@ -104,32 +105,38 @@ $channel_id = (int) get_option('dhr_shr_channel_id', '30');
     </div>
 </div>
 
-<?php if (!empty($packages)) : ?>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var packageSwiper = new Swiper('.package-swiper', {
-            slidesPerView: 1,
-            spaceBetween: 15,
-            loop: false,
-            navigation: false,
-            autoplay: {
-                delay: 3000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-            },
-            speed: 1500,
-            pagination: {
-                el: '.second-package-pagination',
-                clickable: true,
-                bulletClass: 'package-swiper-pagination-bullet',
-                bulletActiveClass: 'package-swiper-pagination-bullet-active',
-            },
-            breakpoints: {
-                768: { slidesPerView: 2, spaceBetween: 20, pagination: false },
-                1024: { slidesPerView: 3, spaceBetween: 25, pagination: false },
-                1280: { slidesPerView: 3, spaceBetween: 32, pagination: false }
+        var containers = document.querySelectorAll('.bys-packages .package-swiper');
+        containers.forEach(function (el) {
+            var block = el.closest('.bys-packages');
+            if (block && block.closest('.package-design-grid')) {
+                block.classList.add('bys-packages--grid');
+                return;
             }
+            new Swiper(el, {
+                slidesPerView: 1,
+                spaceBetween: 15,
+                loop: false,
+                navigation: false,
+                autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                },
+                speed: 1500,
+                pagination: {
+                    el: block.querySelector('.second-package-pagination'),
+                    clickable: true,
+                    bulletClass: 'package-swiper-pagination-bullet',
+                    bulletActiveClass: 'package-swiper-pagination-bullet-active',
+                },
+                breakpoints: {
+                    768: { slidesPerView: 2, spaceBetween: 20, pagination: false },
+                    1024: { slidesPerView: 3, spaceBetween: 25, pagination: false },
+                    1280: { slidesPerView: 3, spaceBetween: 32, pagination: false }
+                }
+            });
         });
     });
 </script>
-<?php endif; ?>

@@ -582,6 +582,7 @@ class DHR_Hotel_Frontend {
     /**
      * Shortcode [dhr_packages]: category-wise package display.
      * Attributes: categories (comma-separated category IDs), design (first_design|second_design|kids_design|early_bird_design).
+     * For second_design grid: wrap shortcode in <div class="package-design-grid">...</div> (static class, no layout attribute).
      */
     public function display_packages_by_category($atts) {
         $atts = shortcode_atts(array(
