@@ -154,7 +154,7 @@ class DHR_Hotel_Frontend {
             ));
             wp_localize_script('dhr-hotel-frontend-script', 'dhrBookNow', array(
                 'ajaxUrl' => admin_url('admin-ajax.php'),
-                'nonce'   => wp_create_nonce('dhr_get_availability_booking_url'),
+                'nonce'   => wp_create_nonce('bys_booking_nonce'),
             ));
         }
     }

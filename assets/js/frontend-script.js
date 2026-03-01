@@ -1,7 +1,6 @@
 (function ($) {
     'use strict';
 
-    // Book Now: availability check then open Windsurfer booking URL (uses data-checkin / data-checkout from link)
     $(document).on('click', '.bys-book-now-link', function (e) {
         e.preventDefault();
         var $btn = $(this);
@@ -23,34 +22,37 @@
         var rooms = parseInt($btn.data('rooms'), 10) || 1;
         var adults = parseInt($btn.data('adults'), 10) || 2;
         var children = parseInt($btn.data('children'), 10) || 0;
-        var childAge = $btn.data('child-age');
-        if (childAge !== undefined && childAge !== '' && children <= 0) children = 1;
 
-        $btn.addClass('dhr-book-now-loading').prop('disabled', true);
-        $.post(dhrBookNow.ajaxUrl, {
-            action: 'dhr_get_availability_booking_url',
-            nonce: dhrBookNow.nonce,
-            hotel_code: hotelCode,
-            channel_id: parseInt($btn.data('channel-id'), 10) || 0,
-            check_in: checkIn,
-            check_out: checkOut,
-            rooms: rooms,
-            adults: adults,
-            child_age: children ? (childAge !== undefined && childAge !== '' ? childAge : '0') : ''
-        })
-            .done(function (res) {
-                if (res && res.success && res.url) {
-                    window.open(res.url, '_blank', 'noopener,noreferrer');
+        var originalText = $btn.text();
+        $btn.addClass('dhr-book-now-loading').prop('disabled', true).text('Loading...');
+
+        $.ajax({
+            url: dhrBookNow.ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'bys_generate_deep_link',
+                nonce: dhrBookNow.nonce,
+                checkin: checkIn,
+                checkout: checkOut,
+                adults: adults,
+                children: children,
+                rooms: rooms,
+                hotel_code: hotelCode,
+                property_id: $btn.data('property-id') || ''
+            },
+            success: function (res) {
+                if (res && res.success && res.data && res.data.link) {
+                    window.open(res.data.link, '_blank', 'noopener,noreferrer');
+                    $btn.removeClass('dhr-book-now-loading').prop('disabled', false).text(originalText);
                 } else {
-                    var msg = (res && res.errors && res.errors.length) ? res.errors.join('\n') : 'Unable to get booking link. Please try again.';
-                    alert(msg);
+                    alert('Error generating booking link. Please try again.');
+                    $btn.removeClass('dhr-book-now-loading').prop('disabled', false).text(originalText);
                 }
-            })
-            .fail(function () {
-                alert('We could not reach the booking service. Please try again.');
-            })
-            .always(function () {
-                $btn.removeClass('dhr-book-now-loading').prop('disabled', false);
-            });
+            },
+            error: function () {
+                alert('Error generating booking link. Please try again.');
+                $btn.removeClass('dhr-book-now-loading').prop('disabled', false).text(originalText);
+            }
+        });
     });
 })(jQuery);
