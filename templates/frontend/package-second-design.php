@@ -13,6 +13,8 @@ if (!defined('ABSPATH')) {
 $plugin_url = isset($plugin_url) ? $plugin_url : DHR_HOTEL_PLUGIN_URL;
 $packages = isset($packages) ? $packages : array();
 $channel_id = (int) get_option('dhr_shr_channel_id', '30');
+$book_now_checkin = function_exists('wp_date') ? wp_date('Y-m-d') : date('Y-m-d', current_time('timestamp'));
+$book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time('timestamp') + 2 * DAY_IN_SECONDS) : date('Y-m-d', strtotime('+2 days', current_time('timestamp')));
 ?>
 
 <!-- Second Package Design (slider by default; grid when inside .package-design-grid) -->
@@ -80,7 +82,14 @@ $channel_id = (int) get_option('dhr_shr_channel_id', '30');
                                         <p><?php echo esc_html($location_line); ?></p>
                                     </div>
                                     <div class="mobile-view-package-button">
-                                        <a href="<?php echo esc_url($booking_url); ?>" class="bys-package-button"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
+                                        <a href="javascript:void(0)" class="bys-package-button bys-book-now-link"
+                                            data-hotel-code="<?php echo esc_attr($pkg->hotel_code); ?>"
+                                            data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                                            data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
+                                            data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
+                                            data-adults="2"
+                                            data-children="0"
+                                            data-rooms="1"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
                                     </div>
                                 </div>
                             </div>
@@ -94,7 +103,14 @@ $channel_id = (int) get_option('dhr_shr_channel_id', '30');
                                 </ul>
                             </div>
                             <div class="package-content__divider"></div>
-                            <a href="<?php echo esc_url($booking_url); ?>" class="bys-package-button button--theme-2"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
+                            <a href="javascript:void(0)" class="bys-package-button button--theme-2 bys-book-now-link"
+                                data-hotel-code="<?php echo esc_attr($pkg->hotel_code); ?>"
+                                data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                                data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
+                                data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
+                                data-adults="2"
+                                data-children="0"
+                                data-rooms="1"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
                         </div>
                     </div>
                 </div>
