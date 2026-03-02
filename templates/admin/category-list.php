@@ -102,8 +102,8 @@ $category_list_shortcode = '[dhr_category_list]';
                                 <span style="color: #787c82;">&ndash;</span>
                             <?php endif; ?>
                         </td>
-                        <td><strong><?php echo esc_html($cat->title); ?></strong></td>
-                        <td><?php echo esc_html(wp_trim_words($cat->description, 10)); ?></td>
+                        <td><strong><?php echo esc_html(wp_unslash((string) ($cat->title ?? ''))); ?></strong></td>
+                        <td><?php echo esc_html(wp_trim_words(wp_unslash((string) ($cat->description ?? '')), 10)); ?></td>
                         <td>
                             <span class="status-badge status-<?php echo $cat->is_active ? 'active' : 'inactive'; ?>">
                                 <?php echo $cat->is_active ? __('Active', 'dhr-hotel-management') : __('Inactive', 'dhr-hotel-management'); ?>

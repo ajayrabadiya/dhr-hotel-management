@@ -39,7 +39,7 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
                     }
                     $hotel_name = $hotel && !empty($hotel->name) ? $hotel->name : $pkg->hotel_code;
                     $location_line = $hotel ? trim($hotel->city . ($hotel->province ? ' - ' . $hotel->province : '')) : '';
-                    $category_label = !empty($pkg->category_title) ? $pkg->category_title : __('Package Experience', 'dhr-hotel-management');
+                    $category_label = !empty($pkg->category_title) ? wp_unslash((string) $pkg->category_title) : __('Package Experience', 'dhr-hotel-management');
                     $booking_url = !empty($pkg->hotel_code) ? add_query_arg(array('hotel_code' => $pkg->hotel_code, 'channel_id' => $channel_id), home_url('/')) : '#';
                 ?>
                 <div class="swiper-slide">

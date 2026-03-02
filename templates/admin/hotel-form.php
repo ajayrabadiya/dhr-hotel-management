@@ -42,14 +42,14 @@ $title = $is_edit ? __('Edit Hotel', 'dhr-hotel-management') : __('Add New Hotel
                 <th><label for="name"><?php _e('Hotel Name', 'dhr-hotel-management'); ?> <span class="required">*</span></label></th>
                 <td>
                     <input type="text" id="name" name="name" class="regular-text" 
-                           value="<?php echo $is_edit ? esc_attr($hotel->name) : ''; ?>" required>
+                           value="<?php echo $is_edit ? esc_attr(wp_unslash((string) ($hotel->name ?? ''))) : ''; ?>" required>
                 </td>
             </tr>
             
             <tr>
                 <th><label for="description"><?php _e('Description', 'dhr-hotel-management'); ?></label></th>
                 <td>
-                    <textarea id="description" name="description" rows="5" class="large-text"><?php echo $is_edit ? esc_textarea($hotel->description) : ''; ?></textarea>
+                    <textarea id="description" name="description" rows="5" class="large-text"><?php echo $is_edit ? esc_textarea(wp_unslash((string) ($hotel->description ?? ''))) : ''; ?></textarea>
                 </td>
             </tr>
             
@@ -57,7 +57,7 @@ $title = $is_edit ? __('Edit Hotel', 'dhr-hotel-management') : __('Add New Hotel
                 <th><label for="address"><?php _e('Address', 'dhr-hotel-management'); ?> <span class="required">*</span></label></th>
                 <td>
                     <input type="text" id="address" name="address" class="regular-text" 
-                           value="<?php echo $is_edit ? esc_attr($hotel->address) : ''; ?>" required>
+                           value="<?php echo $is_edit ? esc_attr(wp_unslash((string) ($hotel->address ?? ''))) : ''; ?>" required>
                 </td>
             </tr>
             
@@ -65,7 +65,7 @@ $title = $is_edit ? __('Edit Hotel', 'dhr-hotel-management') : __('Add New Hotel
                 <th><label for="city"><?php _e('City', 'dhr-hotel-management'); ?> <span class="required">*</span></label></th>
                 <td>
                     <input type="text" id="city" name="city" class="regular-text" 
-                           value="<?php echo $is_edit ? esc_attr($hotel->city) : ''; ?>" required>
+                           value="<?php echo $is_edit ? esc_attr(wp_unslash((string) ($hotel->city ?? ''))) : ''; ?>" required>
                 </td>
             </tr>
             
@@ -73,7 +73,7 @@ $title = $is_edit ? __('Edit Hotel', 'dhr-hotel-management') : __('Add New Hotel
                 <th><label for="province"><?php _e('Province', 'dhr-hotel-management'); ?> <span class="required">*</span></label></th>
                 <td>
                     <input type="text" id="province" name="province" class="regular-text" 
-                           value="<?php echo $is_edit ? esc_attr($hotel->province) : ''; ?>" required>
+                           value="<?php echo $is_edit ? esc_attr(wp_unslash((string) ($hotel->province ?? ''))) : ''; ?>" required>
                 </td>
             </tr>
             
@@ -81,7 +81,7 @@ $title = $is_edit ? __('Edit Hotel', 'dhr-hotel-management') : __('Add New Hotel
                 <th><label for="country"><?php _e('Country', 'dhr-hotel-management'); ?></label></th>
                 <td>
                     <input type="text" id="country" name="country" class="regular-text" 
-                           value="<?php echo $is_edit ? esc_attr($hotel->country) : 'South Africa'; ?>">
+                           value="<?php echo $is_edit ? esc_attr(wp_unslash((string) ($hotel->country ?? 'South Africa'))) : 'South Africa'; ?>">
                 </td>
             </tr>
             

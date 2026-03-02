@@ -29,7 +29,7 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
                 $title = $details && !empty($details->name) ? $details->name : $pkg->package_code;
                 $short_desc = '';
                 if ($details && !empty($details->description)) {
-                    $short_desc = wp_trim_words(wp_strip_all_tags($details->description), 12);
+                    $short_desc = wp_trim_words(wp_strip_all_tags(wp_unslash((string) $details->description)), 12);
                 }
                 $img_url = $plugin_url . 'assets/images/package/2.png';
                 if ($details && !empty($details->images) && is_array($details->images)) {
@@ -40,7 +40,7 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
                         $img_url = esc_url($first->fileName);
                     }
                 }
-                $category_label = !empty($pkg->category_title) ? strtoupper($pkg->category_title) : __('PACKAGE', 'dhr-hotel-management');
+                $category_label = !empty($pkg->category_title) ? strtoupper(wp_unslash((string) $pkg->category_title)) : __('PACKAGE', 'dhr-hotel-management');
                 $valid_from_ts = !empty($pkg->valid_from) ? strtotime($pkg->valid_from) : null;
                 $valid_to_ts = !empty($pkg->valid_to) ? strtotime($pkg->valid_to) : null;
                 $valid_text = '';

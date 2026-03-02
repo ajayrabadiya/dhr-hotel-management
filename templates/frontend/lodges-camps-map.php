@@ -13,7 +13,7 @@ if (!empty($hotels)) {
     foreach ($hotels as $h) {
         $hid = (int) $h->id;
         $hotels_js[] = array(
-            'id' => $hid, 'name' => isset($h->name) ? $h->name : '', 'description' => isset($h->description) ? $h->description : '',
+            'id' => $hid, 'name' => isset($h->name) ? wp_unslash((string) $h->name) : '', 'description' => isset($h->description) ? wp_unslash((string) $h->description) : '',
             'address' => isset($h->address) ? $h->address : '', 'city' => isset($h->city) ? $h->city : '', 'province' => isset($h->province) ? $h->province : '',
             'country' => isset($h->country) ? $h->country : '', 'latitude' => isset($h->latitude) ? floatval($h->latitude) : 0, 'longitude' => isset($h->longitude) ? floatval($h->longitude) : 0,
             'phone' => isset($h->phone) ? $h->phone : '', 'email' => isset($h->email) ? $h->email : '', 'website' => isset($h->website) ? $h->website : '',

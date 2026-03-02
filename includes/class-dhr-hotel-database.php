@@ -567,21 +567,21 @@ class DHR_Hotel_Database {
         ));
 
         $row = array(
-            'hotel_code'      => sanitize_text_field((string) $data['hotel_code']),
-            'name'            => sanitize_text_field((string) $data['name']) ?: 'Hotel',
-            'description'     => sanitize_textarea_field((string) $data['description']),
-            'address'         => sanitize_text_field((string) $data['address']),
-            'city'            => sanitize_text_field((string) $data['city']),
-            'province'        => sanitize_text_field((string) $data['province']),
-            'country'         => sanitize_text_field((string) $data['country']) ?: 'South Africa',
-            'latitude'        => floatval($data['latitude']),
-            'longitude'       => floatval($data['longitude']),
-            'phone'           => sanitize_text_field((string) $data['phone']),
-            'email'           => sanitize_email((string) $data['email']),
-            'website'         => esc_url_raw((string) $data['website']) ?: '',
-            'image_url'       => esc_url_raw((string) $data['image_url']) ?: '',
-            'google_maps_url' => esc_url_raw((string) $data['google_maps_url']) ?: '',
-            'status'          => sanitize_text_field((string) $data['status']) ?: 'active',
+            'hotel_code'      => sanitize_text_field(wp_unslash((string) ($data['hotel_code'] ?? ''))),
+            'name'            => sanitize_text_field(wp_unslash((string) ($data['name'] ?? ''))) ?: 'Hotel',
+            'description'     => sanitize_textarea_field(wp_unslash((string) ($data['description'] ?? ''))),
+            'address'         => sanitize_text_field(wp_unslash((string) ($data['address'] ?? ''))),
+            'city'            => sanitize_text_field(wp_unslash((string) ($data['city'] ?? ''))),
+            'province'        => sanitize_text_field(wp_unslash((string) ($data['province'] ?? ''))),
+            'country'         => sanitize_text_field(wp_unslash((string) ($data['country'] ?? ''))) ?: 'South Africa',
+            'latitude'        => floatval($data['latitude'] ?? 0),
+            'longitude'       => floatval($data['longitude'] ?? 0),
+            'phone'           => sanitize_text_field(wp_unslash((string) ($data['phone'] ?? ''))),
+            'email'           => sanitize_email(wp_unslash((string) ($data['email'] ?? ''))),
+            'website'         => esc_url_raw((string) ($data['website'] ?? '')) ?: '',
+            'image_url'       => esc_url_raw((string) ($data['image_url'] ?? '')) ?: '',
+            'google_maps_url' => esc_url_raw((string) ($data['google_maps_url'] ?? '')) ?: '',
+            'status'          => sanitize_text_field(wp_unslash((string) ($data['status'] ?? ''))) ?: 'active',
         );
 
         $result = $wpdb->insert(
@@ -611,21 +611,21 @@ class DHR_Hotel_Database {
         ));
 
         $row = array(
-            'hotel_code'      => sanitize_text_field((string) $data['hotel_code']),
-            'name'            => sanitize_text_field((string) $data['name']) ?: 'Hotel',
-            'description'     => sanitize_textarea_field((string) $data['description']),
-            'address'         => sanitize_text_field((string) $data['address']),
-            'city'            => sanitize_text_field((string) $data['city']),
-            'province'        => sanitize_text_field((string) $data['province']),
-            'country'         => sanitize_text_field((string) $data['country']) ?: 'South Africa',
-            'latitude'        => floatval($data['latitude']),
-            'longitude'       => floatval($data['longitude']),
-            'phone'           => sanitize_text_field((string) $data['phone']),
-            'email'           => sanitize_email((string) $data['email']),
-            'website'         => esc_url_raw((string) $data['website']) ?: '',
-            'image_url'       => esc_url_raw((string) $data['image_url']) ?: '',
-            'google_maps_url' => esc_url_raw((string) $data['google_maps_url']) ?: '',
-            'status'          => sanitize_text_field((string) $data['status']) ?: 'active',
+            'hotel_code'      => sanitize_text_field(wp_unslash((string) ($data['hotel_code'] ?? ''))),
+            'name'            => sanitize_text_field(wp_unslash((string) ($data['name'] ?? ''))) ?: 'Hotel',
+            'description'     => sanitize_textarea_field(wp_unslash((string) ($data['description'] ?? ''))),
+            'address'         => sanitize_text_field(wp_unslash((string) ($data['address'] ?? ''))),
+            'city'            => sanitize_text_field(wp_unslash((string) ($data['city'] ?? ''))),
+            'province'        => sanitize_text_field(wp_unslash((string) ($data['province'] ?? ''))),
+            'country'         => sanitize_text_field(wp_unslash((string) ($data['country'] ?? ''))) ?: 'South Africa',
+            'latitude'        => floatval($data['latitude'] ?? 0),
+            'longitude'       => floatval($data['longitude'] ?? 0),
+            'phone'           => sanitize_text_field(wp_unslash((string) ($data['phone'] ?? ''))),
+            'email'           => sanitize_email(wp_unslash((string) ($data['email'] ?? ''))),
+            'website'         => esc_url_raw((string) ($data['website'] ?? '')) ?: '',
+            'image_url'       => esc_url_raw((string) ($data['image_url'] ?? '')) ?: '',
+            'google_maps_url' => esc_url_raw((string) ($data['google_maps_url'] ?? '')) ?: '',
+            'status'          => sanitize_text_field(wp_unslash((string) ($data['status'] ?? ''))) ?: 'active',
         );
 
         $result = $wpdb->update(
@@ -883,9 +883,9 @@ class DHR_Hotel_Database {
         $table = $wpdb->prefix . 'dhr_categories';
         $user_id = get_current_user_id();
         $row = array(
-            'title'             => sanitize_text_field($data['title']),
-            'subtitle'          => sanitize_text_field(isset($data['subtitle']) ? $data['subtitle'] : ''),
-            'description'       => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
+            'title'             => sanitize_text_field(wp_unslash(isset($data['title']) ? $data['title'] : '')),
+            'subtitle'          => sanitize_text_field(wp_unslash(isset($data['subtitle']) ? $data['subtitle'] : '')),
+            'description'       => sanitize_textarea_field(wp_unslash(isset($data['description']) ? $data['description'] : '')),
             'image_url'         => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
             'icon_url'          => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
             'view_package_url'  => esc_url_raw(isset($data['view_package_url']) ? $data['view_package_url'] : ''),
@@ -902,9 +902,9 @@ class DHR_Hotel_Database {
         $table = $wpdb->prefix . 'dhr_categories';
         $user_id = get_current_user_id();
         $row = array(
-            'title'             => sanitize_text_field($data['title']),
-            'subtitle'          => sanitize_text_field(isset($data['subtitle']) ? $data['subtitle'] : ''),
-            'description'       => sanitize_textarea_field(isset($data['description']) ? $data['description'] : ''),
+            'title'             => sanitize_text_field(wp_unslash(isset($data['title']) ? $data['title'] : '')),
+            'subtitle'          => sanitize_text_field(wp_unslash(isset($data['subtitle']) ? $data['subtitle'] : '')),
+            'description'       => sanitize_textarea_field(wp_unslash(isset($data['description']) ? $data['description'] : '')),
             'image_url'         => esc_url_raw(isset($data['image_url']) ? $data['image_url'] : ''),
             'icon_url'          => esc_url_raw(isset($data['icon_url']) ? $data['icon_url'] : ''),
             'view_package_url'  => esc_url_raw(isset($data['view_package_url']) ? $data['view_package_url'] : ''),

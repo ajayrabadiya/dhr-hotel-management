@@ -1,8 +1,9 @@
 <?php
 /**
  * Second Package Design Template
- * Shortcode: [dhr_package_second_design]
- * Displays packages from database with same design (swiper).
+ * Shortcode: [dhr_packages categories="1,2,3,..." design="second_design"]
+ * Slider: use shortcode as-is. Grid: wrap in <div class="package-design-grid">[dhr_packages ...]</div>
+ * JS adds .bys-packages--grid when inside .package-design-grid; CSS styles grid via that nested class.
  */
 
 if (!defined('ABSPATH')) {
@@ -16,7 +17,7 @@ $book_now_checkin = function_exists('wp_date') ? wp_date('Y-m-d') : date('Y-m-d'
 $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time('timestamp') + 2 * DAY_IN_SECONDS) : date('Y-m-d', strtotime('+2 days', current_time('timestamp')));
 ?>
 
-<!-- Second Package Design -->
+<!-- Second Package Design (slider by default; grid when inside .package-design-grid) -->
 <div class="bys-packages">
     <div class="second-packages__design swiper package-swiper">
         <div class="swiper-wrapper">
@@ -28,7 +29,7 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
                     $details = $item['details'];
                     $hotel = $item['hotel'];
                     $title = $details && !empty($details->name) ? $details->name : $pkg->package_code;
-                    $desc = $details && !empty($details->description) ? wp_kses_post($details->description) : '';
+                    $desc = $details && !empty($details->description) ? wp_kses_post(wp_unslash((string) $details->description)) : '';
                     $short_desc = $desc ? wp_trim_words(wp_strip_all_tags($desc), 25) : '';
                     $img_url = $plugin_url . 'assets/images/package/1.png';
                     if ($details && !empty($details->images) && is_array($details->images)) {
@@ -41,11 +42,11 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
                     }
                     $hotel_name = $hotel && !empty($hotel->name) ? $hotel->name : $pkg->hotel_code;
                     $location_line = $hotel ? trim($hotel->city . ($hotel->province ? ', ' . $hotel->province : '') . ($hotel->country ? ', ' . $hotel->country : '')) : '';
-                    $category_label = !empty($pkg->category_title) ? $pkg->category_title : __('Package Experience', 'dhr-hotel-management');
+                    $category_label = !empty($pkg->category_title) ? wp_unslash((string) $pkg->category_title) : __('Package Experience', 'dhr-hotel-management');
                     $booking_url = !empty($pkg->hotel_code) ? add_query_arg(array('hotel_code' => $pkg->hotel_code, 'channel_id' => $channel_id), home_url('/')) : '#';
                     $included_list = array();
                     if ($details && !empty($details->description)) {
-                        $text = wp_strip_all_tags($details->description);
+                        $text = wp_strip_all_tags(wp_unslash((string) $details->description));
                         $lines = preg_split('/\n|\r\n?|\.\s+/', $text, 5, PREG_SPLIT_NO_EMPTY);
                         $included_list = array_slice(array_filter(array_map('trim', $lines)), 0, 4);
                     }
@@ -80,16 +81,16 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
                                         <h6><?php echo esc_html($hotel_name); ?></h6>
                                         <p><?php echo esc_html($location_line); ?></p>
                                     </div>
-                                    <div class="mobile-view-package-button">
-                                        <a href="javascript:void(0)" class="bys-package-button bys-book-now-link"
-                                            data-hotel-code="<?php echo esc_attr($pkg->hotel_code); ?>"
-                                            data-channel-id="<?php echo esc_attr($channel_id); ?>"
-                                            data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
-                                            data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
-                                            data-adults="2"
-                                            data-children="0"
-                                            data-rooms="1"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
-                                    </div>
+                                </div>
+                                <div class="mobile-view-package-button">
+                                    <a href="javascript:void(0)" class="bys-package-button bys-book-now-link"
+                                        data-hotel-code="<?php echo esc_attr($pkg->hotel_code); ?>"
+                                        data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                                        data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
+                                        data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
+                                        data-adults="2"
+                                        data-children="0"
+                                        data-rooms="1"><?php esc_html_e('View Package', 'dhr-hotel-management'); ?></a>
                                 </div>
                             </div>
                         </div>
@@ -120,32 +121,38 @@ $book_now_checkout = function_exists('wp_date') ? wp_date('Y-m-d', current_time(
     </div>
 </div>
 
-<?php if (!empty($packages)) : ?>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var packageSwiper = new Swiper('.package-swiper', {
-            slidesPerView: 1,
-            spaceBetween: 15,
-            loop: false,
-            navigation: false,
-            autoplay: {
-                delay: 3000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-            },
-            speed: 1500,
-            pagination: {
-                el: '.second-package-pagination',
-                clickable: true,
-                bulletClass: 'package-swiper-pagination-bullet',
-                bulletActiveClass: 'package-swiper-pagination-bullet-active',
-            },
-            breakpoints: {
-                768: { slidesPerView: 2, spaceBetween: 20, pagination: false },
-                1024: { slidesPerView: 3, spaceBetween: 25, pagination: false },
-                1280: { slidesPerView: 3, spaceBetween: 32, pagination: false }
+        var containers = document.querySelectorAll('.bys-packages .package-swiper');
+        containers.forEach(function (el) {
+            var block = el.closest('.bys-packages');
+            if (block && block.closest('.package-design-grid')) {
+                block.classList.add('bys-packages--grid');
+                return;
             }
+            new Swiper(el, {
+                slidesPerView: 1,
+                spaceBetween: 15,
+                loop: false,
+                navigation: false,
+                autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                },
+                speed: 1500,
+                pagination: {
+                    el: block.querySelector('.second-package-pagination'),
+                    clickable: true,
+                    bulletClass: 'package-swiper-pagination-bullet',
+                    bulletActiveClass: 'package-swiper-pagination-bullet-active',
+                },
+                breakpoints: {
+                    768: { slidesPerView: 2, spaceBetween: 20, pagination: false },
+                    1024: { slidesPerView: 3, spaceBetween: 25, pagination: false },
+                    1280: { slidesPerView: 3, spaceBetween: 32, pagination: false }
+                }
+            });
         });
     });
 </script>
-<?php endif; ?>

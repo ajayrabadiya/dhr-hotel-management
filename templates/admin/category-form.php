@@ -7,9 +7,9 @@ if (!defined('ABSPATH')) {
 }
 $is_edit = $category !== null;
 $title = $is_edit ? __('Edit Category', 'dhr-hotel-management') : __('Add New Category', 'dhr-hotel-management');
-$cat_title = $is_edit ? $category->title : '';
-$cat_subtitle = $is_edit ? (isset($category->subtitle) ? $category->subtitle : '') : '';
-$cat_description = $is_edit ? $category->description : '';
+$cat_title = $is_edit ? wp_unslash((string) ($category->title ?? '')) : '';
+$cat_subtitle = $is_edit ? wp_unslash((string) ($category->subtitle ?? '')) : '';
+$cat_description = $is_edit ? wp_unslash((string) ($category->description ?? '')) : '';
 $image_url = $is_edit ? $category->image_url : '';
 $icon_url = $is_edit ? $category->icon_url : '';
 $view_package_url = $is_edit ? (isset($category->view_package_url) ? $category->view_package_url : '') : '';
