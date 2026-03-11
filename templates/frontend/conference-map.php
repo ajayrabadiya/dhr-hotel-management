@@ -523,7 +523,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
 
         function createNormalMarkerIcon() {
             // Create SVG for normal map marker - conference venue with 3 lighter shades
-            var svg = '<svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="13.068" cy="13.068" r="13.068" fill="#B5D4FF"/><circle opacity="0.3" cx="13.068" cy="13.0681" r="6.0984" fill="#8FB8FF"/><circle cx="13.068" cy="13.0681" r="6.0984" fill="#4B8BE5"/></svg>';
+            var svg = '<svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="13.068" cy="13.068" r="13.068" fill="#44B9F8"/><circle opacity="0.3" cx="13.068" cy="13.0681" r="6.0984" fill="#44B9F8"/><circle cx="13.068" cy="13.0681" r="6.0984" fill="#062943"/></svg>';
 
             return {
                 url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
@@ -534,7 +534,7 @@ var dhrConferenceMapHotels = <?php echo json_encode($hotels_js); ?>;
 
         function createActiveMarkerIcon() {
             // Create SVG for active map marker (more visible) - conference venue with 3 lighter shades
-            var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="28.314" cy="28.314" r="28.314" fill="#B5D4FF"/><circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#8FB8FF"/><circle cx="27.8784" cy="28.7498" r="6.0984" fill="#4B8BE5"/></svg>';
+            var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><circle opacity="0.1" cx="28.314" cy="28.314" r="28.314" fill="#44B9F8"/><circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#44B9F8"/><circle cx="27.8784" cy="28.7498" r="6.0984" fill="#062943"/></svg>';
 
             return {
                 url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
