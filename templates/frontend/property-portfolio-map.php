@@ -629,8 +629,6 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
             return (text || '').replace(/[&<>"']/g, function (m) { return entityMap[m]; });
         }
 
-
-
         // Initialize map when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function () {
