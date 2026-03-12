@@ -31,25 +31,95 @@ $plugin_url = plugin_dir_url(dirname(__FILE__, 2));
 if (!function_exists('get_amenity_icon')) {
 function get_amenity_icon($amenity_name)
 {
-    // Map amenity names to icon font classes
+    // Map amenity names to SVG icon image paths
+    $plugin_url = plugin_dir_url(dirname(__FILE__, 2));
+
     $icon_map = array(
-        'Shower' => 'fa-dhr-shower',
-        'Bidet' => 'fa-dhr-dish-washer',
-        'Bath Tub' => 'fa-dhr-bathtub',
-        'Bathrobes' => 'fa-dhr-bathroom',
-        'DSTV' => 'fa-dhr-dstv',
-        'Internet available' => 'fa-dhr-internet-available',
-        'Safe' => 'fa-dhr-safe',
-        'Air Conditioning' => 'fa-dhr-air-conditioning',
-        'Minibar' => 'fa-dhr-minibar',
-        'Balcony' => 'fa-dhr-balcony',
+        'Bathroom amenities' => 'assets/images/amenity-icon/bathroom/bathroom-amenities.svg',
+        'Bathtub Ensuite bath' => 'assets/images/amenity-icon/bathroom/bathtub-ensuite-bath.svg',
+        'Hairdryer in room' => 'assets/images/amenity-icon/bathroom/hairdryer-in-room.svg',
+        'Shower' => 'assets/images/amenity-icon/bathroom/shower.svg',
+
+        'Telephone' => 'assets/images/amenity-icon/communication-telephone/telephone.svg',
+
+        'Private Pool' => 'assets/images/amenity-icon/fitness-health/private-pool.svg',
+
+        'Double bed' => 'assets/images/amenity-icon/general/double-bed.svg',
+        'King bed' => 'assets/images/amenity-icon/general/king-bed.svg',
+        'Queen bed' => 'assets/images/amenity-icon/general/queen-bed.svg',
+        'Single bed' => 'assets/images/amenity-icon/general/single-bed.svg',
+        'Terrace' => 'assets/images/amenity-icon/general/terrace.svg',
+        'Twin bed' => 'assets/images/amenity-icon/general/twin-bed.svg',
+
+        'Wheelchair access - Handicap facilities' => 'assets/images/amenity-icon/handicap-facilities/wheelchair-access-handicap-facilities.svg',
+
+        'Bottled Water' => 'assets/images/amenity-icon/kitchen-dining/bottled-water.svg',
+        'Coffee Maker' => 'assets/images/amenity-icon/kitchen-dining/coffee-maker.svg',
+        'Cups glasses' => 'assets/images/amenity-icon/kitchen-dining/cups-glasses.svg',
+        'Desk' => 'assets/images/amenity-icon/kitchen-dining/desk.svg',
+        'Dishes - plates' => 'assets/images/amenity-icon/kitchen-dining/dishes-plates.svg',
+        'Dishwasher' => 'assets/images/amenity-icon/kitchen-dining/dishwasher.svg',
+        'Kitchen' => 'assets/images/amenity-icon/kitchen-dining/kitchen.svg',
+        'Kitchenette' => 'assets/images/amenity-icon/kitchen-dining/kitchenette.svg',
+        'Microwave' => 'assets/images/amenity-icon/kitchen-dining/microwave.svg',
+        'Oven' => 'assets/images/amenity-icon/kitchen-dining/oven.svg',
+        'Posts - pans' => 'assets/images/amenity-icon/kitchen-dining/posts-pans.svg',
+        'Refrigeration' => 'assets/images/amenity-icon/kitchen-dining/refrigeration.svg',
+        'Silverware' => 'assets/images/amenity-icon/kitchen-dining/silverware.svg',
+        'Stove' => 'assets/images/amenity-icon/kitchen-dining/stove.svg',
+        'Table - chairs' => 'assets/images/amenity-icon/kitchen-dining/table-chairs.svg',
+
+        'Air conditioner' => 'assets/images/amenity-icon/room-type/air-conditioner.svg',
+        'Balcony' => 'assets/images/amenity-icon/room-type/balcony.svg',
+        'Ceiling fan' => 'assets/images/amenity-icon/room-type/ceiling-fan.svg',
+        'Childrens Suite' => 'assets/images/amenity-icon/room-type/childrens-suite.svg',
+        'Cribs' => 'assets/images/amenity-icon/room-type/cribs.svg',
+        'Fireplace' => 'assets/images/amenity-icon/room-type/fireplace.svg',
+        'Iron' => 'assets/images/amenity-icon/room-type/iron.svg',
+        'Ironing board' => 'assets/images/amenity-icon/room-type/ironing-board.svg',
+        'Loft' => 'assets/images/amenity-icon/room-type/loft.svg',
+        'Minibar' => 'assets/images/amenity-icon/room-type/minibar.svg',
+        'Plush bathrobes' => 'assets/images/amenity-icon/room-type/plush-bathrobes.svg',
+        'Plush slippers' => 'assets/images/amenity-icon/room-type/plush-slippers.svg',
+        'Plush towels' => 'assets/images/amenity-icon/room-type/plush-towels.svg',
+        'Private Patio' => 'assets/images/amenity-icon/room-type/private-patio.svg',
+        'Safe' => 'assets/images/amenity-icon/room-type/safe.svg',
+        'Sitting area' => 'assets/images/amenity-icon/room-type/sitting-area.svg',
+        'Sofa bed' => 'assets/images/amenity-icon/room-type/sofa-bed.svg',
+        'Solid wood writing desk and chair' => 'assets/images/amenity-icon/room-type/solid-wood-writing-desk-and-chair.svg',
+        'Washer - dryer' => 'assets/images/amenity-icon/room-type/washer-dryer.svg',
+
+        'DVD' => 'assets/images/amenity-icon/technology/dvd.svg',
+        'Internet access - complimentary' => 'assets/images/amenity-icon/technology/internet-access-complimentary.svg',
+        'Satellite TV' => 'assets/images/amenity-icon/technology/satellite-tb.svg',
+        'TV' => 'assets/images/amenity-icon/technology/tv.svg',
+
+        'Checkmark' => 'assets/images/amenity-icon/generic-icon/checkmark.svg',
+        
+
+
+        'Shower'             => 'assets/images/amenity-icon/bathroom/shower.svg',
+        'Bidet'              => 'assets/images/amenity-icon/bathroom/bathroom-amenities.svg',
+        'Bath Tub'           => 'assets/images/amenity-icon/bathroom/bathtub-ensuite-bath.svg',
+        'Bathrobes'          => 'assets/images/amenity-icon/room-type/plush-bathrobes.svg',
+        'DSTV'               => 'assets/images/amenity-icon/technology/tv.svg',
+        'Internet available' => 'assets/images/amenity-icon/technology/internet-access-complimentary.svg',
+        'Safe'               => 'assets/images/amenity-icon/room-type/safe.svg',
+        'Air Conditioning'   => 'assets/images/amenity-icon/room-type/air-conditioner.svg',
+        'Minibar'            => 'assets/images/amenity-icon/room-type/minibar.svg',
+        'Balcony'            => 'assets/images/amenity-icon/room-type/balcony.svg',
+        'Hairdryer In Room'  => 'assets/images/amenity-icon/bathroom/hairdryer-in-room.svg',
+        'Toilet'             => 'assets/images/amenity-icon/fitness-health/private-pool.svg',
+        'Bathroom Private'   => 'assets/images/amenity-icon/fitness-health/private-pool.svg',
     );
 
-    $icon_class = isset($icon_map[$amenity_name])
-        ? $icon_map[$amenity_name]
-        : 'fa-dhr-air-conditioning';
+    if (!isset($icon_map[$amenity_name])) {
+        return '';
+    }
 
-    return '<i aria-hidden="true" class="' . esc_attr($icon_class) . '"></i>';
+    $src = $plugin_url . $icon_map[$amenity_name];
+
+    return '<img aria-hidden="true" class="bys-amenity-icon-img" src="' . esc_url($src) . '" alt="' . esc_attr($amenity_name) . '">';
 }
 }
 
@@ -412,11 +482,11 @@ function dhr_format_room_price($amount) {
             loop: false,
             navigation: false,
             autoplay: {
-                delay: 3000,
+                delay: 4000,
                 disableOnInteraction: false,
                 pauseOnMouseEnter: true,
             },
-            speed: 1500,
+            speed: 2000,
             pagination: {
                 el: '.package-swiper-pagination',
                 clickable: true,
@@ -451,11 +521,11 @@ function dhr_format_room_price($amount) {
             loop: false,
             navigation: false,
             autoplay: {
-                delay: 3000,
+                delay: 4000,
                 disableOnInteraction: false,
                 pauseOnMouseEnter: true,
             },
-            speed: 1500,
+            speed: 2000,
             pagination: {
                 el: '.package-swiper-pagination',
                 clickable: true,
@@ -489,13 +559,13 @@ function dhr_format_room_price($amount) {
             new Swiper(sliderEl, {
                 slidesPerView: 1,
                 loop: true,
-                spaceBetween: 0,
+                spaceBetween: 10,
                 autoplay: {
-                    delay: 3000,
+                    delay: 1500,
                     disableOnInteraction: false,
                     pauseOnMouseEnter: true,
                 },
-                speed: 800,
+                speed: 1500,
                 pagination: paginationEl ? {
                     el: paginationEl,
                     clickable: true,

@@ -1537,6 +1537,7 @@ div:focus-visible {
 }
 
 @media (max-width: 768px) {
+
     .wtfu-map-container .map-phone,
     .wtfu-map-container .map-phone span,
     .wtfu-map-container .map-phone a {
@@ -1844,6 +1845,7 @@ div:focus-visible {
     column-gap: 15px;
     justify-content: start;
     max-height: 70px;
+    min-height: 65px;
     overflow: hidden;
     position: relative;
     transition: height 0.4s ease-in-out;
@@ -1866,6 +1868,13 @@ div:focus-visible {
 .bys-hotel-rooms .bys-amenity-icon {
     font-size: 30px;
     color: #D3AA74;
+}
+
+.bys-hotel-rooms .bys-amenity-icon img {
+    max-height: 20px;
+    height: auto;
+    max-width: 20px;
+    width: auto;
 }
 
 .bys-hotel-rooms .bys-amenity-icon [class^="fa-dhr-"]:before,
@@ -3278,4 +3287,49 @@ div:focus-visible {
     .bys-hotel-rooms-second .bys-hotel-room-grid {
         grid-template-columns: repeat(1, 1fr);
     }
+}
+
+.bys-room-image-pagination {
+    position: absolute;
+    width: 100% !important;
+    bottom: 15px !important;
+    z-index: 2;
+    top: unset;
+    display: flex;
+    justify-content: center;
+}
+
+@media (max-width: 767px) {
+    .bys-room-image-pagination {
+        bottom: 25px !important;
+        padding-left: 25px;
+        justify-content: flex-start;
+    }
+}
+
+.bys-room-image-pagination .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    opacity: 0.7;
+    background: #fff;
+    margin: 0 4px !important;
+}
+
+@media (max-width: 767px) {
+    .bys-room-image-pagination .swiper-pagination-bullet {
+        width: 7.5px;
+        height: 7.5px;
+        opacity: 1;
+    }
+}
+
+@media (max-width: 420px) {
+    .bys-room-image-pagination .swiper-pagination-bullet {
+        margin: 0 3px !important;
+    }
+}
+
+.bys-room-image-pagination .swiper-pagination-bullet.swiper-pagination-bullet-active {
+    background-color: #D3AA74;
+    opacity: 1;
 }
