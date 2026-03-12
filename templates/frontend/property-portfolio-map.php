@@ -520,34 +520,36 @@ $panel_title = isset($settings['panel_title']) ? $settings['panel_title'] : 'Own
         }
 
         function createNormalMarkerIcon(number) {
-            // Create SVG for normal map marker with number - outer 2 circles with lighter shades
-            var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+            // Create SVG for normal map marker with number - outer 2 circles; inner number box r=18 gives 2px padding so number is properly centered
+            var cx = 27.8784, cy = 28.7498;
+            var svg = '<svg width="51.3" height="51.3" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">' +
                 '<circle opacity="0.5" cx="28.314" cy="28.314" r="28.314" fill="#B8E3FF"/>' +
-                '<circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#7BC9FF"/>' +
-                '<circle cx="27.8784" cy="28.7498" r="20" fill="#062943"/>' +
-                '<text x="27.8784" y="28.7498" font-family="Arial, sans-serif" font-size="16" font-weight="400" fill="#fafafa" text-anchor="middle" dominant-baseline="middle" style="line-height:1;">' + number + '</text>' +
+                '<circle opacity="0.3" cx="' + cx + '" cy="28.7496" r="20.9088" fill="#7BC9FF"/>' +
+                '<circle cx="' + cx + '" cy="' + cy + '" r="18" fill="#062943"/>' +
+                '<text x="' + cx + '" y="' + cy + '" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#fafafa" text-anchor="middle" dominant-baseline="central" alignment-baseline="middle" dy="1">' + number + '</text>' +
                 '</svg>';
 
             return {
                 url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-                scaledSize: new google.maps.Size(57, 57),
-                anchor: new google.maps.Point(27.8784, 28.7498)
+                scaledSize: new google.maps.Size(51.3, 51.3),
+                anchor: new google.maps.Point(25.09056, 25.87482)
             };
         }
 
         function createActiveMarkerIcon(number) {
-            // Active marker: same numbered circle as normal; pulse overlay shows active state
-            var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+            // Active marker: same numbered circle as normal; pulse overlay shows active state; inner number box r=18 gives 2px padding
+            var cx = 27.8784, cy = 28.7498;
+            var svg = '<svg width="51.3" height="51.3" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">' +
                 '<circle opacity="0.5" cx="28.314" cy="28.314" r="28.314" fill="#B8E3FF"/>' +
-                '<circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="#7BC9FF"/>' +
-                '<circle cx="27.8784" cy="28.7498" r="20" fill="#062943"/>' +
-                '<text x="27.8784" y="28.7498" font-family="Arial, sans-serif" font-size="16" font-weight="400" fill="#fafafa" text-anchor="middle" dominant-baseline="middle" style="line-height:1;">' + number + '</text>' +
+                '<circle opacity="0.3" cx="' + cx + '" cy="28.7496" r="20.9088" fill="#7BC9FF"/>' +
+                '<circle cx="' + cx + '" cy="' + cy + '" r="18" fill="#062943"/>' +
+                '<text x="' + cx + '" y="' + cy + '" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#fafafa" text-anchor="middle" dominant-baseline="central" alignment-baseline="middle" dy="1">' + number + '</text>' +
                 '</svg>';
 
             return {
                 url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-                scaledSize: new google.maps.Size(57, 57),
-                anchor: new google.maps.Point(27.8784, 28.7498)
+                scaledSize: new google.maps.Size(51.3, 51.3),
+                anchor: new google.maps.Point(25.09056, 25.87482)
             };
         }
 
