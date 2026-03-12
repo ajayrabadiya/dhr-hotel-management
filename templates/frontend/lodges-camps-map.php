@@ -420,20 +420,26 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
 
             var isLodge = !!hotel.is_lodge;
 
-            // Create normal marker icon (blue for lodges, orange for weddings)
+            // Create number for marker (01, 02, 03, etc.) - number appears on hover/active
+            var number = (index + 1).toString().padStart(2, '0');
+
+            // Normal state: pin without number (number appears on hover)
             var normalIcon = createNormalMarkerIcon(isLodge);
 
-            // Create marker
+            // Create marker (zIndex by index so active can be raised on top)
             var marker = new google.maps.Marker({
                 position: position,
                 map: map,
                 title: hotel.name,
                 icon: normalIcon,
+                zIndex: index,
                 animation: index === 0 ? google.maps.Animation.DROP : null
             });
 
-            // Store marker type
+            // Store marker type and number for hover/active icons
             marker.isLodge = isLodge;
+            marker.markerNumber = number;
+            marker.hotelId = hotel.id;
 
             // Create info window content
             var infoWindowContent = getInfoWindowContent(hotel);
@@ -449,20 +455,27 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
                 setAllMarkersToNormal();
             });
 
-            // Add hover listeners for pulse effect
+            // Add hover listeners: show number on hover + pulse effect
             marker.addListener('mouseover', function () {
                 hoveredMarker = marker;
-                // Only start pulse if not already active
                 if (activeMarker !== marker) {
+                    // Bring hovered marker to front so numbered pin is not hidden
+                    marker.setZIndex(500);
+                    // Show numbered pin on hover
+                    var hoverIcon = createHoverMarkerIcon(marker.markerNumber, marker.isLodge);
+                    marker.setIcon(hoverIcon);
                     startPulse(marker, false);
                 }
             });
 
             marker.addListener('mouseout', function () {
                 hoveredMarker = null;
-                // Only stop pulse if not active
                 if (activeMarker !== marker) {
                     stopPulse(marker);
+                    // Back to pin without number and restore zIndex
+                    var normalIcon = createNormalMarkerIcon(marker.isLodge);
+                    marker.setIcon(normalIcon);
+                    marker.setZIndex(markers.find(function (m) { return m.marker === marker; }).index);
                 }
             });
 
@@ -523,7 +536,7 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
         }
 
         function createNormalMarkerIcon(isLodge) {
-            // Create SVG for normal map marker - outer 2 circles with lighter shades
+            // Default state: pin without number (number appears on hover) - outer 2 circles, no text
             // Blue (#44B9F8) for lodges, Orange (#D3AA74) for weddings
             var lightestShade = isLodge ? '#B8E3FF' : '#F0D9B8';
             var mediumShade = isLodge ? '#7BC9FF' : '#E4C49A';
@@ -539,20 +552,41 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
             };
         }
 
-        function createActiveMarkerIcon(isLodge) {
-            // Create SVG for active map marker (more visible) - outer 2 circles with lighter shades
-            // Blue (#44B9F8) for lodges, Orange (#D3AA74) for weddings
+        // Numbered pin for hover - same structure as property-portfolio-map (outer 2 circles; inner number box r=18)
+        function createHoverMarkerIcon(number, isLodge) {
+            var cx = 27.8784, cy = 28.7498;
             var lightestShade = isLodge ? '#B8E3FF' : '#F0D9B8';
             var mediumShade = isLodge ? '#7BC9FF' : '#E4C49A';
-            var svg = '<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-                '<circle opacity="0.1" cx="28.314" cy="28.314" r="28.314" fill="' + lightestShade + '"/>' +
-                '<circle opacity="0.3" cx="27.8784" cy="28.7496" r="20.9088" fill="' + mediumShade + '"/>' +
-                '<circle cx="27.8784" cy="28.7498" r="6.0984" fill="#062943"/></svg>';
+            var svg = '<svg width="51.3" height="51.3" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+                '<circle opacity="0.5" cx="28.314" cy="28.314" r="28.314" fill="' + lightestShade + '"/>' +
+                '<circle opacity="0.3" cx="' + cx + '" cy="28.7496" r="20.9088" fill="' + mediumShade + '"/>' +
+                '<circle cx="' + cx + '" cy="' + cy + '" r="18" fill="#062943"/>' +
+                '<text x="' + cx + '" y="' + cy + '" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#fafafa" text-anchor="middle" dominant-baseline="central" alignment-baseline="middle" dy="1">' + number + '</text>' +
+                '</svg>';
 
             return {
                 url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-                scaledSize: new google.maps.Size(57, 57),
-                anchor: new google.maps.Point(27.8784, 28.7498)
+                scaledSize: new google.maps.Size(51.3, 51.3),
+                anchor: new google.maps.Point(25.09056, 25.87482)
+            };
+        }
+
+        // Numbered pin for active (clicked) - same as property-portfolio-map
+        function createActiveMarkerIcon(number, isLodge) {
+            var cx = 27.8784, cy = 28.7498;
+            var lightestShade = isLodge ? '#B8E3FF' : '#F0D9B8';
+            var mediumShade = isLodge ? '#7BC9FF' : '#E4C49A';
+            var svg = '<svg width="51.3" height="51.3" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+                '<circle opacity="0.5" cx="28.314" cy="28.314" r="28.314" fill="' + lightestShade + '"/>' +
+                '<circle opacity="0.3" cx="' + cx + '" cy="28.7496" r="20.9088" fill="' + mediumShade + '"/>' +
+                '<circle cx="' + cx + '" cy="' + cy + '" r="18" fill="#062943"/>' +
+                '<text x="' + cx + '" y="' + cy + '" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#fafafa" text-anchor="middle" dominant-baseline="central" alignment-baseline="middle" dy="1">' + number + '</text>' +
+                '</svg>';
+
+            return {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+                scaledSize: new google.maps.Size(51.3, 51.3),
+                anchor: new google.maps.Point(25.09056, 25.87482)
             };
         }
 
@@ -587,24 +621,27 @@ $show_list = isset($settings['show_list']) ? $settings['show_list'] : true;
 
         function setAllMarkersToNormal() {
             markers.forEach(function (markerData) {
-                // Stop pulse for all markers
                 stopPulse(markerData.marker);
-                // Set icon back to normal
+                // Back to pin without number and restore zIndex
                 var normalIcon = createNormalMarkerIcon(markerData.marker.isLodge);
                 markerData.marker.setIcon(normalIcon);
+                markerData.marker.setZIndex(markerData.index);
             });
             activeMarker = null;
             hoveredMarker = null;
         }
 
         function setMarkerToActive(marker) {
-            // Stop pulse first
             stopPulse(marker);
 
-            var activeIcon = createActiveMarkerIcon(marker.isLodge);
+            // Bring active marker to front so it is not hidden by nearby normal points
+            marker.setZIndex(1000);
+
+            // Active: show numbered pin (same style as property-portfolio-map)
+            var number = marker.markerNumber || '01';
+            var activeIcon = createActiveMarkerIcon(number, marker.isLodge);
             marker.setIcon(activeIcon);
 
-            // Start pulse for active marker
             activeMarker = marker;
             hoveredMarker = null;
             startPulse(marker, true);
