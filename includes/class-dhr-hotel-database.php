@@ -19,26 +19,27 @@ class DHR_Hotel_Database {
         $charset_collate = $wpdb->get_charset_collate();
         
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
-            id int(11) NOT NULL AUTO_INCREMENT,
-            hotel_code varchar(50) DEFAULT NULL,
-            name varchar(255) NOT NULL,
-            description text,
-            address varchar(500) NOT NULL,
-            city varchar(100) NOT NULL,
-            province varchar(100) NOT NULL,
-            country varchar(100) DEFAULT 'South Africa',
-            latitude decimal(10, 8) NOT NULL,
-            longitude decimal(11, 8) NOT NULL,
-            phone varchar(50),
-            email varchar(255),
-            website varchar(255),
-            image_url varchar(500),
-            google_maps_url varchar(500),
-            status varchar(20) DEFAULT 'active',
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY hotel_code (hotel_code)
+        id int(11) NOT NULL AUTO_INCREMENT,
+        hotel_code varchar(50) DEFAULT NULL,
+        name varchar(255) NOT NULL,
+        description text,
+        address varchar(500) NOT NULL,
+        city varchar(100) NOT NULL,
+        province varchar(100) NOT NULL,
+        country varchar(100) DEFAULT 'South Africa',
+        latitude decimal(10, 8) NOT NULL,
+        longitude decimal(11, 8) NOT NULL,
+        phone varchar(50),
+        email varchar(255),
+        website varchar(255),
+        image_url varchar(500),
+        logo_url varchar(500),
+        google_maps_url varchar(500),
+        status varchar(20) DEFAULT 'active',
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY hotel_code (hotel_code)
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -253,7 +254,8 @@ class DHR_Hotel_Database {
             'email'           => "ADD COLUMN email varchar(255) DEFAULT NULL AFTER phone",
             'website'         => "ADD COLUMN website varchar(255) DEFAULT NULL AFTER email",
             'image_url'       => "ADD COLUMN image_url varchar(500) DEFAULT NULL AFTER website",
-            'google_maps_url' => "ADD COLUMN google_maps_url varchar(500) DEFAULT NULL AFTER image_url",
+            'logo_url'        => "ADD COLUMN logo_url varchar(500) DEFAULT NULL AFTER image_url",
+            'google_maps_url' => "ADD COLUMN google_maps_url varchar(500) DEFAULT NULL AFTER logo_url",
             'status'          => "ADD COLUMN status varchar(20) DEFAULT 'active' AFTER google_maps_url",
             'created_at'      => "ADD COLUMN created_at datetime DEFAULT CURRENT_TIMESTAMP AFTER status",
             'updated_at'      => "ADD COLUMN updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at",
@@ -562,6 +564,7 @@ class DHR_Hotel_Database {
             'email'           => '',
             'website'         => '',
             'image_url'       => '',
+            'logo_url'        => '',
             'google_maps_url' => '',
             'status'          => 'active',
         ));
@@ -580,6 +583,7 @@ class DHR_Hotel_Database {
             'email'           => sanitize_email(wp_unslash((string) ($data['email'] ?? ''))),
             'website'         => esc_url_raw((string) ($data['website'] ?? '')) ?: '',
             'image_url'       => esc_url_raw((string) ($data['image_url'] ?? '')) ?: '',
+            'logo_url'        => esc_url_raw((string) ($data['logo_url'] ?? '')) ?: '',
             'google_maps_url' => esc_url_raw((string) ($data['google_maps_url'] ?? '')) ?: '',
             'status'          => sanitize_text_field(wp_unslash((string) ($data['status'] ?? ''))) ?: 'active',
         );
@@ -587,7 +591,7 @@ class DHR_Hotel_Database {
         $result = $wpdb->insert(
             $table_name,
             $row,
-            array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s')
+            array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
         );
 
         if ($result === false && defined('WP_DEBUG') && WP_DEBUG && $wpdb->last_error) {
@@ -607,7 +611,7 @@ class DHR_Hotel_Database {
         $data = wp_parse_args($data, array(
             'hotel_code' => '', 'name' => '', 'description' => '', 'address' => '', 'city' => '', 'province' => '',
             'country' => 'South Africa', 'latitude' => 0, 'longitude' => 0, 'phone' => '', 'email' => '',
-            'website' => '', 'image_url' => '', 'google_maps_url' => '', 'status' => 'active',
+            'website' => '', 'image_url' => '', 'logo_url' => '', 'google_maps_url' => '', 'status' => 'active',
         ));
 
         $row = array(
@@ -624,6 +628,7 @@ class DHR_Hotel_Database {
             'email'           => sanitize_email(wp_unslash((string) ($data['email'] ?? ''))),
             'website'         => esc_url_raw((string) ($data['website'] ?? '')) ?: '',
             'image_url'       => esc_url_raw((string) ($data['image_url'] ?? '')) ?: '',
+            'logo_url'        => esc_url_raw((string) ($data['logo_url'] ?? '')) ?: '',
             'google_maps_url' => esc_url_raw((string) ($data['google_maps_url'] ?? '')) ?: '',
             'status'          => sanitize_text_field(wp_unslash((string) ($data['status'] ?? ''))) ?: 'active',
         );
@@ -632,7 +637,7 @@ class DHR_Hotel_Database {
             $table_name,
             $row,
             array('id' => intval($id)),
-            array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s'),
+            array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s'),
             array('%d')
         );
 

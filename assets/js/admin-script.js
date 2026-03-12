@@ -7,11 +7,10 @@
     
     $(document).ready(function() {
         
-        // Image upload functionality
+        // Image upload functionality (main image)
         $('#upload-image-btn').on('click', function(e) {
             e.preventDefault();
-            
-            var button = $(this);
+
             var fileFrame = wp.media({
                 title: 'Select Hotel Image',
                 button: {
@@ -19,12 +18,32 @@
                 },
                 multiple: false
             });
-            
+
             fileFrame.on('select', function() {
                 var attachment = fileFrame.state().get('selection').first().toJSON();
                 $('#image_url').val(attachment.url);
             });
-            
+
+            fileFrame.open();
+        });
+
+        // Logo upload functionality (small logo)
+        $('#upload-logo-btn').on('click', function(e) {
+            e.preventDefault();
+
+            var fileFrame = wp.media({
+                title: 'Select Hotel Logo',
+                button: {
+                    text: 'Use this logo'
+                },
+                multiple: false
+            });
+
+            fileFrame.on('select', function() {
+                var attachment = fileFrame.state().get('selection').first().toJSON();
+                $('#logo_url').val(attachment.url);
+            });
+
             fileFrame.open();
         });
         

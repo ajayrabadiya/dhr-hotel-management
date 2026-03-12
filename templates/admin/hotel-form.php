@@ -127,11 +127,44 @@ $title = $is_edit ? __('Edit Hotel', 'dhr-hotel-management') : __('Add New Hotel
             </tr>
             
             <tr>
-                <th><label for="image_url"><?php _e('Image URL', 'dhr-hotel-management'); ?></label></th>
+                <th>
+                    <label for="image_url">
+                        <?php _e('Hotel Image (main photo)', 'dhr-hotel-management'); ?>
+                    </label>
+                </th>
                 <td>
-                    <input type="url" id="image_url" name="image_url" class="regular-text" 
+                    <input type="url"
+                           id="image_url"
+                           name="image_url"
+                           class="regular-text"
                            value="<?php echo $is_edit ? esc_attr($hotel->image_url) : ''; ?>">
-                    <button type="button" class="button" id="upload-image-btn"><?php _e('Upload Image', 'dhr-hotel-management'); ?></button>
+                    <button type="button" class="button" id="upload-image-btn">
+                        <?php _e('Upload Image', 'dhr-hotel-management'); ?>
+                    </button>
+                    <p class="description">
+                        <?php _e('Used as the large photo/background for this hotel (cards, panels, etc.).', 'dhr-hotel-management'); ?>
+                    </p>
+                </td>
+            </tr>
+
+            <tr>
+                <th>
+                    <label for="logo_url">
+                        <?php _e('Hotel Logo (small)', 'dhr-hotel-management'); ?>
+                    </label>
+                </th>
+                <td>
+                    <input type="url"
+                           id="logo_url"
+                           name="logo_url"
+                           class="regular-text"
+                           value="<?php echo $is_edit && !empty($hotel->logo_url) ? esc_attr($hotel->logo_url) : ''; ?>">
+                    <button type="button" class="button" id="upload-logo-btn">
+                        <?php _e('Upload Logo', 'dhr-hotel-management'); ?>
+                    </button>
+                    <p class="description">
+                        <?php _e('Used as the small logo on maps (for example, in the Where To Find Us logos bar). If empty, the main image may be used instead.', 'dhr-hotel-management'); ?>
+                    </p>
                 </td>
             </tr>
             

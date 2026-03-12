@@ -46,6 +46,7 @@ if (!empty($hotels) && is_array($hotels)) {
             'longitude'   => isset($h->longitude) ? floatval($h->longitude) : 0,
             'phone'       => isset($h->phone) ? $h->phone : '',
             'image_url'   => isset($h->image_url) ? $h->image_url : '',
+            'logo_url'    => isset($h->logo_url) ? $h->logo_url : '',
             'google_maps_url' => isset($h->google_maps_url) ? $h->google_maps_url : '',
             'hotel_code'  => isset($h->hotel_code) ? $h->hotel_code : '',
         );
@@ -186,6 +187,35 @@ $book_now_text = !empty($enquire_text) ? $enquire_text : 'Book Now';
                         </svg>
                         Google Maps
                     </a>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($hotels) && is_array($hotels)): ?>
+                <div class="wtfu-hotel-logos">
+                    <?php foreach ($hotels as $h): ?>
+                        <?php
+                        $logo = '';
+                        if (isset($h->logo_url) && !empty($h->logo_url)) {
+                            $logo = $h->logo_url;
+                        } elseif (isset($h->image_url) && !empty($h->image_url)) {
+                            $logo = $h->image_url;
+                        }
+                        if (empty($logo)) {
+                            continue;
+                        }
+                        $hid = isset($h->id) ? (int) $h->id : 0;
+                        if ($hid <= 0) {
+                            continue;
+                        }
+                        ?>
+                        <button type="button"
+                                class="wtfu-hotel-logo-item"
+                                data-hotel-id="<?php echo esc_attr($hid); ?>"
+                                aria-label="<?php echo esc_attr($h->name); ?>">
+                            <img src="<?php echo esc_url($logo); ?>"
+                                 alt="<?php echo esc_attr($h->name); ?>">
+                        </button>
+                    <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </div>
