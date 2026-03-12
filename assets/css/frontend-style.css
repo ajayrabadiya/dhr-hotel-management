@@ -1584,6 +1584,7 @@ div:focus-visible {
 }
 
 .wtfu-map-container .wtfu-info-content__left {
+    position: relative;
     width: 100%;
     height: 100%;
     display: flex;
@@ -1594,6 +1595,17 @@ div:focus-visible {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+}
+
+.wtfu-map-container .wtfu-info-content__left::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background-color: rgba(0, 0, 0, 0.35);
+    z-index: 0;
 }
 
 @media (max-width: 768px) {
@@ -1614,6 +1626,13 @@ div:focus-visible {
     max-height: 164px;
     object-fit: contain;
     object-position: center;
+    z-index: 1;
+}
+
+@media (max-width: 480px) {
+    .wtfu-map-container .wtfu-info__logo {
+        width: 190px;
+    }
 }
 
 .wtfu-map-container .wtfu-info__enq-btn {
@@ -1632,6 +1651,7 @@ div:focus-visible {
     transition: all .25s ease-in-out;
     border-radius: 4px;
     text-decoration: none;
+    z-index: 1;
 }
 
 
