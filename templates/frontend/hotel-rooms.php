@@ -143,14 +143,22 @@ function dhr_format_room_price($amount) {
                     <span class="bys-room-price"></span>
 
                     <?php if ($has_images): ?>
-                        <div class="bys-room-image">
-                            <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>"
-                                loading="lazy">
+                        <div class="bys-room-image bys-room-image-slider swiper">
+                            <div class="swiper-wrapper">
+                                <?php foreach ($room_images as $image_url): ?>
+                                    <div class="swiper-slide">
+                                        <img src="<?php echo esc_url($image_url); ?>"
+                                            alt="<?php echo esc_attr($room->room_type_name); ?>"
+                                            loading="lazy">
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
                             <div class="bys-room-price-badge">
                                 <span class="bys-price-label">FROM</span>
                                 <span class="bys-price-amount">R<?php echo esc_html(dhr_format_room_price($room_price)); ?></span>
                                 <span class="bys-price-period">/ NIGHT</span>
                             </div>
+                            <div class="bys-room-image-pagination"></div>
                         </div>
                     <?php else: ?>
                         <div class="bys-room-image bys-room-image-placeholder">
@@ -241,14 +249,22 @@ function dhr_format_room_price($amount) {
                             <span class="bys-room-price"></span>
             
                             <?php if ($has_images): ?>
-                                <div class="bys-room-image">
-                                    <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($room->room_type_name); ?>"
-                                        loading="lazy">
+                                <div class="bys-room-image bys-room-image-slider swiper">
+                                    <div class="swiper-wrapper">
+                                        <?php foreach ($room_images as $image_url): ?>
+                                            <div class="swiper-slide">
+                                                <img src="<?php echo esc_url($image_url); ?>"
+                                                    alt="<?php echo esc_attr($room->room_type_name); ?>"
+                                                    loading="lazy">
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
                                     <div class="bys-room-price-badge">
                                         <span class="bys-price-label">FROM</span>
                                         <span class="bys-price-amount">R<?php echo esc_html(dhr_format_room_price($room_price)); ?></span>
                                         <span class="bys-price-period">/ NIGHT</span>
                                     </div>
+                                    <div class="bys-room-image-pagination"></div>
                                 </div>
                             <?php else: ?>
                                 <div class="bys-room-image bys-room-image-placeholder">
@@ -335,8 +351,27 @@ function dhr_format_room_price($amount) {
                     $room_price = isset($room->from_price) ? (int) $room->from_price : 0;
                 ?>
                 <div class="swiper-slide">
-                    <div class="bys-hotel-room-card">
-                        <div class="bys-hotel-room-card__frature-img" style="background-image: url('<?php echo esc_url($first_image); ?>')"></div>
+                        <div class="bys-hotel-room-card">
+                        <div class="bys-hotel-room-card__frature-img bys-room-image-slider swiper">
+                            <div class="swiper-wrapper">
+                                <?php if (!empty($room_images)): ?>
+                                    <?php foreach ($room_images as $image_url): ?>
+                                        <div class="swiper-slide">
+                                            <img src="<?php echo esc_url($image_url); ?>"
+                                                alt="<?php echo esc_attr($room->room_type_name); ?>"
+                                                loading="lazy">
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="swiper-slide">
+                                        <img src="<?php echo esc_url($first_image); ?>"
+                                            alt="<?php echo esc_attr($room->room_type_name); ?>"
+                                            loading="lazy">
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="bys-room-image-pagination"></div>
+                        </div>
                         <div class="bys-hotel__content">
                             <div class="card__top-badge">
                                 <p class="package-overlay__tag">
@@ -444,6 +479,28 @@ function dhr_format_room_price($amount) {
                     pagination: false
                 }
             }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.bys-room-image-slider').forEach(function (sliderEl) {
+            var paginationEl = sliderEl.querySelector('.bys-room-image-pagination');
+
+            new Swiper(sliderEl, {
+                slidesPerView: 1,
+                loop: true,
+                spaceBetween: 0,
+                autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                },
+                speed: 800,
+                pagination: paginationEl ? {
+                    el: paginationEl,
+                    clickable: true,
+                } : false,
+            });
         });
     });
 </script>
