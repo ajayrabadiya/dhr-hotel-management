@@ -45,6 +45,7 @@ function get_amenity_icon($amenity_name)
         'Private Pool' => 'assets/images/amenity-icon/fitness-health/private-pool.svg',
 
         'Double bed' => 'assets/images/amenity-icon/general/double-bed.svg',
+        'Double Bed' => 'assets/images/amenity-icon/general/double-bed.svg',
         'King bed' => 'assets/images/amenity-icon/general/king-bed.svg',
         'Queen bed' => 'assets/images/amenity-icon/general/queen-bed.svg',
         'Single bed' => 'assets/images/amenity-icon/general/single-bed.svg',
@@ -90,7 +91,8 @@ function get_amenity_icon($amenity_name)
         'Washer - dryer' => 'assets/images/amenity-icon/room-type/washer-dryer.svg',
 
         'DVD' => 'assets/images/amenity-icon/technology/dvd.svg',
-        'Internet access - complimentary' => 'assets/images/amenity-icon/technology/internet-access-complimentary.svg',
+        'Internet Access - Complimentary' => 'assets/images/amenity-icon/technology/internet-access-complimentary.svg',
+        'Internet Access - Wireless' => 'assets/images/amenity-icon/technology/internet-access-complimentary.svg',
         'Satellite TV' => 'assets/images/amenity-icon/technology/satellite-tb.svg',
         'TV' => 'assets/images/amenity-icon/technology/tv.svg',
 
@@ -243,37 +245,39 @@ function dhr_format_room_price($amount) {
                     <?php endif; ?>
 
                     <div class="bys-room-content">
-                        <h3 class="bys-room-title"><?php echo esc_html($room->room_type_name); ?></h3>
-
-                        <?php if ($room->max_occupancy): ?>
-                            <div class="bys-room-specs">
-                                <span class="bys-room-specs-line"><?php echo esc_html($room->max_occupancy); ?>
-                                    <?php echo $room->max_occupancy == 1 ? __('Guest', 'dhr-hotel-management') : __('Guests', 'dhr-hotel-management'); ?></span>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if ($show_amenities && !empty($room_amenities)): ?>
-                            <ul class="bys-room-amenities">
-                                <?php foreach ($room_amenities as $amenity):
-                                    $amenity_name = isset($amenity['name']) ? $amenity['name'] : (is_string($amenity) ? $amenity : '');
-                                    if (empty($amenity_name))
-                                        continue;
-                                ?>
-                                    <li class="bys-room-amenity-item">
-                                        <span class="bys-amenity-icon">
-                                            <?php echo get_amenity_icon($amenity_name); ?>
-                                        </span>
-                                        <span class="bys-amenity-text"><?php echo esc_html($amenity_name); ?></span>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        <?php endif; ?>
-
-                        <?php if ($show_description): ?>
-                            <div class="bys-room-description">
-                                <?php echo esc_html(format_room_description($room)); ?>
-                            </div>
-                        <?php endif; ?>
+                        <div>
+                            <h3 class="bys-room-title"><?php echo esc_html($room->room_type_name); ?></h3>
+    
+                            <?php if ($room->max_occupancy): ?>
+                                <div class="bys-room-specs">
+                                    <span class="bys-room-specs-line"><?php echo esc_html($room->max_occupancy); ?>
+                                        <?php echo $room->max_occupancy == 1 ? __('Guest', 'dhr-hotel-management') : __('Guests', 'dhr-hotel-management'); ?></span>
+                                </div>
+                            <?php endif; ?>
+    
+                            <?php if ($show_amenities && !empty($room_amenities)): ?>
+                                <ul class="bys-room-amenities">
+                                    <?php foreach ($room_amenities as $amenity):
+                                        $amenity_name = isset($amenity['name']) ? $amenity['name'] : (is_string($amenity) ? $amenity : '');
+                                        if (empty($amenity_name))
+                                            continue;
+                                    ?>
+                                        <li class="bys-room-amenity-item">
+                                            <span class="bys-amenity-icon">
+                                                <?php echo get_amenity_icon($amenity_name); ?>
+                                            </span>
+                                            <span class="bys-amenity-text"><?php echo esc_html($amenity_name); ?></span>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
+    
+                            <?php if ($show_description): ?>
+                                <div class="bys-room-description">
+                                    <?php echo esc_html(format_room_description($room)); ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
 
                         <div class="bys-room-actions">
                             <a href="javascript:void(0)" class="bys-book-now-link" data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
@@ -349,38 +353,39 @@ function dhr_format_room_price($amount) {
                             <?php endif; ?>
             
                             <div class="bys-room-content">
-                                <h3 class="bys-room-title"><?php echo esc_html($room->room_type_name); ?></h3>
-            
-                                <?php if ($room->max_occupancy): ?>
-                                    <div class="bys-room-specs">
-                                        <span class="bys-room-specs-line"><?php echo esc_html($room->max_occupancy); ?>
-                                            <?php echo $room->max_occupancy == 1 ? __('Guest', 'dhr-hotel-management') : __('Guests', 'dhr-hotel-management'); ?></span>
-                                    </div>
-                                <?php endif; ?>
-            
-                                <?php if ($show_amenities && !empty($room_amenities)): ?>
-                                    <ul class="bys-room-amenities">
-                                        <?php foreach ($room_amenities as $amenity):
-                                            $amenity_name = isset($amenity['name']) ? $amenity['name'] : (is_string($amenity) ? $amenity : '');
-                                            if (empty($amenity_name))
-                                                continue;
-                                        ?>
-                                            <li class="bys-room-amenity-item">
-                                                <span class="bys-amenity-icon">
-                                                    <?php echo get_amenity_icon($amenity_name); ?>
-                                                </span>
-                                                <span class="bys-amenity-text"><?php echo esc_html($amenity_name); ?></span>
-                                            </li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                <?php endif; ?>
-            
-                                <?php if ($show_description): ?>
-                                    <div class="bys-room-description">
-                                        <?php echo esc_html(format_room_description($room)); ?>
-                                    </div>
-                                <?php endif; ?>
-            
+                                <div>
+                                    <h3 class="bys-room-title"><?php echo esc_html($room->room_type_name); ?></h3>
+                
+                                    <?php if ($room->max_occupancy): ?>
+                                        <div class="bys-room-specs">
+                                            <span class="bys-room-specs-line"><?php echo esc_html($room->max_occupancy); ?>
+                                                <?php echo $room->max_occupancy == 1 ? __('Guest', 'dhr-hotel-management') : __('Guests', 'dhr-hotel-management'); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                
+                                    <?php if ($show_amenities && !empty($room_amenities)): ?>
+                                        <ul class="bys-room-amenities">
+                                            <?php foreach ($room_amenities as $amenity):
+                                                $amenity_name = isset($amenity['name']) ? $amenity['name'] : (is_string($amenity) ? $amenity : '');
+                                                if (empty($amenity_name))
+                                                    continue;
+                                            ?>
+                                                <li class="bys-room-amenity-item">
+                                                    <span class="bys-amenity-icon">
+                                                        <?php echo get_amenity_icon($amenity_name); ?>
+                                                    </span>
+                                                    <span class="bys-amenity-text"><?php echo esc_html($amenity_name); ?></span>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
+                
+                                    <?php if ($show_description): ?>
+                                        <div class="bys-room-description">
+                                            <?php echo esc_html(format_room_description($room)); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="bys-room-actions bys-packages">
                                     <a href="javascript:void(0)" class="bys-package-button button--theme-3" data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
                                         data-hotel-code="<?php echo esc_attr($hotel_code); ?>" data-channel-id="<?php echo esc_attr($channel_id); ?>"
@@ -413,65 +418,62 @@ function dhr_format_room_price($amount) {
 
 <?php if ($layout === 'cards'): ?>
     <div class="bys-hotel-rooms-second">
-        <div class="bys-hotel-room-design swiper hotel-rooms-swiper">
-            <div class="swiper-wrapper">
-                <?php foreach ($rooms as $room):
-                    $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
-                    $first_image = !empty($room_images) ? $room_images[0] : $plugin_url . 'assets/images/package/2.png';
-                    $room_price = isset($room->from_price) ? (int) $room->from_price : 0;
-                ?>
-                <div class="swiper-slide">
-                        <div class="bys-hotel-room-card">
-                        <div class="bys-hotel-room-card__frature-img bys-room-image-slider swiper">
-                            <div class="swiper-wrapper">
-                                <?php if (!empty($room_images)): ?>
-                                    <?php foreach ($room_images as $image_url): ?>
-                                        <div class="swiper-slide">
-                                            <img src="<?php echo esc_url($image_url); ?>"
-                                                alt="<?php echo esc_attr($room->room_type_name); ?>"
-                                                loading="lazy">
-                                        </div>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
+        <div class="bys-hotel-room-grid">
+            <?php foreach ($rooms as $room):
+                $room_images = !empty($room->images) && is_array($room->images) ? $room->images : array();
+                $first_image = !empty($room_images) ? $room_images[0] : $plugin_url . 'assets/images/package/2.png';
+                $room_price = isset($room->from_price) ? (int) $room->from_price : 0;
+            ?>
+                <div class="bys-hotel-room-card">
+                    <div class="bys-hotel-room-card__frature-img bys-room-image-slider swiper">
+                        <div class="swiper-wrapper">
+                            <?php if (!empty($room_images)): ?>
+                                <?php foreach ($room_images as $image_url): ?>
                                     <div class="swiper-slide">
-                                        <img src="<?php echo esc_url($first_image); ?>"
+                                        <img src="<?php echo esc_url($image_url); ?>"
                                             alt="<?php echo esc_attr($room->room_type_name); ?>"
                                             loading="lazy">
                                     </div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="bys-room-image-pagination"></div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="swiper-slide">
+                                    <img src="<?php echo esc_url($first_image); ?>"
+                                        alt="<?php echo esc_attr($room->room_type_name); ?>"
+                                        loading="lazy">
+                                </div>
+                            <?php endif; ?>
                         </div>
-                        <div class="bys-hotel__content">
-                            <div class="card__top-badge">
-                                <p class="package-overlay__tag">
-                                    <?php echo esc_html(sprintf(__('From R%s/Night', 'dhr-hotel-management'), dhr_format_room_price($room_price))); ?>
-                                </p>
+                        <div class="bys-room-image-pagination"></div>
+                    </div>
+                    <div class="bys-hotel__content">
+                        <div class="card__top-badge">
+                            <p class="package-overlay__tag">
+                                <?php echo esc_html(sprintf(__('From R%s/Night', 'dhr-hotel-management'), dhr_format_room_price($room_price))); ?>
+                            </p>
+                        </div>
+                        <div class="bys-hotel-overlay__content">
+                            <div class="bys-hotel-overlay__content__inner">
+                                <h3 class="bys-hotel-overlay__main-title"><?php echo esc_html($room->room_type_name); ?></h3>
                             </div>
-                            <div class="bys-hotel-overlay__content">
-                                <div class="bys-hotel-overlay__content__inner">
-                                    <h3 class="bys-hotel-overlay__main-title"><?php echo esc_html($room->room_type_name); ?></h3>
-                                </div>
-                                <div class="bys-hotel-btn-grp">
-                                    <a href="#" class="bys-hotel-btn button-light bys-book-now-link"
-                                        data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
-                                        data-hotel-code="<?php echo esc_attr($hotel_code); ?>"
-                                        data-channel-id="<?php echo esc_attr($channel_id); ?>"
-                                        data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
-                                        data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
-                                        data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>"
-                                        data-children="0"
-                                        data-rooms="1"><?php _e('Book Now', 'dhr-hotel-management'); ?></a>
-                                    <a href="#" class="bys-hotel-btn button-dark"><?php _e('View Room', 'dhr-hotel-management'); ?></a>
-                                </div>
+                            <div class="bys-hotel-btn-grp">
+                                <a href="#" class="bys-hotel-btn button-light bys-book-now-link"
+                                    data-room-code="<?php echo esc_attr($room->room_type_code); ?>"
+                                    data-hotel-code="<?php echo esc_attr($hotel_code); ?>"
+                                    data-channel-id="<?php echo esc_attr($channel_id); ?>"
+                                    data-checkin="<?php echo esc_attr($book_now_checkin); ?>"
+                                    data-checkout="<?php echo esc_attr($book_now_checkout); ?>"
+                                    data-adults="<?php echo esc_attr($room->max_occupancy ?: 2); ?>"
+                                    data-children="0"
+                                    data-rooms="1"><?php _e('Book Now', 'dhr-hotel-management'); ?></a>
+                                <a href="#" class="bys-hotel-btn button-dark"><?php _e('View Room', 'dhr-hotel-management'); ?></a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <?php endforeach; ?>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
+    
 <?php endif; ?>
 
 <script>
@@ -558,13 +560,13 @@ function dhr_format_room_price($amount) {
 
             new Swiper(sliderEl, {
                 slidesPerView: 1,
-                loop: true,
+                // loop: true,
                 spaceBetween: 10,
-                autoplay: {
-                    delay: 1500,
-                    disableOnInteraction: false,
-                    pauseOnMouseEnter: true,
-                },
+                // autoplay: {
+                //     delay: 1500,
+                //     disableOnInteraction: false,
+                //     pauseOnMouseEnter: true,
+                // },
                 speed: 1500,
                 pagination: paginationEl ? {
                     el: paginationEl,
