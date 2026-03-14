@@ -2180,7 +2180,7 @@ div:focus-visible {
     right: 0;
     top: 0;
     bottom: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 36.52%, rgba(0, 0, 0, 0.67) 79.04%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 15.52%, rgba(0, 0, 0, 0.67) 65.04%);
     transition: all .25s ease-in-out;
     z-index: -1;
 }
@@ -2245,7 +2245,7 @@ div:focus-visible {
 }
 
 .bys-packages .package-overlay__description {
-    font-size: 18px;
+    font-size: 12px;
     font-weight: 400;
     line-height: 140%;
     color: #FFFFFF;
@@ -2659,8 +2659,8 @@ div:focus-visible {
     position: absolute;
     top: 0;
     right: 0;
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     z-index: 5;
     background-size: contain;
     background-repeat: no-repeat;
@@ -2668,11 +2668,17 @@ div:focus-visible {
 
 @media (max-width: 767px) {
     .bys-packages .bird-packages-card__premium-img {
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
     }
 }
 
+@media (max-width: 420px) {
+    .bys-packages .bird-packages-card__premium-img {
+        width: 60px;
+        height: 60px;
+    }
+}
 
 .bys-packages .bird-packages-card:hover .bys-packages-card__frature-img {
     transform: scale(1.1);
@@ -2732,11 +2738,11 @@ div:focus-visible {
 }
 
 @media (max-width: 767px) {
-    .bird-packages-card .card__top-badge {
+    /* .bird-packages-card .card__top-badge {
         position: relative;
         left: -40px;
         top: -37px;
-    }
+    } */
 
     .bird-packages-card .card__top-badge .package-overlay__tag {
         font-size: 10px !important;
@@ -2761,7 +2767,7 @@ div:focus-visible {
     right: 0;
     top: 0;
     bottom: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 38.14%, rgba(0, 0, 0, 0.67) 83.57%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 15.14%, rgba(0, 0, 0, 0.67) 65.57%);
     transition: all .25s ease-in-out;
     z-index: 0;
 }
@@ -3232,7 +3238,6 @@ div:focus-visible {
     pointer-events: none;
 }
 
-/* Option 2: If .bys-hotel__content is anywhere inside .bys-hotel-room-card */
 .bys-hotel-rooms-second .bys-hotel-room-card:hover .bys-hotel__content::before {
     transform: scale(1.1);
     opacity: 1;
