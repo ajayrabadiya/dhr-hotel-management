@@ -3167,6 +3167,13 @@ div:focus-visible {
     padding: 40px;
 }
 
+@media (max-width: 767px) {
+    .bys-hotel-rooms-second .bys-hotel-room-card {
+        height: 400px;
+        padding: 30px;
+    }
+}
+
 .bys-hotel-rooms-second .bys-hotel-room-card:after {
     content: '';
     position: absolute;
