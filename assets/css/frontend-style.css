@@ -3315,8 +3315,21 @@ div:focus-visible {
     text-align: center;
 }
 
+@media (max-width: 767px) {
+    .bys-hotel-btn-grp .bys-hotel-btn {
+        padding: 7.5px 20px;
+    }
+}
+
+.bys-hotel-btn-grp .bys-hotel-btn {
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    line-height: 24px !important;
+    text-decoration: unset !important;
+}
+
 .bys-hotel-btn-grp .button-dark {
-    background-color: #062943 !important;
+    background-color: #1c1e1f !important;
     color: #ffffff;
 }
 
